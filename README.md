@@ -18,6 +18,10 @@ A simple page for building customer success plans as you learn about an account.
 
 Sections marked with the small folded-page icon follow the pattern in Barry's 2027 model plan.
 
+## Putting it on your phone's home screen
+
+Open the page on your phone. On iPhone, tap **Share, then Add to Home Screen**. On Android, tap the menu, then **Add to Home screen**. It shows up as the FactorLab circle, named "Success Plans", and opens in your browser so it sees the same saved plans.
+
 ## Where your plans are saved
 
 **Plans are saved in your browser, not on GitHub.** That keeps customer details out of this public repo.
