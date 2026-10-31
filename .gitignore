@@ -1,0 +1,8 @@
+# Exported success plans hold customer details. Keep them out of this public repo.
+*-success-plan.json
+plans/
+*.plan.json
+
+# OS clutter
+.DS_Store
+Thumbs.db

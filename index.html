@@ -1,0 +1,1313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Success Plan Builder</title>
+<style>
+/* =========================================================
+   Success Plan Builder
+   One file, no build step, no outside libraries.
+   Plans save in this browser (localStorage) and export as JSON.
+   ========================================================= */
+:root {
+  --ink: #1c2433;
+  --muted: #5d6677;
+  --faint: #8a93a3;
+  --line: #d5dbe3;
+  --soft: #f4f6f9;
+  --bg: #fbfbfc;
+  --navy: #1f3a5f;
+  --navy-soft: #e8eef6;
+  --amber: #d9771f;
+  --amber-soft: #fcefe2;
+  --green: #2e7d4f;
+  --green-soft: #e5f3ea;
+  --red: #b3412e;
+  --radius: 10px;
+  --font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: var(--font); color: var(--ink); background: var(--bg); font-size: 14px; line-height: 1.45; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--navy); }
+
+/* ---------- Top bar ---------- */
+.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 10px 18px; background: #fff; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; font-size: 15px; white-space: nowrap; }
+.brand span { color: var(--amber); }
+.plan-picker { min-width: 200px; max-width: 280px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.spacer { flex: 1; }
+.saved { font-size: 12px; color: var(--faint); white-space: nowrap; }
+.btn { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; white-space: nowrap; }
+.btn:hover { background: var(--soft); }
+.btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+.btn.primary:hover { background: #18304f; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { background: var(--soft); color: var(--ink); }
+.btn.small { padding: 3px 9px; font-size: 12px; }
+.btn.danger { color: var(--red); }
+.menu { position: relative; }
+.menu-list { display: none; position: absolute; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(20,30,50,.12); min-width: 200px; padding: 6px; z-index: 30; }
+.menu.open .menu-list { display: block; }
+.menu-list button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 6px; font-size: 13px; }
+.menu-list button:hover { background: var(--soft); }
+.menu-list hr { border: 0; border-top: 1px solid var(--line); margin: 6px 0; }
+.banner { display: none; background: var(--amber-soft); color: var(--ink); padding: 8px 18px; font-size: 13px; border-bottom: 1px solid #f2d6b8; }
+.banner.show { display: block; }
+
+/* ---------- Layout ---------- */
+.app { display: grid; grid-template-columns: 240px minmax(0, 1fr) 440px; min-height: calc(100vh - 53px); }
+.nav { border-right: 1px solid var(--line); background: #fff; padding: 14px 10px 40px; position: sticky; top: 53px; height: calc(100vh - 53px); overflow-y: auto; }
+.work { padding: 22px 28px 80px; min-width: 0; }
+.side { border-left: 1px solid var(--line); background: #fff; position: sticky; top: 53px; height: calc(100vh - 53px); overflow-y: auto; }
+@media (max-width: 1180px) {
+  .app { grid-template-columns: 210px minmax(0, 1fr); }
+  .side { grid-column: 1 / -1; position: static; height: auto; border-left: 0; border-top: 1px solid var(--line); }
+}
+.mobile-jump { display: none; }
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  .nav { display: none; }
+  .mobile-jump { display: block; margin-bottom: 16px; }
+  .topbar { flex-wrap: wrap; position: static; }
+  .side { position: static; }
+  table.grid { min-width: 560px; }
+  .work { padding: 18px 16px 60px; }
+}
+
+/* ---------- Nav ---------- */
+.nav-group { margin-bottom: 12px; }
+.nav-group-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 6px 10px 4px; }
+.nav-item { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; text-align: left; padding: 7px 10px; border-radius: 8px; font-size: 13.5px; color: var(--ink); }
+.nav-item:hover { background: var(--soft); }
+.nav-item.active { background: var(--navy-soft); color: var(--navy); font-weight: 600; }
+.dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; }
+.dot.on { background: var(--green); border-color: var(--green); }
+.nav-item .tag { margin-left: auto; }
+.nav-foot { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
+.toggle-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); padding: 6px 10px; }
+
+/* ---------- Section / form ---------- */
+.sec-head { display: flex; align-items: flex-start; gap: 10px; }
+.sec-head h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+.sec-branch { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+.sec-intro { color: var(--muted); margin: 6px 0 16px; max-width: 640px; }
+.ask { background: var(--amber-soft); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 18px; }
+.ask-title { font-size: 12px; font-weight: 700; color: #8a4a12; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+.ask ul { margin: 0; padding-left: 18px; }
+.ask li { margin: 3px 0; }
+.hint { background: var(--soft); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 18px; color: var(--muted); font-size: 13px; }
+.field { margin-bottom: 18px; }
+.field > label, .field-label { display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; }
+.field .help { font-size: 12.5px; color: var(--faint); margin: -2px 0 6px; }
+input[type=text], input[type=date], input[type=number], select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: #fff; }
+textarea { min-height: 72px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #b9cbe4; outline-offset: 0; border-color: #8fa8c9; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 760px) { .row2 { grid-template-columns: 1fr; } }
+
+.list-item { display: flex; gap: 6px; margin-bottom: 6px; }
+.list-item input { flex: 1; }
+.x { border: 0; background: none; color: var(--faint); font-size: 18px; line-height: 1; padding: 0 6px; border-radius: 6px; }
+.x:hover { color: var(--red); background: #fbecea; }
+.list-add { display: flex; gap: 6px; }
+.list-add input { flex: 1; border-style: dashed; }
+
+table.grid { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: #fff; }
+table.grid th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--soft); padding: 7px 8px; border-bottom: 1px solid var(--line); }
+table.grid td { padding: 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.grid tr:last-child td { border-bottom: 0; }
+table.grid td input, table.grid td select { border-color: transparent; padding: 6px; }
+table.grid td input:hover, table.grid td select:hover { border-color: var(--line); }
+table.grid td textarea { border-color: transparent; padding: 6px; min-height: 0; resize: vertical; width: 100%; }
+table.grid td textarea:hover { border-color: var(--line); }
+table.grid td.act { width: 30px; text-align: center; vertical-align: middle; }
+.table-wrap { overflow-x: auto; }
+.add-row { margin-top: 8px; }
+
+.checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.check { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; background: #fff; font-size: 13px; }
+.check input { margin: 0; }
+.check.on { border-color: var(--navy); background: var(--navy-soft); }
+
+.phase { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; background: #fff; }
+.phase-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.phase-head b { font-size: 14.5px; }
+.phase-head span { color: var(--muted); font-size: 12.5px; }
+.ms { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.ms input[type=text] { flex: 1; }
+.ms.done input[type=text] { text-decoration: line-through; color: var(--faint); }
+
+.notes { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--line); }
+.sec-foot { display: flex; justify-content: space-between; margin-top: 22px; }
+
+.dogear { display: inline-block; width: 11px; height: 13px; vertical-align: -1px; flex: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 12'%3E%3Cpath d='M0.75 0.75H6.4L9.25 3.6V11.25H0.75Z' fill='%23fbf3ea' stroke='%23b9824c' stroke-width='1.1' stroke-linejoin='round'/%3E%3Cpath d='M6.4 0.75V3.6H9.25' fill='%23ecd2b6' stroke='%23b9824c' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain; }
+
+.welcome { max-width: 620px; margin: 30px auto; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px 28px; }
+.welcome h1 { margin: 0 0 6px; font-size: 24px; }
+.welcome p { color: var(--muted); margin: 0 0 18px; }
+.welcome .actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+
+/* ---------- Side panel ---------- */
+.side-tabs { display: flex; gap: 4px; padding: 12px 14px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #fff; z-index: 2; }
+.side-tab { border: 0; background: none; padding: 8px 12px; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 600; font-size: 13px; }
+.side-tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+.side-body { padding: 16px; }
+.ready-pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--soft); color: var(--muted); margin-left: 4px; }
+.ready-pill.ok { background: var(--green-soft); color: var(--green); }
+
+/* ---------- Branch map ---------- */
+.map-root { background: var(--amber); color: #fff; border-radius: 12px; padding: 12px 14px; text-align: center; }
+.map-root b { display: block; font-size: 17px; line-height: 1.2; }
+.map-root span { display: block; font-size: 12px; opacity: .92; margin-top: 3px; }
+.map-branches { margin-top: 10px; padding-left: 16px; border-left: 2px solid var(--line); margin-left: 18px; }
+.map-branch { position: relative; padding: 8px 0 8px 14px; }
+.map-branch::before { content: ''; position: absolute; left: -16px; top: 24px; width: 28px; height: 2px; background: var(--line); }
+.map-label { display: inline-flex; align-items: center; gap: 8px; background: var(--navy); color: #fff; border: 0; border-radius: 9px; padding: 6px 12px; font-weight: 700; font-size: 13.5px; }
+.map-label small { font-weight: 400; opacity: .8; font-size: 11.5px; }
+.map-branch.internal .map-label { background: #fff; color: var(--ink); border: 1.5px dashed var(--muted); }
+.map-branch.custom .map-label { background: #4a6a92; }
+.leaves { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.leaf { border: 1.5px solid var(--line); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; background: #fff; text-align: left; max-width: 100%; }
+.leaf:hover { border-color: var(--navy); }
+.leaf.ghost { border-style: dashed; color: var(--faint); }
+.map-branch.internal .leaf { border-style: dashed; color: var(--muted); }
+
+/* wide map (present view) */
+.map-wide { display: flex; align-items: center; }
+.map-wide .map-root { width: 190px; flex: none; padding: 18px 14px; }
+.map-wide .map-root b { font-size: 20px; }
+.map-wide .map-link { width: 26px; height: 2px; background: var(--line); flex: none; }
+.map-wide .map-branches { flex: 1; margin: 0; padding: 0 0 0 26px; border-left: 0; display: flex; flex-direction: column; gap: 14px; }
+.map-wide .map-branch { display: flex; align-items: center; padding: 0; }
+.map-wide .map-branch::before { left: -26px; top: 50%; width: 26px; }
+.map-wide .map-branch::after { content: ''; position: absolute; left: -26px; top: -8px; bottom: -8px; width: 2px; background: var(--line); }
+.map-wide .map-branch:first-child::after { top: 50%; }
+.map-wide .map-branch:last-child::after { bottom: 50%; }
+.map-wide .map-label { width: 160px; flex: none; flex-direction: column; align-items: flex-start; gap: 0; padding: 9px 12px; }
+.map-wide .leaves { margin: 0 0 0 16px; flex: 1; }
+
+/* ---------- Timeline ---------- */
+.tl { display: flex; flex-direction: column; gap: 10px; }
+.tl-phase { display: grid; grid-template-columns: 28px 1fr; gap: 10px; }
+.tl-num { width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.tl-num.done { background: var(--green); }
+.tl-name { font-weight: 700; }
+.tl-when { font-size: 12px; color: var(--muted); }
+.tl-items { margin: 4px 0 0; padding: 0; list-style: none; }
+.tl-items li { font-size: 13px; padding: 2px 0 2px 18px; position: relative; }
+.tl-items li::before { content: ''; position: absolute; left: 2px; top: 8px; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--amber); }
+.tl-items li.done { color: var(--faint); text-decoration: line-through; }
+.tl-items li.done::before { background: var(--green); border-color: var(--green); }
+.tl-gate { display: inline-block; margin-top: 4px; font-size: 12px; background: var(--amber-soft); padding: 2px 8px; border-radius: 6px; }
+.tl-wide { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.tl-wide .tl-col { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: #fff; }
+.tl-wide .tl-col .tl-num { margin-bottom: 6px; }
+
+/* ---------- Ready check ---------- */
+.ready-list { list-style: none; padding: 0; margin: 0; }
+.ready-list li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--soft); font-size: 13px; }
+.ready-list .mark { width: 18px; height: 18px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 1px; }
+.ready-list .mark.ok { background: var(--green); color: #fff; }
+.ready-list .mark.no { border: 1.5px solid var(--line); }
+.ready-list button { border: 0; background: none; padding: 0; text-align: left; color: var(--ink); }
+.ready-list button:hover { color: var(--navy); text-decoration: underline; }
+
+/* ---------- Present view ---------- */
+.present { display: none; position: fixed; inset: 0; background: #fff; z-index: 50; overflow-y: auto; }
+.present.show { display: block; }
+.present-bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 24px; background: #fff; border-bottom: 1px solid var(--line); z-index: 2; }
+.present-body { max-width: 1100px; margin: 0 auto; padding: 28px 32px 60px; }
+.p-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); }
+.p-title { font-size: 30px; font-weight: 700; margin: 4px 0 4px; letter-spacing: -.01em; }
+.p-meta { color: var(--muted); }
+.p-sec { margin-top: 30px; break-inside: avoid; }
+.p-sec h3 { font-size: 16px; margin: 0 0 12px; }
+.p-goal { font-size: 17px; border-left: 3px solid var(--amber); padding: 4px 0 4px 14px; margin-top: 18px; }
+table.view { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.view th { text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1.5px solid var(--line); padding: 6px 8px; }
+table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical-align: top; }
+.internal-block { border: 1.5px dashed var(--muted); border-radius: 12px; padding: 16px 18px; margin-top: 30px; }
+.internal-block > .p-eyebrow { color: var(--muted); }
+.empty-note { color: var(--faint); font-style: italic; }
+
+@media print {
+  @page { size: letter landscape; margin: 0.45in; }
+  body { background: #fff; }
+  .topbar, .app, .banner, .present-bar { display: none !important; }
+  .present { display: block !important; position: static; overflow: visible; }
+  .present-body { max-width: none; padding: 0; }
+  .p-sec { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Success Plan <span>Builder</span></div>
+  <select class="plan-picker" id="planPicker" aria-label="Choose a plan"></select>
+  <div class="spacer"></div>
+  <span class="saved" id="savedNote"></span>
+  <button class="btn primary" id="presentBtn">View plan</button>
+  <div class="menu" id="moreMenu">
+    <button class="btn" id="moreBtn" aria-haspopup="true">More</button>
+    <div class="menu-list">
+      <button data-cmd="new">New plan</button>
+      <button data-cmd="duplicate">Duplicate this plan</button>
+      <hr>
+      <button data-cmd="export">Export this plan (file)</button>
+      <button data-cmd="import">Import a plan file</button>
+      <hr>
+      <button data-cmd="delete" class="danger">Delete this plan</button>
+    </div>
+  </div>
+  <input type="file" id="importFile" accept=".json,application/json" hidden>
+</header>
+<div class="banner" id="storageBanner">This browser isn't saving plans. Use More, then Export, before you close the tab.</div>
+
+<div class="app" id="app">
+  <nav class="nav" id="nav"></nav>
+  <main class="work" id="work"></main>
+  <aside class="side" id="side">
+    <div class="side-tabs">
+      <button class="side-tab active" data-tab="map">Map</button>
+      <button class="side-tab" data-tab="timeline">Timeline</button>
+      <button class="side-tab" data-tab="ready">Ready check <span class="ready-pill" id="readyPill"></span></button>
+    </div>
+    <div class="side-body" id="sideBody"></div>
+  </aside>
+</div>
+
+<div class="present" id="present">
+  <div class="present-bar">
+    <b>Plan view</b>
+    <label class="toggle-row"><input type="checkbox" id="customerView"> Customer view (hides FactorLab-only)</label>
+    <div class="spacer"></div>
+    <button class="btn" id="printBtn">Print or save as PDF</button>
+    <button class="btn primary" id="closePresent">Back to editing</button>
+  </div>
+  <div class="present-body" id="presentBody"></div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIG: everything a CSM sees is defined here.
+   To change a question, a prompt or a section, edit this block.
+   ========================================================= */
+
+const APP_VERSION = 1;
+const STORE_KEY = 'spb.plans.v1';
+const CURRENT_KEY = 'spb.current.v1';
+const MODEL_TIP = "Pattern from Barry's 2027 model plan";
+
+const TIERS = {
+  starter:    { label: 'Starter',    help: 'New customer or one project group. One page.' },
+  growth:     { label: 'Growth',     help: 'One region or business unit with room to grow. Two pages.' },
+  enterprise: { label: 'Enterprise', help: 'Company-wide. The full plan.' }
+};
+
+const MODES = {
+  launch:  { label: 'Launch',  lead: 'Lead with baselines, the first workflow and the 30-day milestone.' },
+  grow:    { label: 'Grow',    lead: 'Lead with what moves next, the next region or unit, and trade partners.' },
+  renew:   { label: 'Renew',   lead: 'Lead with proof in their numbers and what comes next.' },
+  recover: { label: 'Recover', lead: 'Lead with the failure mode, one recovery milestone and re-engaging the sponsor.' }
+};
+
+const BRANCHES = [
+  { key: 'why',      label: 'Why',            sub: 'The purpose' },
+  { key: 'what',     label: 'What',           sub: 'The work' },
+  { key: 'who',      label: 'Who',            sub: 'The owners' },
+  { key: 'know',     label: 'How we know',    sub: 'The proof' },
+  { key: 'internal', label: 'FactorLab only', sub: 'The business', internal: true }
+];
+
+const PHASES = [
+  { key: 'readiness', label: 'Readiness',       when: 'Before Day 1',    offset: 0,   gate: 'Go-live check' },
+  { key: 'd30',       label: 'Launch',          when: 'Days 1 to 30',    offset: 30,  gate: '30-day review: what have we learned?' },
+  { key: 'd90',       label: 'Learn',           when: 'Days 31 to 90',   offset: 90,  gate: "90-day review: what's improving, what isn't?" },
+  { key: 'd180',      label: 'Standardize',     when: 'Days 91 to 180',  offset: 180, gate: '180-day review: ready to expand and advocate?' },
+  { key: 'd365',      label: 'Scale and renew', when: 'Days 181 to 365', offset: 365, gate: "Annual review: what's next year's plan?" }
+];
+
+const FAILURE_MODES = ['Adoption', 'Value', 'Champion', 'Fit', 'Product gap'];
+
+/* Field types: text, textarea, select, date, list, table, checks, milestones */
+const SECTIONS = [
+  /* ---------------- WHY ---------------- */
+  {
+    key: 'goal', branch: 'why', title: 'Their goal', short: 'goal', model: true,
+    tiers: ['starter', 'growth', 'enterprise'],
+    intro: 'What they are trying to do next year, in their own words, and the work we can take off their plate. Lead with relief, not features.',
+    ask: [
+      "Tell me what you're doing next year to cut injuries, and I'll show you whether it's working.",
+      'If this works, what can your people stop doing?',
+      'Which report do you build by hand every month?',
+      'What number does your boss keep asking you for?'
+    ],
+    fields: [
+      { key: 'words', label: 'Their goal, in their words', type: 'textarea', placeholder: 'Quote them as closely as you can.' },
+      { key: 'plate', label: "Work we'll take off their plate", type: 'list', placeholder: 'e.g. building the monthly report by hand' },
+      { key: 'priorities', label: 'Priorities they already have', type: 'list', placeholder: 'e.g. stronger planning, earlier leadership action' }
+    ],
+    leaves: d => [
+      d.words && '"' + trunc(d.words, 46) + '"',
+      ...(d.plate || []).map(x => 'Off their plate: ' + x)
+    ]
+  },
+  {
+    key: 'hypothesis', branch: 'why', title: 'Change hypothesis', short: 'hypothesis',
+    tiers: ['starter', 'growth', 'enterprise'],
+    intro: 'One sentence that says what we expect to change, and what that should improve. Plus one conversation we want more of and one we want less of.',
+    ask: [
+      'What does your best foreman do that the others don\'t?',
+      'When a job goes sideways, what usually got missed in the morning plan?'
+    ],
+    fields: [
+      { key: 'improve', label: 'If we improve...', type: 'text', placeholder: 'e.g. how foremen plan for change' },
+      { key: 'result', label: '...we will improve', type: 'text', placeholder: 'e.g. fewer surprises and less rework' },
+      { key: 'more', label: 'One conversation we want more of', type: 'text' },
+      { key: 'less', label: 'One conversation we want less of', type: 'text' }
+    ],
+    leaves: d => [
+      d.improve && d.result ? 'If we improve ' + d.improve + ', we improve ' + d.result : (d.improve ? 'Improve ' + d.improve : ''),
+      d.more && 'More: ' + d.more,
+      d.less && 'Less: ' + d.less
+    ]
+  },
+
+  /* ---------------- WHAT ---------------- */
+  {
+    key: 'scope', branch: 'what', title: 'First workflow and what moves next', short: 'first workflow', model: true,
+    tiers: ['growth', 'enterprise'],
+    intro: 'One system at a time. Pick where to start, what moves next, and what they can stop doing. List the systems they juggle today so we can bring them together.',
+    ask: [
+      'Where does a filled-out form go today, and who reads it?',
+      'What does the procedure say happens, and what actually happens on site?',
+      'Which systems does a foreman touch before 7 a.m.?'
+    ],
+    fields: [
+      { key: 'first', label: 'First workflow', type: 'select', options: ['', 'Daily planning / pre-task plans', 'Observations', 'Inspections', 'Permits', 'Audits', 'Other'] },
+      { key: 'firstOther', label: 'If other, which one', type: 'text', showIf: d => d.first === 'Other' },
+      { key: 'sites', label: 'First sites, projects or regions', type: 'list' },
+      { key: 'next', label: 'What moves next', type: 'list', placeholder: 'e.g. permits, then inspections' },
+      { key: 'systems', label: 'Systems they use today', type: 'list', placeholder: 'e.g. Procore, paper, Microsoft Forms' },
+      { key: 'stop', label: "What they'll stop doing", type: 'list', placeholder: 'e.g. a report nobody reads' }
+    ],
+    leaves: d => [
+      (d.first === 'Other' ? d.firstOther : d.first) && 'First: ' + (d.first === 'Other' ? d.firstOther : d.first),
+      (d.sites || []).length && 'Starting at: ' + d.sites.join(', '),
+      ...(d.next || []).map(x => 'Next: ' + x),
+      ...(d.stop || []).map(x => 'Stop: ' + x)
+    ]
+  },
+  {
+    key: 'targets', branch: 'what', title: 'Targets and baselines', short: 'targets', model: true,
+    tiers: ['starter', 'growth', 'enterprise'],
+    intro: 'The same six measures on every plan. Fill only the ones that matter for this account. No target goes live without a baseline.',
+    hint: 'Three rules: baseline before any target; pair every volume target with a quality target; set each target as a plan line in their own SmartTagIt report. Show results by site or region, not just the company total.',
+    ask: [
+      'How long does this take your people today? Can we time a few?',
+      'How many people should be doing this each week?',
+      'What would "better" sound like in a morning plan?'
+    ],
+    fields: [
+      {
+        key: 'measures', label: 'Scorecard', type: 'table',
+        columns: [
+          { key: 'measure', label: 'Measure', width: '15%' },
+          { key: 'how', label: 'How we score it', width: '33%', multi: true },
+          { key: 'baseline', label: 'Baseline' },
+          { key: 'target', label: 'Target' },
+          { key: 'current', label: 'Now' },
+          { key: 'by', label: 'By when' }
+        ],
+        defaultRows: () => [
+          { measure: 'Effort', how: 'Minutes to complete a targeted activity' },
+          { measure: 'Participation', how: 'Active contributors vs expected, per week' },
+          { measure: 'Quality', how: 'Conversation score (Simple Seven, out of 35); observation quality ratio' },
+          { measure: 'Consistency', how: 'Gap between strongest and weakest sites' },
+          { measure: 'Leadership', how: 'Leader comments, recognitions, open issues closed' },
+          { measure: 'Learning', how: 'Standards written, game tape shared, loop messages sent' }
+        ],
+        addLabel: 'Add a measure'
+      },
+      { key: 'outcome', label: 'One outcome they already track (we follow it alongside, never predict it)', type: 'text', placeholder: 'e.g. their incident cost per hour worked' }
+    ],
+    leaves: d => [
+      ...(d.measures || []).filter(r => r.target).map(r => r.measure + ': ' + (r.baseline || '?') + ' to ' + r.target),
+      d.outcome && 'Tracking: ' + d.outcome
+    ]
+  },
+  {
+    key: 'good', branch: 'what', title: 'What good looks like', short: 'the standard', model: true,
+    tiers: ['growth', 'enterprise'],
+    intro: 'Show it, don\'t describe it. Pick real examples from their own jobs and the benchmark we\'ll compare against.',
+    ask: [
+      'Which job would you show a new superintendent as the example?',
+      'Whose morning plan would you want everyone to copy?'
+    ],
+    fields: [
+      { key: 'standard', label: 'The standard, in plain words', type: 'textarea' },
+      { key: 'goodTape', label: 'Good game tape (job, leader, link)', type: 'list' },
+      { key: 'poorTape', label: 'Examples to learn from', type: 'list' },
+      { key: 'benchmark', label: 'Benchmark we\'ll compare against', type: 'text' }
+    ],
+    leaves: d => [
+      d.standard && trunc(d.standard, 46),
+      (d.goodTape || []).length && (d.goodTape.length + ' good example' + (d.goodTape.length > 1 ? 's' : '')),
+      d.benchmark && 'Benchmark: ' + d.benchmark
+    ]
+  },
+
+  /* ---------------- WHO ---------------- */
+  {
+    key: 'owners', branch: 'who', title: 'Owners on both sides', short: 'owners', model: true,
+    tiers: ['starter', 'growth', 'enterprise'],
+    intro: 'Every line gets a customer name and a FactorLab name. Include a field voice: the toughest critic tries every change before it rolls out.',
+    ask: [
+      'Who outside safety would care if this worked?',
+      "Who's your toughest critic in the field, and what would win them over?"
+    ],
+    fields: [
+      {
+        key: 'rows', label: 'Owners', type: 'table',
+        columns: [
+          { key: 'role', label: 'Role' },
+          { key: 'customer', label: 'Customer name' },
+          { key: 'factorlab', label: 'FactorLab name' }
+        ],
+        defaultRows: () => [
+          { role: 'Executive sponsor' },
+          { role: 'Operations sponsor' },
+          { role: 'Safety champion' },
+          { role: 'Field voice (toughest critic)' },
+          { role: 'Implementation owner' }
+        ],
+        addLabel: 'Add a role'
+      }
+    ],
+    leaves: d => (d.rows || []).filter(r => r.customer).map(r => r.role + ': ' + r.customer)
+  },
+  {
+    key: 'recognition', branch: 'who', title: 'Recognition plan', short: 'recognition',
+    tiers: ['starter', 'growth', 'enterprise'],
+    intro: 'Recognition is what makes participation stick. Commit to it in the first 30 days.',
+    ask: [
+      'How do crews hear "good job" today?',
+      'What would a foreman be proud to show his boss?'
+    ],
+    fields: [
+      { key: 'forWhat', label: 'Recognized for what', type: 'text', placeholder: 'e.g. best planner, most improved' },
+      { key: 'often', label: 'How often', type: 'select', options: ['', 'Weekly', 'Monthly', 'Quarterly'] },
+      { key: 'channel', label: 'How it reaches people', type: 'text', placeholder: 'e.g. group text, jobsite board, safety committee' },
+      { key: 'reward', label: 'Reward, if any', type: 'text' }
+    ],
+    leaves: d => [d.forWhat && ((d.often ? d.often + ': ' : '') + d.forWhat), d.channel && 'Via ' + d.channel]
+  },
+  {
+    key: 'trades', branch: 'who', title: 'Key trade partners', short: 'trade partners', model: true,
+    tiers: ['enterprise'],
+    intro: 'For general contractors: the trade partners they rely on most, and the extra support they get for helping set the standard.',
+    ask: [
+      'Which trade partners do you rely on most in each region?',
+      'Which trades would you want other trades to learn from?'
+    ],
+    fields: [
+      { key: 'partners', label: 'Priority trade partners', type: 'list' },
+      { key: 'support', label: 'What they get', type: 'list', placeholder: 'e.g. coaching, benchmarking, recognition, early access' }
+    ],
+    leaves: d => (d.partners || []).map(x => 'Trade: ' + x)
+  },
+
+  /* ---------------- HOW WE KNOW ---------------- */
+  {
+    key: 'milestones', branch: 'know', title: 'Milestones and rhythm', short: 'milestones', model: true,
+    tiers: ['starter', 'growth', 'enterprise'],
+    intro: 'Five phases, each closed by a short review. Edit the milestones to fit the account and tick them off as you go. Set Day 1 in Account basics to see dates.',
+    fields: [
+      { key: 'phases', label: 'Milestones', type: 'milestones',
+        default: () => ({
+          readiness: ['Plan drafted with the customer', 'Baselines and owners set', 'Go-live questions answered'],
+          d30: ['First workflow live', 'Three recognitions sent', 'Leaders can explain the why'],
+          d90: ['Game tape reviewed against the baseline', '1 or 2 improvement priorities picked'],
+          d180: ['First standard written and shared', 'Next workflow or region chosen', 'Advocacy ask made'],
+          d365: ['Quarterly learning reports shared', 'Renewal case built in their numbers', "Next year's plan drafted"]
+        }) },
+      { key: 'weekly', label: 'Weekly', type: 'text', default: () => 'Champion checks the dashboard and thanks top crews' },
+      { key: 'monthly', label: 'Monthly', type: 'text', default: () => 'Leaders review their two chosen workbooks' },
+      { key: 'quarterly', label: 'Quarterly', type: 'text', default: () => 'Learning report, sponsor review, one experiment' },
+      { key: 'workbooks', label: 'Their two monthly workbooks', type: 'list' }
+    ],
+    leaves: d => {
+      const all = [];
+      PHASES.forEach(p => ((d.phases || {})[p.key] || []).forEach(m => all.push(m)));
+      const done = all.filter(m => m.done).length;
+      const next = all.find(m => !m.done && m.text);
+      return [all.length && (done + ' of ' + all.length + ' milestones done'), next && 'Next: ' + next.text];
+    }
+  },
+  {
+    key: 'loop', branch: 'know', title: 'Closing the loop', short: 'the loop', model: true,
+    tiers: ['growth', 'enterprise'],
+    intro: 'How the field will hear back: what was raised, what leaders did, what changed. This is what keeps people contributing.',
+    ask: ['When someone flags a problem today, how do they find out what happened?'],
+    fields: [
+      { key: 'how', label: 'How the field hears back', type: 'textarea' },
+      { key: 'channel', label: 'Channel and timing', type: 'text', placeholder: 'e.g. monthly note from the safety director' }
+    ],
+    leaves: d => [d.how && trunc(d.how, 46)]
+  },
+  {
+    key: 'experiments', branch: 'know', title: 'Experiments', short: 'an experiment',
+    tiers: ['growth', 'enterprise'],
+    intro: 'One small test a quarter, agreed with the customer. Report the result in the quarterly learning report.',
+    hint: 'Ideas: compare trained and untrained jobs month over month; turn recognition on for one region first; try guest QR access with one trade; turn on AI Assist for one group; compare recorded plans with written ones on the same jobs.',
+    fields: [
+      {
+        key: 'rows', label: 'Experiments', type: 'table',
+        columns: [
+          { key: 'question', label: 'The question', multi: true },
+          { key: 'how', label: 'How we test it', multi: true },
+          { key: 'result', label: 'What we found', multi: true }
+        ],
+        defaultRows: () => [],
+        addLabel: 'Add an experiment'
+      }
+    ],
+    leaves: d => (d.rows || []).filter(r => r.question).map(r => 'Test: ' + r.question)
+  },
+
+  /* ---------------- FACTORLAB ONLY ---------------- */
+  {
+    key: 'economics', branch: 'internal', title: 'Account economics', short: 'renewal and ARR',
+    tiers: ['starter', 'growth', 'enterprise'],
+    intro: 'Internal only. Enough to forecast the account and name the next step up. Leave a field blank until it is confirmed.',
+    hint: 'Only license revenue, plus service hours committed in the contract, count as ARR.',
+    fields: [
+      { key: 'arr', label: 'ARR', type: 'text' },
+      { key: 'renewal', label: 'Renewal date', type: 'date' },
+      { key: 'hours', label: 'Service hours in contract', type: 'text' },
+      { key: 'rungNow', label: 'Where they are now', type: 'select', options: ['', 'Project', 'Project group', 'Region or business unit', 'Operating company', 'Enterprise'] },
+      { key: 'next', label: 'Next expansion step', type: 'text', placeholder: 'e.g. second region, permits, trade partner users' },
+      { key: 'mustBeTrue', label: 'What has to be true first', type: 'text' }
+    ],
+    leaves: d => [
+      d.renewal && 'Renewal: ' + fmtDate(d.renewal),
+      d.arr && 'ARR: ' + d.arr,
+      d.next && 'Next step: ' + d.next
+    ]
+  },
+  {
+    key: 'risks', branch: 'internal', title: 'Risks', short: 'risks',
+    tiers: ['growth', 'enterprise'],
+    intro: 'Internal only. Name what you saw, tag the failure mode, and write the fix. Each failure mode has a different fix.',
+    hint: 'Adoption: they don\'t know how (train, show game tape). Value: they know how but don\'t see the point (show their numbers). Champion: the person who cared is gone (find a new sponsor). Fit: the work doesn\'t match the product (rescope honestly). Product gap: they need something we can\'t do yet (log it and route it to product).',
+    fields: [
+      {
+        key: 'rows', label: 'Risks', type: 'table',
+        columns: [
+          { key: 'risk', label: 'Risk', multi: true },
+          { key: 'mode', label: 'Failure mode', type: 'select', options: [''].concat(FAILURE_MODES) },
+          { key: 'signal', label: 'What we saw', multi: true },
+          { key: 'fix', label: 'The fix', multi: true }
+        ],
+        defaultRows: () => [],
+        addLabel: 'Add a risk'
+      }
+    ],
+    leaves: d => (d.rows || []).filter(r => r.risk).map(r => (r.mode || 'Untagged') + ': ' + r.risk)
+  },
+  {
+    key: 'advocacy', branch: 'internal', title: 'Advocacy', short: 'advocacy',
+    tiers: ['growth', 'enterprise'],
+    intro: 'Internal only. Plan the ask instead of hoping for it. Aim for one by the 180-day review.',
+    fields: [
+      { key: 'asks', label: 'What we\'ll ask for', type: 'checks', options: ['Reference call', 'Event speaker', 'Case study or video', 'Referral', 'Early win story for marketing'] },
+      { key: 'who', label: 'Who, and when', type: 'text' }
+    ],
+    leaves: d => (d.asks || []).map(x => 'Ask: ' + x)
+  },
+  {
+    key: 'journey', branch: 'internal', title: 'Journey checklist', short: 'checklist',
+    tiers: ['growth', 'enterprise'],
+    intro: 'Internal only. Which customer journey checklist items this plan completes. Update the checklist when they are done.',
+    fields: [
+      { key: 'items', label: 'Items this plan covers', type: 'checks', options: ['Success Plan', 'Recognition program', 'List of raving fans', 'Agreement up to date', 'Incident and Hour Data', 'Favorite BI workbooks', 'Regional Summaries', 'Project Summaries', 'Contractor Summaries', 'Workflow Approvals', 'Guest Forms', 'Open Issues Workflow', 'Genesis', 'Quality of Observations'] }
+    ],
+    leaves: d => (d.items || []).length ? [d.items.length + ' checklist item' + (d.items.length > 1 ? 's' : '')] : []
+  }
+];
+
+/* Ready check: what "ready to share" means. */
+function readyChecks(plan) {
+  const d = k => plan.data[k] || {};
+  const owners = (d('owners').rows || []).filter(r => r.role);
+  const measures = (d('targets').measures || []).filter(r => r.target);
+  const phases = d('milestones').phases || {};
+  const tier = plan.meta.tier;
+  const checks = [
+    { label: 'Their goal is written in their words', ok: !!d('goal').words, sec: 'goal' },
+    { label: 'At least one target, and every target has a baseline', ok: measures.length > 0 && measures.every(r => r.baseline), sec: 'targets' },
+    { label: 'Every owner line has a customer name and a FactorLab name', ok: owners.length > 0 && owners.every(r => r.customer && r.factorlab), sec: 'owners' },
+    { label: 'A field voice is named', ok: owners.some(r => /field|foreman|superintendent|critic/i.test(r.role) && r.customer), sec: 'owners' },
+    { label: 'The 30-day milestones and the recognition plan are written', ok: (phases.d30 || []).some(m => m.text) && !!d('recognition').forWhat, sec: 'milestones' }
+  ];
+  if (tier !== 'starter') checks.push({ label: 'Risks are tagged with a failure mode', ok: (d('risks').rows || []).some(r => r.risk && r.mode), sec: 'risks' });
+  checks.push({ label: 'Renewal date and next expansion step are filled in', ok: !!(d('economics').renewal && d('economics').next), sec: 'economics' });
+  checks.push({ label: 'No placeholder numbers or unverified marketing figures (tick in Account basics)', ok: !!plan.meta.verified, sec: 'basics' });
+  return checks;
+}
+
+/* =========================================================
+   STATE AND STORAGE
+   ========================================================= */
+let plans = {};
+let currentId = null;
+let currentSec = 'basics';
+let sideTab = 'map';
+let showAll = false;
+let storageOk = true;
+
+function uid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function clone(x) { return JSON.parse(JSON.stringify(x)); }
+
+function loadAll() {
+  try {
+    plans = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {};
+    currentId = localStorage.getItem(CURRENT_KEY);
+  } catch (e) { plans = {}; storageOk = false; }
+  if (!plans[currentId]) currentId = Object.keys(plans)[0] || null;
+}
+let saveTimer = null;
+function saveSoon() {
+  const p = cur();
+  if (p) p.meta.updated = new Date().toISOString();
+  setSaved('Saving...');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 300);
+}
+function saveNow() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(plans));
+    if (currentId) localStorage.setItem(CURRENT_KEY, currentId);
+    setSaved('Saved in this browser');
+  } catch (e) {
+    storageOk = false;
+    document.getElementById('storageBanner').classList.add('show');
+    setSaved('Not saved');
+  }
+}
+function setSaved(t) { document.getElementById('savedNote').textContent = t; }
+function cur() { return currentId ? plans[currentId] : null; }
+
+function blankData() {
+  const data = {};
+  SECTIONS.forEach(s => {
+    data[s.key] = {};
+    s.fields.forEach(f => {
+      if (f.type === 'table') data[s.key][f.key] = f.defaultRows ? f.defaultRows() : [];
+      else if (f.type === 'milestones') {
+        const def = f.default();
+        const ph = {};
+        PHASES.forEach(p => { ph[p.key] = (def[p.key] || []).map(t => ({ text: t, done: false })); });
+        data[s.key][f.key] = ph;
+      }
+      else if (f.default) data[s.key][f.key] = f.default();
+    });
+  });
+  return data;
+}
+function newPlan(meta) {
+  const id = uid();
+  plans[id] = {
+    id, app: 'success-plan-builder', version: APP_VERSION,
+    meta: Object.assign({ account: '', csm: '', backup: '', tier: 'growth', mode: 'launch', day1: '', context: '', sources: '', verified: false, created: new Date().toISOString(), updated: new Date().toISOString() }, meta || {}),
+    data: blankData(),
+    custom: [],
+    notes: {}
+  };
+  currentId = id;
+  currentSec = 'basics';
+  saveNow();
+  return plans[id];
+}
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function trunc(s, n) { s = String(s || '').trim().replace(/\s+/g, ' '); return s.length > n ? s.slice(0, n - 1).trim() + '...' : s; }
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return iso;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return months[m - 1] + ' ' + d + ', ' + y;
+}
+function addDays(iso, n) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + n));
+  return dt.toISOString().slice(0, 10);
+}
+function slug(s) { return String(s || 'plan').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'plan'; }
+function sectionByKey(k) { return SECTIONS.find(s => s.key === k); }
+function customByKey(k) { const p = cur(); return p && k && k.startsWith('custom:') ? p.custom.find(c => 'custom:' + c.id === k) : null; }
+function visibleSections(p) {
+  return SECTIONS.filter(s => showAll || s.tiers.includes(p.meta.tier));
+}
+function leavesFor(s, p) {
+  try { return (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(x => trunc(x, 60)); }
+  catch (e) { return []; }
+}
+function phaseDate(p, ph) {
+  if (!p.meta.day1) return '';
+  if (ph.key === 'readiness') return 'Before ' + fmtDate(p.meta.day1);
+  return 'By ' + fmtDate(addDays(p.meta.day1, ph.offset));
+}
+
+/* =========================================================
+   RENDER: top bar plan picker
+   ========================================================= */
+function renderPicker() {
+  const sel = document.getElementById('planPicker');
+  const ids = Object.keys(plans).sort((a, b) => (plans[a].meta.account || '').localeCompare(plans[b].meta.account || ''));
+  sel.innerHTML = ids.map(id => `<option value="${id}" ${id === currentId ? 'selected' : ''}>${esc(plans[id].meta.account || 'Untitled plan')}</option>`).join('')
+    + `<option value="__new">+ New plan</option>`;
+  if (!ids.length) sel.innerHTML = `<option value="">No plans yet</option><option value="__new">+ New plan</option>`;
+}
+
+/* =========================================================
+   RENDER: nav
+   ========================================================= */
+function renderNav() {
+  const p = cur();
+  const nav = document.getElementById('nav');
+  if (!p) { nav.innerHTML = ''; return; }
+  const vis = visibleSections(p);
+  let html = `<div class="nav-group"><button class="nav-item ${currentSec === 'basics' ? 'active' : ''}" data-goto="basics"><span class="dot ${p.meta.account ? 'on' : ''}"></span>Account basics</button></div>`;
+  BRANCHES.forEach(b => {
+    const secs = vis.filter(s => s.branch === b.key);
+    const customs = b.key === 'know' ? p.custom : [];
+    if (!secs.length && !customs.length) return;
+    html += `<div class="nav-group"><div class="nav-group-title">${esc(b.label)}</div>`;
+    secs.forEach(s => {
+      const on = leavesFor(s, p).length > 0;
+      html += `<button class="nav-item ${currentSec === s.key ? 'active' : ''}" data-goto="${s.key}"><span class="dot ${on ? 'on' : ''}"></span>${esc(s.title)}${s.model ? `<span class="tag dogear" title="${esc(MODEL_TIP)}"></span>` : ''}</button>`;
+    });
+    html += `</div>`;
+    if (b.key === 'know') {
+      html += `<div class="nav-group"><div class="nav-group-title">Your branches</div>`;
+      p.custom.forEach(c => {
+        html += `<button class="nav-item ${currentSec === 'custom:' + c.id ? 'active' : ''}" data-goto="custom:${c.id}"><span class="dot ${(c.items || []).length ? 'on' : ''}"></span>${esc(c.title || 'Untitled branch')}</button>`;
+      });
+      html += `<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
+    }
+  });
+  html += `<div class="nav-foot"><label class="toggle-row"><input type="checkbox" id="showAll" ${showAll ? 'checked' : ''}> Show all sections</label>
+    <div class="toggle-row" style="font-size:12px">${esc(TIERS[p.meta.tier].label)} plan: ${esc(TIERS[p.meta.tier].help)}</div>
+    <div class="toggle-row" style="font-size:12px"><span class="dogear"></span> ${esc(MODEL_TIP)}</div></div>`;
+  nav.innerHTML = html;
+}
+
+/* =========================================================
+   RENDER: work area (forms)
+   ========================================================= */
+function renderWork() {
+  const work = document.getElementById('work');
+  const p = cur();
+  if (!p) { work.innerHTML = welcomeHtml(); return; }
+  if (currentSec !== 'basics' && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
+  const jump = mobileJumpHtml(p);
+  if (currentSec === 'basics') { work.innerHTML = jump + basicsHtml(p); return; }
+  const c = customByKey(currentSec);
+  if (c) { work.innerHTML = jump + customHtml(p, c); return; }
+  work.innerHTML = jump + sectionHtml(p, sectionByKey(currentSec));
+}
+
+function secName(k) {
+  if (k === 'basics') return 'Account basics';
+  const c = customByKey(k);
+  if (c) return c.title || 'Your branch';
+  const s = sectionByKey(k);
+  return s ? s.title : k;
+}
+function mobileJumpHtml(p) {
+  return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}<option value="__branch">+ Add your own branch</option></select>`;
+}
+
+function welcomeHtml() {
+  return `<div class="welcome">
+    <h1>Start a success plan</h1>
+    <p>Fill it in as you learn about the account. The map on the right builds itself as you go. Nothing here is required; start wherever you know the most.</p>
+    <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"></div>
+    <div class="row2">
+      <div class="field"><label for="w-tier">Plan size</label><select id="w-tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === 'growth' ? 'selected' : ''}>${t.label}: ${esc(t.help)}</option>`).join('')}</select></div>
+      <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}</select></div>
+    </div>
+    <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
+  </div>`;
+}
+
+function basicsHtml(p) {
+  const m = p.meta;
+  return `<div class="sec-branch">Start here</div>
+  <div class="sec-head"><h2>Account basics</h2></div>
+  <p class="sec-intro">Who this plan is for and what the account needs this year. Drop in anything you already know; you can shape it into the plan later.</p>
+  <div class="hint"><b>${esc(MODES[m.mode].label)}:</b> ${esc(MODES[m.mode].lead)}</div>
+  <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
+  <div class="row2">
+    <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)}</div></div>
+    <div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}</select></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>CSM</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
+    <div class="field"><label>Backup</label><input type="text" data-meta="backup" value="${esc(m.backup)}"></div>
+  </div>
+  <div class="field"><label>Day 1</label><div class="help">The day the first workflow goes live. Milestone dates count from here.</div><input type="date" data-meta="day1" value="${esc(m.day1)}" style="max-width:220px"></div>
+  <div class="field"><label>What you know so far</label><div class="help">Notes from calls, emails, the handover. Rough is fine.</div><textarea data-meta="context" style="min-height:140px">${esc(m.context)}</textarea></div>
+  <div class="field"><label>Where it came from</label><input type="text" data-meta="sources" value="${esc(m.sources)}" placeholder="e.g. Oct 29 planning call, handover from Justin"></div>
+  <div class="field"><label class="check ${m.verified ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-meta="verified" ${m.verified ? 'checked' : ''}> Every number here is confirmed. No placeholders and no unverified marketing figures.</label></div>
+  ${footHtml(p)}`;
+}
+
+function sectionHtml(p, s) {
+  const d = p.data[s.key] || (p.data[s.key] = {});
+  const branch = BRANCHES.find(b => b.key === s.branch);
+  let html = `<div class="sec-branch">${esc(branch.label)}${branch.internal ? ' (not shown to the customer)' : ''}</div>
+    <div class="sec-head"><h2>${esc(s.title)}</h2>${s.model ? `<span class="dogear" title="${esc(MODEL_TIP)}" style="margin-top:9px"></span>` : ''}</div>
+    <p class="sec-intro">${esc(s.intro)}</p>`;
+  if (s.ask && s.ask.length) html += `<div class="ask"><div class="ask-title">Questions to get curious with</div><ul>${s.ask.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>`;
+  if (s.hint) html += `<div class="hint">${esc(s.hint)}</div>`;
+  if (s.key === 'milestones') {
+    const phases = d.phases || {};
+    html += `<div class="field"><div class="field-label">Milestones</div>${PHASES.map((ph, i) => phaseHtml(p, ph, phases[ph.key] || [], i)).join('')}</div>`;
+    html += `<div class="field-label" style="margin-top:18px">The rhythm underneath</div>`;
+    ['weekly', 'monthly', 'quarterly'].forEach(k => { html += fieldHtml(s, s.fields.find(f => f.key === k), d); });
+    html += fieldHtml(s, s.fields.find(f => f.key === 'workbooks'), d);
+  } else {
+    s.fields.forEach(f => { if (!f.showIf || f.showIf(d)) html += fieldHtml(s, f, d); });
+  }
+  html += `<div class="notes field"><label>Notes and open questions</label><div class="help">What you still need to find out, and who might know.</div><textarea data-note="${s.key}">${esc(p.notes[s.key] || '')}</textarea></div>`;
+  html += footHtml(p);
+  return html;
+}
+
+function customHtml(p, c) {
+  return `<div class="sec-branch">Your branch</div>
+    <div class="sec-head"><h2>${esc(c.title || 'Untitled branch')}</h2></div>
+    <p class="sec-intro">Anything this account needs that the standard plan doesn't cover. It shows up on the map as its own branch.</p>
+    <div class="field"><label>Branch name</label><input type="text" data-custom="${c.id}" data-ckey="title" value="${esc(c.title)}" placeholder="e.g. Permits rollout, Incident data"></div>
+    <div class="field"><label>Items</label>${listHtml(c.items || [], `data-custom="${c.id}" data-ckey="items"`, 'Add an item')}</div>
+    <div class="notes field"><label>Notes and open questions</label><textarea data-custom="${c.id}" data-ckey="notes">${esc(c.notes || '')}</textarea></div>
+    <div class="sec-foot"><button class="btn danger" data-action="delete-branch" data-id="${c.id}">Delete this branch</button>${footNextHtml(p)}</div>`;
+}
+
+function fieldHtml(s, f, d) {
+  if (!f) return '';
+  const v = d[f.key];
+  const attr = `data-sec="${s.key}" data-field="${f.key}"`;
+  const label = `<label>${esc(f.label)}</label>${f.help ? `<div class="help">${esc(f.help)}</div>` : ''}`;
+  switch (f.type) {
+    case 'text': return `<div class="field">${label}<input type="text" ${attr} value="${esc(v)}" placeholder="${esc(f.placeholder || '')}"></div>`;
+    case 'textarea': return `<div class="field">${label}<textarea ${attr} placeholder="${esc(f.placeholder || '')}">${esc(v)}</textarea></div>`;
+    case 'date': return `<div class="field">${label}<input type="date" ${attr} value="${esc(v)}" style="max-width:220px"></div>`;
+    case 'select': return `<div class="field">${label}<select ${attr}>${f.options.map(o => `<option value="${esc(o)}" ${o === (v || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select></div>`;
+    case 'list': return `<div class="field"><div class="field-label">${esc(f.label)}</div>${listHtml(v || [], attr, f.placeholder || 'Add an item')}</div>`;
+    case 'checks': return `<div class="field"><div class="field-label">${esc(f.label)}</div><div class="checks">${f.options.map(o => { const on = (v || []).includes(o); return `<label class="check ${on ? 'on' : ''}"><input type="checkbox" ${attr} data-opt="${esc(o)}" ${on ? 'checked' : ''}>${esc(o)}</label>`; }).join('')}</div></div>`;
+    case 'table': return tableHtml(s, f, v || []);
+    default: return '';
+  }
+}
+
+function listHtml(items, attr, placeholder) {
+  return items.map((x, i) => `<div class="list-item"><input type="text" ${attr} data-idx="${i}" value="${esc(x)}"><button class="x" title="Remove" data-action="remove-item" ${attr} data-idx="${i}">&times;</button></div>`).join('')
+    + `<div class="list-add"><input type="text" ${attr} data-add="1" placeholder="${esc(placeholder)} (press Enter)"><button class="btn small" data-action="add-item" ${attr}>Add</button></div>`;
+}
+
+function tableHtml(s, f, rows) {
+  const attr = `data-sec="${s.key}" data-field="${f.key}"`;
+  return `<div class="field"><div class="field-label">${esc(f.label)}</div><div class="table-wrap"><table class="grid"><thead><tr>${f.columns.map(c => `<th ${c.width ? `style="width:${c.width}"` : ''}>${esc(c.label)}</th>`).join('')}<th></th></tr></thead><tbody>
+    ${rows.map((r, i) => `<tr>${f.columns.map(c => `<td>${c.type === 'select'
+      ? `<select ${attr} data-row="${i}" data-col="${c.key}">${c.options.map(o => `<option value="${esc(o)}" ${o === (r[c.key] || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select>`
+      : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td></tr>`).join('')}
+    ${rows.length ? '' : `<tr><td colspan="${f.columns.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
+    </tbody></table></div><button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button></div>`;
+}
+
+function phaseHtml(p, ph, items, i) {
+  const date = phaseDate(p, ph);
+  return `<div class="phase"><div class="phase-head"><b>${i + 1}. ${esc(ph.label)}</b><span>${esc(ph.when)}${date ? ' · ' + esc(date) : ''}</span></div>
+    ${items.map((m, j) => `<div class="ms ${m.done ? 'done' : ''}"><input type="checkbox" data-ms="${ph.key}" data-idx="${j}" data-mkey="done" ${m.done ? 'checked' : ''} title="Done"><input type="text" data-ms="${ph.key}" data-idx="${j}" data-mkey="text" value="${esc(m.text)}"><button class="x" title="Remove" data-action="remove-ms" data-ms="${ph.key}" data-idx="${j}">&times;</button></div>`).join('')}
+    <button class="btn small ghost" data-action="add-ms" data-ms="${ph.key}">+ Add a milestone</button>
+    <div style="margin-top:6px"><span class="tl-gate">${esc(ph.gate)}</span></div></div>`;
+}
+
+function navOrder(p) {
+  const keys = ['basics'];
+  BRANCHES.forEach(b => {
+    visibleSections(p).filter(s => s.branch === b.key).forEach(s => keys.push(s.key));
+    if (b.key === 'know') p.custom.forEach(c => keys.push('custom:' + c.id));
+  });
+  return keys;
+}
+function footNextHtml(p) {
+  const order = navOrder(p);
+  const i = order.indexOf(currentSec);
+  const next = order[i + 1];
+  if (!next) return `<button class="btn primary" data-action="present">View the plan</button>`;
+  const name = next === 'basics' ? 'Account basics' : (customByKey(next) ? (customByKey(next).title || 'Your branch') : sectionByKey(next).title);
+  return `<button class="btn primary" data-goto="${next}">Next: ${esc(name)}</button>`;
+}
+function footHtml(p) {
+  const order = navOrder(p);
+  const i = order.indexOf(currentSec);
+  const prev = order[i - 1];
+  const prevName = !prev ? '' : (prev === 'basics' ? 'Account basics' : (customByKey(prev) ? (customByKey(prev).title || 'Your branch') : sectionByKey(prev).title));
+  return `<div class="sec-foot">${prev ? `<button class="btn ghost" data-goto="${prev}">Back: ${esc(prevName)}</button>` : '<span></span>'}${footNextHtml(p)}</div>`;
+}
+
+/* =========================================================
+   RENDER: map, timeline, ready, present
+   ========================================================= */
+function mapHtml(p, opts) {
+  opts = opts || {};
+  const wide = !!opts.wide, customer = !!opts.customer;
+  const vis = visibleSections(p);
+  const branchesHtml = BRANCHES.filter(b => !(customer && b.internal)).map(b => {
+    const secs = vis.filter(s => s.branch === b.key);
+    let leaves = [];
+    secs.forEach(s => {
+      const ls = leavesFor(s, p);
+      if (ls.length) ls.forEach(l => leaves.push({ text: l, sec: s.key }));
+      else if (!wide) leaves.push({ text: 'Add ' + s.short, sec: s.key, ghost: true });
+    });
+    if (wide && !leaves.length) leaves.push({ text: 'Not started', sec: secs[0] && secs[0].key, ghost: true });
+    let out = branchHtml(b.label, b.sub, leaves, b.internal ? 'internal' : '', wide);
+    if (b.key === 'know') {
+      p.custom.forEach(c => {
+        const items = (c.items || []).map(x => ({ text: trunc(x, 60), sec: 'custom:' + c.id }));
+        if (!items.length) items.push({ text: wide ? 'Not started' : 'Add items', sec: 'custom:' + c.id, ghost: true });
+        out += branchHtml(c.title || 'Your branch', 'Your branch', items, 'custom', wide);
+      });
+    }
+    return out;
+  }).join('');
+  const m = p.meta;
+  const root = `<div class="map-root"><b>${esc(m.account || 'Untitled plan')}</b><span>${esc(TIERS[m.tier].label)} plan · ${esc(MODES[m.mode].label)}</span></div>`;
+  if (wide) return `<div class="map-wide">${root}<div class="map-link"></div><div class="map-branches">${branchesHtml}</div></div>`;
+  return `${root}<div class="map-branches">${branchesHtml}</div>`;
+}
+function branchHtml(label, sub, leaves, cls, wide) {
+  return `<div class="map-branch ${cls}"><div class="map-label">${esc(label)} <small>${esc(sub)}</small></div>
+    <div class="leaves">${leaves.map(l => `<button class="leaf ${l.ghost ? 'ghost' : ''}" ${l.sec && !wide ? `data-goto="${l.sec}"` : ''}>${esc(l.text)}</button>`).join('')}</div></div>`;
+}
+
+function timelineHtml(p, wide) {
+  const phases = ((p.data.milestones || {}).phases) || {};
+  const cols = PHASES.map((ph, i) => {
+    const items = (phases[ph.key] || []).filter(m => m.text);
+    const allDone = items.length && items.every(m => m.done);
+    const date = phaseDate(p, ph);
+    return `<div class="${wide ? 'tl-col' : 'tl-phase'}"><div class="tl-num ${allDone ? 'done' : ''}">${i + 1}</div><div>
+      <div class="tl-name">${esc(ph.label)}</div><div class="tl-when">${esc(ph.when)}${date ? ' · ' + esc(date) : ''}</div>
+      <ul class="tl-items">${items.map(m => `<li class="${m.done ? 'done' : ''}">${esc(m.text)}</li>`).join('') || '<li class="empty-note">No milestones yet</li>'}</ul>
+      <span class="tl-gate">${esc(ph.gate)}</span></div></div>`;
+  }).join('');
+  return wide ? `<div class="tl-wide">${cols}</div>` : `<div class="tl">${cols}</div>`;
+}
+
+function readyHtml(p) {
+  const checks = readyChecks(p);
+  const n = checks.filter(c => c.ok).length;
+  return `<p style="margin:0 0 10px;color:var(--muted)">${n} of ${checks.length} ready. A plan is ready to share when all of these are true.</p>
+    <ul class="ready-list">${checks.map(c => `<li><span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '&#10003;' : ''}</span><button data-goto="${c.sec}">${esc(c.label)}</button></li>`).join('')}</ul>`;
+}
+
+function renderSide() {
+  const p = cur();
+  const body = document.getElementById('sideBody');
+  const pill = document.getElementById('readyPill');
+  document.querySelectorAll('.side-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === sideTab));
+  if (!p) { body.innerHTML = '<p class="empty-note">Your map will appear here.</p>'; pill.textContent = ''; return; }
+  const checks = readyChecks(p);
+  const n = checks.filter(c => c.ok).length;
+  pill.textContent = n + '/' + checks.length;
+  pill.classList.toggle('ok', n === checks.length);
+  if (sideTab === 'map') body.innerHTML = mapHtml(p) + '<p style="font-size:12px;color:var(--faint);margin-top:14px">Click anything on the map to jump to it. Dashed items are not shown to the customer.</p>';
+  else if (sideTab === 'timeline') body.innerHTML = timelineHtml(p, false);
+  else body.innerHTML = readyHtml(p);
+}
+
+function presentHtml(p, customer) {
+  const m = p.meta, d = k => p.data[k] || {};
+  const vis = visibleSections(p).map(s => s.key);
+  const show = k => vis.includes(k);
+  let h = `<div class="p-eyebrow">Success plan${customer ? '' : ' · internal view'}</div>
+    <div class="p-title">${esc(m.account || 'Untitled plan')}</div>
+    <div class="p-meta">${esc(TIERS[m.tier].label)} plan · ${esc(MODES[m.mode].label)}${m.csm ? ' · CSM: ' + esc(m.csm) : ''}${m.day1 ? ' · Day 1: ' + esc(fmtDate(m.day1)) : ''} · Updated ${esc(fmtDate((m.updated || '').slice(0, 10)))}</div>`;
+  if (d('goal').words) h += `<div class="p-goal">"${esc(d('goal').words)}"</div>`;
+  const hy = d('hypothesis');
+  if (hy.improve && hy.result) h += `<p style="margin:12px 0 0"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
+  h += `<div class="p-sec"><h3>The plan at a glance</h3>${mapHtml(p, { wide: true, customer })}</div>`;
+  h += `<div class="p-sec"><h3>Milestones</h3>${timelineHtml(p, true)}</div>`;
+  const ms = (d('targets').measures || []).filter(r => r.target || r.baseline);
+  if (ms.length) h += `<div class="p-sec"><h3>Scorecard</h3><table class="view"><thead><tr><th>Measure</th><th>How we score it</th><th>Baseline</th><th>Target</th><th>Now</th><th>By when</th></tr></thead><tbody>${ms.map(r => `<tr><td><b>${esc(r.measure)}</b></td><td>${esc(r.how)}</td><td>${esc(r.baseline)}</td><td>${esc(r.target)}</td><td>${esc(r.current)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table>${d('targets').outcome ? `<p style="color:var(--muted);font-size:13px">Also tracking: ${esc(d('targets').outcome)}</p>` : ''}</div>`;
+  const owners = (d('owners').rows || []).filter(r => r.customer || r.factorlab);
+  if (owners.length) h += `<div class="p-sec"><h3>Owners</h3><table class="view"><thead><tr><th>Role</th><th>${esc(m.account || 'Customer')}</th><th>FactorLab</th></tr></thead><tbody>${owners.map(r => `<tr><td>${esc(r.role)}</td><td>${esc(r.customer)}</td><td>${esc(r.factorlab)}</td></tr>`).join('')}</tbody></table></div>`;
+  const rec = d('recognition'), mi = d('milestones');
+  h += `<div class="p-sec"><h3>How we'll run it</h3><table class="view"><tbody>
+    <tr><td style="width:140px"><b>Weekly</b></td><td>${esc(mi.weekly || '')}</td></tr>
+    <tr><td><b>Monthly</b></td><td>${esc(mi.monthly || '')}${(mi.workbooks || []).length ? ' (' + esc(mi.workbooks.join(', ')) + ')' : ''}</td></tr>
+    <tr><td><b>Quarterly</b></td><td>${esc(mi.quarterly || '')}</td></tr>
+    ${rec.forWhat ? `<tr><td><b>Recognition</b></td><td>${esc([rec.often, rec.forWhat].filter(Boolean).join(': '))}${rec.channel ? ', via ' + esc(rec.channel) : ''}</td></tr>` : ''}
+    ${show('loop') && d('loop').how ? `<tr><td><b>Closing the loop</b></td><td>${esc(d('loop').how)}</td></tr>` : ''}
+    </tbody></table></div>`;
+  if (!customer) {
+    const e = d('economics');
+    const risks = (d('risks').rows || []).filter(r => r.risk);
+    h += `<div class="internal-block"><div class="p-eyebrow">FactorLab only</div>
+      <table class="view" style="margin-top:10px"><tbody>
+        <tr><td style="width:180px"><b>ARR</b></td><td>${esc(e.arr || '') || '<span class="empty-note">Not confirmed</span>'}</td></tr>
+        <tr><td><b>Renewal</b></td><td>${esc(fmtDate(e.renewal)) || '<span class="empty-note">Not confirmed</span>'}</td></tr>
+        <tr><td><b>Service hours</b></td><td>${esc(e.hours || '')}</td></tr>
+        <tr><td><b>Next expansion step</b></td><td>${esc(e.next || '')}${e.mustBeTrue ? ' <span style="color:var(--muted)">(first: ' + esc(e.mustBeTrue) + ')</span>' : ''}</td></tr>
+      </tbody></table>
+      ${risks.length ? `<h3 style="margin:18px 0 8px;font-size:14px">Risks</h3><table class="view"><thead><tr><th>Risk</th><th>Failure mode</th><th>What we saw</th><th>The fix</th></tr></thead><tbody>${risks.map(r => `<tr><td>${esc(r.risk)}</td><td>${esc(r.mode)}</td><td>${esc(r.signal)}</td><td>${esc(r.fix)}</td></tr>`).join('')}</tbody></table>` : ''}
+      ${m.context ? `<h3 style="margin:18px 0 8px;font-size:14px">What we know so far</h3><p style="white-space:pre-wrap;margin:0">${esc(m.context)}</p>` : ''}
+    </div>`;
+  }
+  return h;
+}
+
+function renderAll() {
+  renderPicker();
+  renderNav();
+  renderWork();
+  renderSide();
+  if (cur()) setSaved(storageOk ? 'Saved in this browser' : 'Not saved');
+}
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+let sideTimer = null;
+function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { renderSide(); renderNav(); }, 150); }
+
+function go(sec) {
+  currentSec = sec;
+  renderNav(); renderWork();
+  document.getElementById('work').scrollIntoView({ block: 'start' });
+  window.scrollTo({ top: 0 });
+}
+
+function handleInput(e) {
+  const t = e.target, p = cur();
+  if (!p) return;
+  if (t.dataset.meta) {
+    const k = t.dataset.meta;
+    p.meta[k] = t.type === 'checkbox' ? t.checked : t.value;
+    if (k === 'verified') t.closest('.check').classList.toggle('on', t.checked);
+    saveSoon();
+    if (k === 'tier' || k === 'mode') { renderAll(); return; }
+    if (k === 'account') renderPicker();
+    sideSoon(); return;
+  }
+  if (t.dataset.note) { p.notes[t.dataset.note] = t.value; saveSoon(); return; }
+  if (t.dataset.custom) {
+    const c = p.custom.find(x => x.id === t.dataset.custom);
+    if (!c || t.dataset.add) return;
+    if (t.dataset.ckey === 'items') c.items[+t.dataset.idx] = t.value;
+    else c[t.dataset.ckey] = t.value;
+    saveSoon(); sideSoon(); return;
+  }
+  if (t.dataset.ms) {
+    const ph = p.data.milestones.phases[t.dataset.ms];
+    const item = ph[+t.dataset.idx];
+    if (t.dataset.mkey === 'done') { item.done = t.checked; t.closest('.ms').classList.toggle('done', t.checked); }
+    else item.text = t.value;
+    saveSoon(); sideSoon(); return;
+  }
+  if (t.dataset.sec && t.dataset.field) {
+    if (t.dataset.add) return;
+    const d = p.data[t.dataset.sec] || (p.data[t.dataset.sec] = {});
+    const f = t.dataset.field;
+    if (t.dataset.opt) {
+      const arr = d[f] || (d[f] = []);
+      const i = arr.indexOf(t.dataset.opt);
+      if (t.checked && i < 0) arr.push(t.dataset.opt);
+      if (!t.checked && i >= 0) arr.splice(i, 1);
+      t.closest('.check').classList.toggle('on', t.checked);
+    } else if (t.dataset.row != null) {
+      d[f][+t.dataset.row][t.dataset.col] = t.value;
+    } else if (t.dataset.idx != null) {
+      d[f][+t.dataset.idx] = t.value;
+    } else {
+      d[f] = t.value;
+      const s = sectionByKey(t.dataset.sec);
+      if (s && s.fields.some(x => x.showIf) && e.type === 'change') { saveSoon(); renderWork(); sideSoon(); return; }
+    }
+    saveSoon(); sideSoon();
+  }
+}
+
+function listTarget(el) {
+  const p = cur();
+  if (el.dataset.custom) { const c = p.custom.find(x => x.id === el.dataset.custom); return c ? (c.items || (c.items = [])) : null; }
+  const d = p.data[el.dataset.sec] || (p.data[el.dataset.sec] = {});
+  return d[el.dataset.field] || (d[el.dataset.field] = []);
+}
+function addFromInput(input) {
+  const v = input.value.trim();
+  if (!v) return;
+  const arr = listTarget(input);
+  if (!arr) return;
+  arr.push(v);
+  saveSoon();
+  const sel = input.dataset.custom ? `[data-custom="${input.dataset.custom}"][data-add]` : `[data-sec="${input.dataset.sec}"][data-field="${input.dataset.field}"][data-add]`;
+  renderWork(); sideSoon();
+  const again = document.querySelector('#work input' + sel);
+  if (again) again.focus();
+}
+
+function handleClick(e) {
+  const g = e.target.closest('[data-goto]');
+  if (g) { e.preventDefault(); go(g.dataset.goto); return; }
+  const cmd = e.target.closest('[data-cmd]');
+  if (cmd) { document.getElementById('moreMenu').classList.remove('open'); runCmd(cmd.dataset.cmd); return; }
+  const a = e.target.closest('[data-action]');
+  if (!a) return;
+  const p = cur();
+  const act = a.dataset.action;
+  if (act === 'create') {
+    const name = document.getElementById('w-account').value.trim();
+    newPlan({ account: name, tier: document.getElementById('w-tier').value, mode: document.getElementById('w-mode').value });
+    renderAll(); return;
+  }
+  if (act === 'present') { openPresent(); return; }
+  if (!p) return;
+  if (act === 'add-item') {
+    const sel = a.dataset.custom ? `[data-custom="${a.dataset.custom}"][data-add]` : `[data-sec="${a.dataset.sec}"][data-field="${a.dataset.field}"][data-add]`;
+    const input = document.querySelector('#work input' + sel);
+    if (input) addFromInput(input);
+    return;
+  }
+  if (act === 'remove-item') { const arr = listTarget(a); arr.splice(+a.dataset.idx, 1); saveSoon(); renderWork(); sideSoon(); return; }
+  if (act === 'add-row') {
+    const s = sectionByKey(a.dataset.sec), f = s.fields.find(x => x.key === a.dataset.field);
+    const row = {}; f.columns.forEach(c => row[c.key] = '');
+    (p.data[s.key][f.key] = p.data[s.key][f.key] || []).push(row);
+    saveSoon(); renderWork(); sideSoon();
+    const inputs = document.querySelectorAll(`#work [data-sec="${s.key}"][data-field="${f.key}"][data-row="${p.data[s.key][f.key].length - 1}"]`);
+    if (inputs[0]) inputs[0].focus();
+    return;
+  }
+  if (act === 'remove-row') { p.data[a.dataset.sec][a.dataset.field].splice(+a.dataset.row, 1); saveSoon(); renderWork(); sideSoon(); return; }
+  if (act === 'add-ms') {
+    p.data.milestones.phases[a.dataset.ms].push({ text: '', done: false });
+    saveSoon(); renderWork(); sideSoon();
+    const list = document.querySelectorAll(`#work input[type=text][data-ms="${a.dataset.ms}"]`);
+    if (list.length) list[list.length - 1].focus();
+    return;
+  }
+  if (act === 'remove-ms') { p.data.milestones.phases[a.dataset.ms].splice(+a.dataset.idx, 1); saveSoon(); renderWork(); sideSoon(); return; }
+  if (act === 'add-branch') {
+    const c = { id: uid(), title: '', items: [], notes: '' };
+    p.custom.push(c); saveSoon(); go('custom:' + c.id);
+    const t = document.querySelector('#work [data-ckey="title"]'); if (t) t.focus();
+    renderSide(); return;
+  }
+  if (act === 'delete-branch') {
+    if (!confirm('Delete this branch and its items?')) return;
+    p.custom = p.custom.filter(c => c.id !== a.dataset.id); saveSoon(); go('basics'); renderSide(); return;
+  }
+}
+
+function runCmd(c) {
+  const p = cur();
+  if (c === 'new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
+  if (c === 'import') { document.getElementById('importFile').click(); return; }
+  if (!p) return;
+  if (c === 'duplicate') {
+    const copy = clone(p); copy.id = uid(); copy.meta.account = (p.meta.account || 'Untitled') + ' (copy)';
+    copy.meta.created = copy.meta.updated = new Date().toISOString();
+    plans[copy.id] = copy; currentId = copy.id; saveNow(); renderAll(); return;
+  }
+  if (c === 'export') {
+    const blob = new Blob([JSON.stringify({ app: 'success-plan-builder', version: APP_VERSION, exported: new Date().toISOString(), plan: p }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = slug(p.meta.account) + '-success-plan.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
+  if (c === 'delete') {
+    if (!confirm('Delete the plan for ' + (p.meta.account || 'this account') + '? Export it first if you might want it back.')) return;
+    delete plans[p.id]; currentId = Object.keys(plans)[0] || null; currentSec = 'basics'; saveNow(); renderAll(); return;
+  }
+}
+
+function importFile(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const obj = JSON.parse(r.result);
+      const p = obj.plan || obj;
+      if (!p || !p.meta || !p.data) throw new Error('Not a success plan file');
+      // fill anything newer versions added
+      const fresh = blankData();
+      Object.keys(fresh).forEach(k => { p.data[k] = Object.assign(fresh[k], p.data[k] || {}); });
+      p.custom = p.custom || []; p.notes = p.notes || {};
+      if (plans[p.id] && !confirm('A plan with this ID is already here (' + (plans[p.id].meta.account || 'Untitled') + '). Replace it with the file?')) p.id = uid();
+      if (!p.id) p.id = uid();
+      plans[p.id] = p; currentId = p.id; currentSec = 'basics'; saveNow(); renderAll();
+    } catch (err) { alert('That file could not be read as a success plan.'); }
+  };
+  r.readAsText(file);
+}
+
+function openPresent() {
+  const p = cur(); if (!p) return;
+  document.getElementById('presentBody').innerHTML = presentHtml(p, document.getElementById('customerView').checked);
+  document.getElementById('present').classList.add('show');
+  document.getElementById('present').scrollTop = 0;
+}
+
+document.addEventListener('input', handleInput);
+document.addEventListener('change', e => { if (e.target.matches('select, input[type=checkbox], input[type=date]')) handleInput(e); });
+document.addEventListener('click', handleClick);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.dataset && e.target.dataset.add) { e.preventDefault(); addFromInput(e.target); }
+  if (e.key === 'Escape') { document.getElementById('present').classList.remove('show'); document.getElementById('moreMenu').classList.remove('open'); }
+});
+document.getElementById('planPicker').addEventListener('change', e => {
+  const v = e.target.value;
+  if (v === '__new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
+  if (plans[v]) { currentId = v; currentSec = 'basics'; saveNow(); renderAll(); }
+});
+document.getElementById('moreBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('moreMenu').classList.toggle('open'); });
+document.addEventListener('click', e => { if (!e.target.closest('#moreMenu')) document.getElementById('moreMenu').classList.remove('open'); });
+document.getElementById('importFile').addEventListener('change', e => { if (e.target.files[0]) importFile(e.target.files[0]); e.target.value = ''; });
+document.getElementById('presentBtn').addEventListener('click', openPresent);
+document.getElementById('closePresent').addEventListener('click', () => document.getElementById('present').classList.remove('show'));
+document.getElementById('customerView').addEventListener('change', openPresent);
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+document.querySelector('.side-tabs').addEventListener('click', e => { const t = e.target.closest('.side-tab'); if (t) { sideTab = t.dataset.tab; renderSide(); } });
+document.addEventListener('change', e => {
+  if (e.target.id !== 'mobileJump') return;
+  if (e.target.value === '__branch') { const a = document.querySelector('[data-action=add-branch]'); if (a) a.click(); return; }
+  go(e.target.value);
+});
+document.getElementById('nav').addEventListener('change', e => { if (e.target.id === 'showAll') { showAll = e.target.checked; renderAll(); } });
+
+loadAll();
+if (!storageOk) document.getElementById('storageBanner').classList.add('show');
+renderAll();
+</script>
+</body>
+</html>
