@@ -8,7 +8,7 @@ This repo holds one web page, `index.html`, that FactorLab CSMs use to build cus
 - **Guided Plan**: the setup described above. No `meta.flow`; core sections plus anything added.
 - **Flintco Plan**: the steps and questions of Barry's 2027 model plan in its order (`FLINTCO_STEPS`, the `fc...` sections with `set: 'flintco'`). Every customer name, person and figure is removed. Trey approved the label "Flintco Plan" for the CSM side only (the starting-point screen, the side menu, the side map, the builder). It must never reach the customer view, the Customer window or either PDF, and nothing Flintco-specific (names, their strategy, their numbers) goes in this public repo.
 - **Custom Build**: a step builder. Pick steps from both sets, order them (number dropdown or arrows), rename a built-in step and edit its curious questions, or add steps of your own with your own questions and answer boxes (Short answer, Long answer, List, Pick one, Tick boxes, Date, Table). Built-in steps keep their answer boxes so they still feed the map, timeline, ready check and PDF. Builds save in the browser (`spb.builds`) and export as a `-build.json` file a teammate can open, so the team can run the same build. "Change the steps" reopens the builder on any Flintco or Custom plan.
-A floating **Back** button sits bottom left on every step (`backTarget()`): it goes one step back through the whole plan, and from Account basics to the starting point. It hides on the welcome screen, the picker, the builder and the plan view. "Back: Starting point" on Account basics also returns an existing plan to the picker (`repick`); switching keeps everything written (sections with answers stay, and steps of your own with answers move to the new steps). Keep the starting-point screen to these three choices. Saved builds live inside Custom Build, under "Start from".
+A floating **Back** button sits bottom left on every step (`backTarget()`): it goes one step back through the whole plan, and from Account basics to the starting point. It hides on the welcome screen, the picker, the builder and the plan view. "Back: Starting point" on Account basics also returns an existing plan to the picker (`repick`); switching gives the plan exactly the new template's steps. The old template's steps go on a shelf (`meta.shelf`, one shape per template, see `shelvedKeys()`) with their answers kept in the plan, so they're hidden, never deleted, and come back when you switch back. A step both templates share (like Their goal) keeps its answer across the switch. Keep the starting-point screen to these three choices. Saved builds live inside Custom Build, under "Start from".
 
 **Built for live customer meetings.** Three top-bar buttons:
 - **Focus** hides the side menu and map so only the current step shows. Remembered per browser (`spb.focus`).
@@ -91,10 +91,11 @@ Sections marked `branch: 'internal'` are FactorLab-only. They show with a dashed
 ```js
 plan = {
   id, app: 'success-plan-builder', version,
-  meta: { account, csm, backup, tier, sections, template, flow, mode, day1, context, sources, verified, created, updated },
+  meta: { account, csm, backup, tier, sections, template, flow, shelf, mode, day1, context, sources, verified, created, updated },
   // template: 'guided' | 'flintco' | 'custom' (missing means guided)
   // flow (Flintco and Custom plans only): { name, steps: [{ key, title?, ask? }], own: { id: { title, branch, intro, ask, fields: [{ key, label, type, options }] } } }
   //   steps list the plan's steps in order; "own-<id>" keys are steps the CSM wrote; answers live in data['own-<id>']
+  // shelf (only after a template switch): { [template]: flow, or { sections } for guided }: the steps set aside, restored on switching back
   data: { [sectionKey]: { [fieldKey]: value } },
   custom: [{ id, title, items: [], notes }],   // the CSM's own branches
   notes: { [sectionKey]: 'notes and open questions' }

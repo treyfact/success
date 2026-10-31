@@ -1359,7 +1359,10 @@ function hasWork(p, s) {
    or it already has something in it. Written work never disappears. */
 function inPlan(p, s) {
   const step = p.meta.flow ? inFlow(p, s.key) : s.core;
-  return !!(step || (p.meta.sections || []).includes(s.key) || hasWork(p, s));
+  if (step || (p.meta.sections || []).includes(s.key)) return true;
+  const shelved = shelvedKeys(p);
+  if (shelved && shelved.has(s.key)) return false;   // set aside by a template switch; its answers are kept
+  return hasWork(p, s);
 }
 function visibleSections(p) {
   const flow = p.meta.flow;
@@ -1513,22 +1516,39 @@ function startHtml() {
     <div class="start-foot"><button class="btn ghost" data-action="start-back">${p ? 'Back: Account basics' : 'Back'}</button><span style="font-size:12.5px;color:var(--faint)">${p ? 'Anything you have written stays in the plan.' : 'Steps can be added or changed later.'}</span></div>
   </div>`;
 }
-/* Re-pick the starting point for a plan that already exists. Nothing written is lost: sections
-   with answers stay in the plan, and steps of your own with answers come along to the new steps. */
+/* Re-pick the starting point for a plan that already exists. The plan takes exactly the new
+   template's steps. Steps outside it are set aside on a shelf (meta.shelf), one shape per template,
+   with their answers kept in the plan: switch back and they return. Nothing is deleted. */
+function planShape(p) { return p.meta.flow ? clone(p.meta.flow) : { sections: (p.meta.sections || []).slice() }; }
+function shapeKeys(shape) { return shape.steps ? shape.steps.map(x => x.key) : GUIDED_STEPS().concat(shape.sections || []); }
+function shelveCurrent(p, target) {
+  const shelf = Object.assign({}, p.meta.shelf || {});
+  shelf[p.meta.template || 'guided'] = planShape(p);
+  delete shelf[target];
+  p.meta.shelf = shelf;
+}
+/* Keys set aside by a switch: steps of a shelved template that aren't steps now. */
+function shelvedKeys(p) {
+  const sh = p.meta.shelf; if (!sh) return null;
+  const now = p.meta.flow ? new Set((p.meta.flow.steps || []).map(x => x.key)) : new Set(GUIDED_STEPS().concat(p.meta.sections || []));
+  const out = new Set();
+  Object.keys(sh).forEach(t => { if (t !== (p.meta.template || 'guided') && sh[t]) shapeKeys(sh[t]).forEach(k => { if (!now.has(k)) out.add(k); }); });
+  return out;
+}
 function switchStart(p, t) {
-  const now = p.meta.template || 'guided';
+  const now = p.meta.template || 'guided', shelf = p.meta.shelf || {};
   if (t === 'custom') {
-    fadeSwap(() => { repick = false; builder = { forPlan: p.id, draft: p.meta.flow ? clone(p.meta.flow) : { name: '', steps: visibleSections(p).map(s => ({ key: s.key })), own: {} }, open: null, msg: '' }; renderAll(); });
+    const draft = now === 'custom' ? clone(p.meta.flow) : shelf.custom ? clone(shelf.custom)
+      : p.meta.flow ? clone(p.meta.flow) : { name: '', steps: visibleSections(p).map(s => ({ key: s.key })), own: {} };
+    fadeSwap(() => { repick = false; builder = { forPlan: p.id, draft, open: null, msg: '', switchFrom: now === 'custom' ? '' : now }; renderAll(); });
     return;
   }
   if (t === now && !(t === 'guided' && p.meta.flow)) { fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); }); return; }
-  if (!confirm('Switch this plan to the ' + (t === 'flintco' ? 'Flintco Plan' : 'Guided Plan') + ' steps? Anything you have written stays in the plan.')) return;
-  const old = p.meta.flow, kept = {};
-  if (old) Object.keys(old.own || {}).forEach(id => { const s = sectionByKey('own-' + id, p); if (s && hasWork(p, s)) kept[id] = old.own[id]; });
-  const keptSteps = Object.keys(kept).map(id => ({ key: 'own-' + id }));
-  if (t === 'flintco') { const f = seedFlow('flintco'); f.steps = f.steps.concat(keptSteps); f.own = kept; p.meta.flow = f; }
-  else if (keptSteps.length) p.meta.flow = { name: 'Guided Plan', steps: GUIDED_STEPS().map(k => ({ key: k })).concat(keptSteps), own: kept };
-  else p.meta.flow = null;   // null rather than delete, so a team code passes the change on
+  if (!confirm('Switch this plan to the ' + (t === 'flintco' ? 'Flintco Plan' : 'Guided Plan') + ' steps? Answers in other steps are set aside and come back if you switch back.')) return;
+  const shape = shelf[t] || (t === 'flintco' ? seedFlow('flintco') : { sections: [] });
+  shelveCurrent(p, t);
+  if (shape.steps) { p.meta.flow = clone(shape); p.meta.sections = []; }
+  else { p.meta.flow = null; p.meta.sections = (shape.sections || []).slice(); }   // null rather than delete, so a team code passes the change on
   p.meta.template = t;
   saveSoon();
   fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); });
@@ -1588,7 +1608,7 @@ function builderHtml() {
       <div class="field"><label for="bSeed">Start from</label><select id="bSeed"><option value="guided">Guided Plan steps</option><option value="flintco">Flintco Plan steps</option>${builds.map(x => `<option value="build:${x.id}">Saved: ${esc(x.name)}</option>`).join('')}<option value="empty">Nothing, start empty</option></select></div>
       <button class="btn" data-bact="seed">Use these</button>
     </div>
-    <div class="bld-count">${n + 1} steps</div>
+    <div class="bld-count">${n + 1} step${n ? 's' : ''}</div>
     <div class="bld-fixed">1 · Account basics, always first</div>
     ${rows}
     <div class="bld-add"><select id="bAdd" aria-label="Add a step"><option value="">Add a step...</option><option value="__own">+ A new step of your own</option>
@@ -1667,6 +1687,7 @@ function builderClick(e) {
   else if (act === 'save-build') {
     const name = String(f.name || '').trim();
     if (!name) { builder.msg = 'Name the build first.'; renderWork(); const el = document.getElementById('bName'); if (el) el.focus(); return; }
+    if (!f.steps.length) { builder.msg = 'Add a step first.'; renderWork(); return; }
     const all = loadBuilds(), ex = Object.values(all).find(x => x.name.toLowerCase() === name.toLowerCase()), id = ex ? ex.id : uid();
     const c = cleanFlow(f, null);
     all[id] = { id, name, steps: c.steps, own: c.own, saved: new Date().toISOString() };
@@ -1713,8 +1734,9 @@ function finishBuilder() {
   }
   const p = plans[builder.forPlan], f = cleanFlow(builder.draft, p);
   if (!p || !f.steps.length) return;
+  if (builder.switchFrom) { shelveCurrent(p, 'custom'); p.meta.sections = []; p.meta.template = 'custom'; }
+  else if (p.meta.template !== 'flintco') p.meta.template = 'custom';
   p.meta.flow = f;
-  if (p.meta.template !== 'flintco') p.meta.template = 'custom';
   builder = null; currentSec = 'basics'; saveSoon(); renderAll(); window.scrollTo(0, 0);
 }
 document.addEventListener('input', builderInput);
