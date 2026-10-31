@@ -40,7 +40,7 @@ a { color: var(--navy); }
 .brand { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; flex: none; margin-right: 6px; }
 .brand-logo { height: 24px; width: auto; display: block; }
 .brand-sub { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .03em; margin-top: 4px; white-space: nowrap; }
-.plan-picker { min-width: 200px; max-width: 280px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.plan-picker { min-width: 200px; max-width: 280px; flex: 0 1 280px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 .spacer { flex: 1; }
 .saved { font-size: 12px; color: var(--faint); white-space: nowrap; }
 .btn { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; white-space: nowrap; }
@@ -74,9 +74,8 @@ a { color: var(--navy); }
   .app { grid-template-columns: 1fr; }
   .nav { display: none; }
   .mobile-jump { display: block; margin-bottom: 16px; }
-  .topbar { flex-wrap: wrap; position: static; }
+  .topbar { position: static; }
   .side { position: static; }
-  table.grid { min-width: 560px; }
   .work { padding: 18px 16px 60px; }
 }
 
@@ -144,7 +143,7 @@ table.grid td.act { width: 30px; text-align: center; vertical-align: middle; }
 .ms.done input[type=text] { text-decoration: line-through; color: var(--faint); }
 
 .notes { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--line); }
-.sec-foot { display: flex; justify-content: space-between; margin-top: 22px; }
+.sec-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 
 .dogear { display: inline-block; width: 11px; height: 13px; vertical-align: -1px; flex: none;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 12'%3E%3Cpath d='M0.75 0.75H6.4L9.25 3.6V11.25H0.75Z' fill='%23fbf3ea' stroke='%23b9824c' stroke-width='1.1' stroke-linejoin='round'/%3E%3Cpath d='M6.4 0.75V3.6H9.25' fill='%23ecd2b6' stroke='%23b9824c' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain; }
@@ -237,10 +236,70 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 .internal-block > .p-eyebrow { color: var(--muted); }
 .empty-note { color: var(--faint); font-style: italic; }
 
+/* =========================================================
+   SMALLER SCREENS (screen only, so printing is unaffected)
+   ========================================================= */
+.fab { display: none; }
+@media screen and (max-width: 1180px) {
+  .saved { display: none; }
+  .plan-picker { min-width: 0; flex: 1 1 160px; }
+  .fab { display: block; position: fixed; right: 16px; bottom: 16px; z-index: 25; border: 0; border-radius: 999px; padding: 10px 16px; background: var(--navy); color: #fff; font-weight: 600; font-size: 13px; box-shadow: 0 6px 18px rgba(20,30,50,.25); }
+}
+@media screen and (max-width: 900px) {
+  /* tables become one card per row */
+  table.grid, table.grid tbody, table.grid tr, table.grid td { display: block; width: 100%; }
+  table.grid thead { display: none; }
+  table.grid { border: 0; background: transparent; overflow: visible; }
+  table.grid tr { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 8px 10px 4px; margin-bottom: 10px; }
+  table.grid td { border: 0; padding: 2px 0 6px; }
+  table.grid td.full, table.grid td.act, table.grid td[colspan] { grid-column: 1 / -1; }
+  table.grid td::before { content: attr(data-label); display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 3px; }
+  table.grid td.act::before, table.grid td[colspan]::before { content: none; }
+  table.grid td.act { text-align: right; padding: 0; }
+  table.grid td input, table.grid td select, table.grid td textarea { border-color: var(--line); }
+  .tl-wide { grid-template-columns: 1fr 1fr; }
+  .present-body { padding: 22px 20px 50px; }
+}
+@media screen and (max-width: 760px) {
+  .topbar { flex-wrap: wrap; row-gap: 8px; padding: 10px 14px; }
+  .topbar .spacer { display: none; }
+  .brand { order: 0; flex: 1; }
+  #moreMenu { order: 1; }
+  .plan-picker { order: 2; flex: 1 1 100%; max-width: none; }
+  #presentBtn { order: 3; flex: 1; }
+  #pdfMenu { order: 4; flex: 1; }
+  #pdfMenu > .btn { width: 100%; }
+  .sec-foot { flex-direction: column-reverse; gap: 8px; }
+  .sec-foot .btn { width: 100%; white-space: normal; }
+  .welcome { margin: 8px auto; padding: 20px 18px; }
+  .welcome .actions { flex-wrap: wrap; }
+  .sec-head h2 { font-size: 20px; }
+  /* plan view */
+  .present-bar { flex-wrap: wrap; row-gap: 8px; padding: 10px 14px; }
+  .present-bar > b, .present-bar .spacer { display: none; }
+  .present-bar .btn { flex: 1; }
+  .present-bar .toggle-row { order: 3; flex: 1 1 100%; padding: 0; }
+  .present-body { padding: 18px 16px 50px; }
+  .p-title { font-size: 24px; }
+  .p-goal { font-size: 15.5px; }
+  .tl-wide { grid-template-columns: 1fr; }
+  table.view { display: block; overflow-x: auto; }
+  .map-wide { display: block; }
+  .map-wide .map-root { width: auto; padding: 12px 14px; }
+  .map-wide .map-root b { font-size: 17px; }
+  .map-wide .map-link { display: none; }
+  .map-wide .map-branches { display: block; margin: 10px 0 0 18px; padding-left: 16px; border-left: 2px solid var(--line); }
+  .map-wide .map-branch { display: block; padding: 8px 0 8px 14px; }
+  .map-wide .map-branch::before { left: -16px; top: 24px; width: 28px; }
+  .map-wide .map-branch::after { display: none; }
+  .map-wide .map-label { width: auto; display: inline-flex; flex-direction: row; align-items: center; gap: 8px; padding: 6px 12px; }
+  .map-wide .leaves { margin: 8px 0 0; }
+}
+
 @media print {
   @page { size: letter landscape; margin: 0.45in; }
   body { background: #fff; }
-  .topbar, .app, .banner, .present-bar { display: none !important; }
+  .topbar, .app, .banner, .present-bar, .fab { display: none !important; }
   .present { display: block !important; position: static; overflow: visible; }
   .present-body { max-width: none; padding: 0; }
   .p-sec { break-inside: avoid; }
@@ -291,6 +350,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   </aside>
 </div>
 
+<button class="fab" id="mapFab" type="button">See the map</button>
 <div class="present" id="present">
   <div class="present-bar">
     <b>Plan view</b>
@@ -941,7 +1001,7 @@ function listHtml(items, attr, placeholder) {
 function tableHtml(s, f, rows) {
   const attr = `data-sec="${s.key}" data-field="${f.key}"`;
   return `<div class="field"><div class="field-label">${esc(f.label)}</div><div class="table-wrap"><table class="grid"><thead><tr>${f.columns.map(c => `<th ${c.width ? `style="width:${c.width}"` : ''}>${esc(c.label)}</th>`).join('')}<th></th></tr></thead><tbody>
-    ${rows.map((r, i) => `<tr>${f.columns.map(c => `<td>${c.type === 'select'
+    ${rows.map((r, i) => `<tr>${f.columns.map((c, ci) => `<td data-label="${esc(c.label)}" class="${c.multi || ci === 0 ? 'full' : ''}">${c.type === 'select'
       ? `<select ${attr} data-row="${i}" data-col="${c.key}">${c.options.map(o => `<option value="${esc(o)}" ${o === (r[c.key] || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select>`
       : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td></tr>`).join('')}
     ${rows.length ? '' : `<tr><td colspan="${f.columns.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
@@ -1336,6 +1396,22 @@ document.getElementById('nav').addEventListener('change', e => { if (e.target.id
 loadAll();
 if (!storageOk) document.getElementById('storageBanner').classList.add('show');
 renderAll();
+
+/* Floating "See the map" button on smaller screens, where the map sits below the form. */
+(function () {
+  const fab = document.getElementById('mapFab'), side = document.getElementById('side');
+  function sideInView() { return side.getBoundingClientRect().top < window.innerHeight * 0.6; }
+  function update() { fab.textContent = sideInView() ? 'Back to editing' : 'See the map'; fab.style.display = cur() ? '' : 'none'; }
+  fab.addEventListener('click', () => {
+    if (sideInView()) window.scrollTo({ top: 0, behavior: 'smooth' });
+    else side.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  document.addEventListener('click', () => setTimeout(update, 50));
+  update();
+})();
+
 </script>
 </body>
 </html>
