@@ -148,16 +148,8 @@ table.grid td.act { width: 30px; text-align: center; vertical-align: middle; }
 .ms input[type=text] { flex: 1; }
 .ms.done input[type=text] { text-decoration: line-through; color: var(--faint); }
 
-.qs-step { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 4px; margin-bottom: 12px; }
-.qs-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.qs-num { width: 24px; height: 24px; border-radius: 50%; background: var(--navy-soft); color: var(--navy); font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; flex: none; }
-.qs-step.ok .qs-num { background: var(--green); color: #fff; }
-.qs-title { font-weight: 700; font-size: 15px; }
-.qs-done { display: none; font-size: 11.5px; font-weight: 700; color: var(--green); background: var(--green-soft); border-radius: 999px; padding: 1px 8px; }
-.qs-step.ok .qs-done { display: inline-block; }
 .qs-more { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 12.5px; padding: 2px 4px; white-space: nowrap; }
 .qs-more:hover { color: var(--navy); text-decoration: underline; }
-.qs-note { font-size: 12.5px; color: var(--muted); margin: -4px 0 12px; }
 .catalog { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
 .cat-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
 .cat-card.in { border-color: #b9dcc6; background: #fbfefc; }
@@ -167,6 +159,20 @@ table.grid td.act { width: 30px; text-align: center; vertical-align: middle; }
 .cat-card .btn { align-self: flex-start; margin-top: 4px; }
 .presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; font-size: 13px; color: var(--muted); }
 @media (max-width: 760px) { .catalog { grid-template-columns: 1fr; } }
+.stepbar { position: sticky; top: var(--topbar); z-index: 5; background: var(--bg); margin: -22px -28px 18px; padding: 14px 28px 12px; border-bottom: 1px solid var(--line); }
+.step-top { display: flex; align-items: baseline; gap: 10px; }
+.step-count { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); white-space: nowrap; }
+.step-name { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.step-segs { display: flex; gap: 4px; margin-top: 8px; }
+.step-seg { flex: 1; height: 7px; border: 0; border-radius: 4px; background: var(--line); padding: 0; }
+.step-seg.done { background: #a7d0b6; }
+.step-seg.current { background: var(--navy); }
+.step-seg:hover { outline: 2px solid #b9cbe4; outline-offset: 1px; }
+body.focus .nav, body.focus .side, body.focus .fab { display: none !important; }
+body.focus .app { grid-template-columns: minmax(0, 1fr); }
+body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
+.btn.on { background: var(--navy-soft); border-color: #8fa8c9; color: var(--navy); }
+#timerBtn { font-variant-numeric: tabular-nums; min-width: 64px; }
 .notes { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--line); }
 .sec-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 
@@ -295,6 +301,9 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   #pdfMenu { order: 4; flex: 1; }
   #pdfMenu > .btn { width: 100%; }
   .sec-foot { flex-direction: column-reverse; gap: 8px; }
+  .stepbar { top: 0; margin: -18px -16px 16px; padding: 12px 16px 10px; }
+  #focusBtn, #shareBtn { display: none; }
+  #timerBtn { order: 1; }
   .sec-foot .btn { width: 100%; white-space: normal; }
   .welcome { margin: 8px auto; padding: 20px 18px; }
   .welcome .actions { flex-wrap: wrap; }
@@ -338,6 +347,9 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   <select class="plan-picker" id="planPicker" aria-label="Choose a plan"></select>
   <div class="spacer"></div>
   <span class="saved" id="savedNote"></span>
+  <button class="btn" id="timerBtn" title="Pop out a meeting timer">Timer</button>
+  <button class="btn" id="focusBtn" title="Hide the side panels while you work through the plan">Focus</button>
+  <button class="btn" id="shareBtn" title="Opens a clean window to share on screen. It shows only what the customer should see and updates as you type.">Customer window</button>
   <button class="btn primary" id="presentBtn">View plan</button>
   <div class="menu" id="pdfMenu">
     <button class="btn" id="pdfBtn" aria-haspopup="true">Export PDF</button>
@@ -750,7 +762,7 @@ function readyChecks(plan) {
     { id: 'recognition', label: 'The 30-day milestones and the recognition plan are written', ok: (phases.d30 || []).some(m => m.text) && !!d('recognition').forWhat, sec: 'recognition' },
     { id: 'risks', label: 'The biggest risk is named and tagged with a failure mode', ok: (d('risks').rows || []).some(r => r.risk && r.mode), sec: 'risks' },
     { id: 'economics', label: 'Renewal date and next expansion step are filled in', ok: !!(d('economics').renewal && d('economics').next), sec: 'economics' },
-    { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it in Quick start)', ok: !!plan.meta.verified, sec: 'quick' }
+    { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it in Account basics)', ok: !!plan.meta.verified, sec: 'basics' }
   ];
 }
 
@@ -759,7 +771,7 @@ function readyChecks(plan) {
    ========================================================= */
 let plans = {};
 let currentId = null;
-let currentSec = 'quick';
+let currentSec = 'basics';
 let sideTab = 'map';
 let storageOk = true;
 
@@ -831,7 +843,7 @@ function newPlan(meta) {
     notes: {}
   };
   currentId = id;
-  currentSec = 'quick';
+  currentSec = 'basics';
   saveNow();
   return plans[id];
 }
@@ -895,9 +907,7 @@ function renderNav() {
   const nav = document.getElementById('nav');
   if (!p) { nav.innerHTML = ''; return; }
   const vis = visibleSections(p);
-  const allReady = readyChecks(p).every(c => c.ok);
-  let html = `<div class="nav-group"><button class="nav-item ${currentSec === 'quick' ? 'active' : ''}" data-goto="quick"><span class="dot ${allReady ? 'on' : ''}"></span>Quick start</button>
-    <button class="nav-item ${currentSec === 'basics' ? 'active' : ''}" data-goto="basics"><span class="dot ${p.meta.account ? 'on' : ''}"></span>Account basics</button></div>`;
+  let html = `<div class="nav-group"><button class="nav-item ${currentSec === 'basics' ? 'active' : ''}" data-goto="basics"><span class="dot ${p.meta.account ? 'on' : ''}"></span>Account basics</button></div>`;
   BRANCHES.forEach(b => {
     const secs = vis.filter(s => s.branch === b.key);
     const customs = b.key === 'know' ? p.custom : [];
@@ -930,9 +940,8 @@ function renderWork() {
   const work = document.getElementById('work');
   const p = cur();
   if (!p) { work.innerHTML = welcomeHtml(); return; }
-  if (!['quick', 'basics', 'addmore'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'quick';
-  const jump = mobileJumpHtml(p);
-  if (currentSec === 'quick') { work.innerHTML = jump + quickHtml(p); updateQuickMarks(); return; }
+  if (!['basics', 'addmore'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
+  const jump = stepBarHtml(p) + mobileJumpHtml(p);
   if (currentSec === 'addmore') { work.innerHTML = jump + addMoreHtml(p); return; }
   if (currentSec === 'basics') { work.innerHTML = jump + basicsHtml(p); return; }
   const c = customByKey(currentSec);
@@ -941,7 +950,6 @@ function renderWork() {
 }
 
 function secName(k) {
-  if (k === 'quick') return 'Quick start';
   if (k === 'addmore') return 'Build out this plan';
   if (k === 'basics') return 'Account basics';
   const c = customByKey(k);
@@ -1059,47 +1067,6 @@ function phaseHtml(p, ph, items, i) {
     <div style="margin-top:6px"><span class="tl-gate">${esc(ph.gate)}</span></div></div>`;
 }
 
-/* ---------- Quick start: everything a plan needs to be ready, on one page ---------- */
-function qsStep(n, title, checks, more, body, note) {
-  return `<div class="qs-step" data-checks="${checks}"><div class="qs-head"><span class="qs-num">${n}</span><span class="qs-title">${esc(title)}</span><span class="qs-done">Ready</span>${more ? `<button class="qs-more" data-goto="${more}">More on this</button>` : ''}</div>${note ? `<div class="qs-note">${note}</div>` : ''}${body}</div>`;
-}
-function quickHtml(p) {
-  const m = p.meta, d = k => p.data[k] || (p.data[k] = {});
-  const S = k => sectionByKey(k), F = (k, f) => S(k).fields.find(x => x.key === f);
-  const risks = d('risks');
-  if (!(risks.rows || []).length) risks.rows = [{ risk: '', mode: '', signal: '', fix: '' }];
-  const riskModes = S('risks').fields[0].columns.find(c => c.key === 'mode').options;
-  const recOften = F('recognition', 'often').options;
-  return `<div class="sec-branch">Start here</div>
-  <div class="sec-head"><h2>Quick start</h2></div>
-  <p class="sec-intro">The essentials every plan needs before you share it. Fill in what you know now. Add more sections later, only where this account calls for it.</p>
-  ${qsStep(1, 'The account', 'account', 'basics', `
-    <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
-    <div class="row2">
-      <div class="field"><label>What it needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(MODES[m.mode].lead)}</div></div>
-      <div class="field"><label>Day 1</label><input type="date" data-meta="day1" value="${esc(m.day1)}"></div>
-    </div>`)}
-  ${qsStep(2, 'Their goal, in their words', 'goal', 'goal', `<div class="field"><textarea data-sec="goal" data-field="words" placeholder="Quote them as closely as you can.">${esc(d('goal').words)}</textarea></div>`,
-    'Try: ' + esc(S('goal').ask[0]))}
-  ${qsStep(3, 'One or two targets', 'targets', 'targets', tableHtml(S('targets'), F('targets', 'measures'), d('targets').measures || [], { cols: ['measure', 'baseline', 'target'], fixed: true, noLabel: true }),
-    'Pick the one or two that matter most. Baseline first.')}
-  ${qsStep(4, 'Who owns it', 'owners field', 'owners', tableHtml(S('owners'), F('owners', 'rows'), d('owners').rows || [], { noLabel: true }),
-    'A customer name and a FactorLab name on every line, including a field voice.')}
-  ${qsStep(5, 'First 30 days and recognition', 'recognition', 'recognition', `<div class="row2">
-      <div class="field"><label>Recognized for what</label><input type="text" data-sec="recognition" data-field="forWhat" value="${esc(d('recognition').forWhat)}" placeholder="e.g. best planner, most improved"></div>
-      <div class="field"><label>How often</label><select data-sec="recognition" data-field="often">${recOften.map(o => `<option value="${esc(o)}" ${o === (d('recognition').often || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select></div>
-    </div>`, 'The 30-day milestones are already filled in. <button class="qs-more" style="padding:0" data-goto="milestones">Review them</button>')}
-  ${qsStep(6, 'Biggest risk right now', 'risks', 'risks', `<div class="row2">
-      <div class="field"><label>The risk</label><input type="text" data-sec="risks" data-field="rows" data-row="0" data-col="risk" value="${esc(risks.rows[0].risk)}"></div>
-      <div class="field"><label>Failure mode</label><select data-sec="risks" data-field="rows" data-row="0" data-col="mode">${riskModes.map(o => `<option value="${esc(o)}" ${o === (risks.rows[0].mode || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select></div>
-    </div>`, 'FactorLab only. Adoption: they don\'t know how. Value: they don\'t see the point. Champion: the person who cared is gone. Fit: the work doesn\'t match.')}
-  ${qsStep(7, 'Renewal and next step', 'economics', 'economics', `<div class="row2">
-      <div class="field"><label>Renewal date</label><input type="date" data-sec="economics" data-field="renewal" value="${esc(d('economics').renewal)}"></div>
-      <div class="field"><label>Next expansion step</label><input type="text" data-sec="economics" data-field="next" value="${esc(d('economics').next)}" placeholder="e.g. second region"></div>
-    </div>`, 'FactorLab only. Leave blank until confirmed.')}
-  ${qsStep(8, 'Confirm the numbers', 'verified', '', `<div class="field"><label class="check ${m.verified ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-meta="verified" ${m.verified ? 'checked' : ''}> Every number here is confirmed. No placeholders and no unverified marketing figures.</label></div>`)}
-  <div class="sec-foot"><button class="btn ghost" data-goto="addmore">+ Build out this plan</button><button class="btn primary" data-action="present">View the plan</button></div>`;
-}
 /* Hide "Remove from this plan" once the section has something in it. */
 function updateRemoveLink() {
   const p = cur(), btn = document.querySelector('#work [data-action=remove-section]');
@@ -1107,15 +1074,6 @@ function updateRemoveLink() {
   const s = sectionByKey(btn.dataset.key);
   if (s && (leavesFor(s, p).length || (p.notes || {})[s.key])) btn.remove();
 }
-function updateQuickMarks() {
-  const p = cur(); if (!p || currentSec !== 'quick') return;
-  const ok = { account: !!p.meta.account }; readyChecks(p).forEach(c => ok[c.id] = c.ok);
-  document.querySelectorAll('#work .qs-step[data-checks]').forEach(el => {
-    const ids = el.dataset.checks.split(' ').filter(Boolean);
-    el.classList.toggle('ok', ids.length > 0 && ids.every(i => ok[i]));
-  });
-}
-
 /* ---------- Build out: add sections only where the account needs them ---------- */
 function addMoreHtml(p) {
   const extras = SECTIONS.filter(s => !s.core);
@@ -1134,11 +1092,29 @@ function addMoreHtml(p) {
   <div class="catalog">${cards}
     <div class="cat-card"><div class="cat-branch">Your own</div><div class="cat-title">Your own branch</div><div class="cat-when">Anything this account needs that the standard plan doesn't cover.</div><button class="btn small" data-action="add-branch">+ Add a branch</button></div>
   </div>
-  <div class="sec-foot"><button class="btn ghost" data-goto="quick">Back: Quick start</button><button class="btn primary" data-action="present">View the plan</button></div>`;
+  <div class="sec-foot"><button class="btn ghost" data-goto="basics">Back to the plan</button><button class="btn primary" data-action="present">View the plan</button></div>`;
+}
+
+/* ---------- Step bar: where you are in the plan, always visible ---------- */
+function stepDone(p, k) {
+  if (k === 'basics') return !!p.meta.account;
+  const c = customByKey(k); if (c) return (c.items || []).length > 0;
+  if (k === 'milestones') { const ph = (p.data.milestones || {}).phases || {}; return Object.values(ph).some(list => (list || []).some(m => m.done)); }
+  const s = sectionByKey(k); return s ? leavesFor(s, p).length > 0 : false;
+}
+function stepBarHtml(p) {
+  const order = navOrder(p), i = order.indexOf(currentSec);
+  const count = i >= 0 ? `Step ${i + 1} of ${order.length}` : `${order.length} steps in this plan`;
+  return `<div class="stepbar"><div class="step-top"><span class="step-count">${count}</span><span class="step-name">${esc(secName(currentSec))}</span></div>
+    <div class="step-segs">${order.map((k, j) => `<button class="step-seg ${stepDone(p, k) ? 'done' : ''} ${j === i ? 'current' : ''}" data-goto="${esc(k)}" title="${j + 1}. ${esc(secName(k))}" aria-label="Step ${j + 1}: ${esc(secName(k))}"></button>`).join('')}</div></div>`;
+}
+function updateStepBar() {
+  const p = cur(), el = document.querySelector('#work .stepbar');
+  if (p && el) el.outerHTML = stepBarHtml(p);
 }
 
 function navOrder(p) {
-  const keys = ['quick', 'basics'];
+  const keys = ['basics'];
   BRANCHES.forEach(b => {
     visibleSections(p).filter(s => s.branch === b.key).forEach(s => keys.push(s.key));
     if (b.key === 'know') p.custom.forEach(c => keys.push('custom:' + c.id));
@@ -1273,6 +1249,7 @@ function presentHtml(p, customer) {
 }
 
 function renderAll() {
+  if (typeof renderShare === 'function') setTimeout(renderShare, 0);
   renderPicker();
   renderNav();
   renderWork();
@@ -1284,10 +1261,11 @@ function renderAll() {
    EVENTS
    ========================================================= */
 let sideTimer = null;
-function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { renderSide(); renderNav(); updateQuickMarks(); updateRemoveLink(); }, 150); }
+function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { renderSide(); renderNav(); updateStepBar(); updateRemoveLink(); renderShare(); }, 150); }
 
 function go(sec) {
   currentSec = sec;
+  setTimeout(() => renderShare(), 0);
   renderNav(); renderWork();
   document.getElementById('work').scrollIntoView({ block: 'start' });
   window.scrollTo({ top: 0 });
@@ -1419,13 +1397,13 @@ function handleClick(e) {
   }
   if (act === 'delete-branch') {
     if (!confirm('Delete this branch and its items?')) return;
-    p.custom = p.custom.filter(c => c.id !== a.dataset.id); saveSoon(); go('quick'); renderSide(); return;
+    p.custom = p.custom.filter(c => c.id !== a.dataset.id); saveSoon(); go('basics'); renderSide(); return;
   }
 }
 
 function runCmd(c) {
   const p = cur();
-  if (c === 'new') { currentId = null; currentSec = 'quick'; renderAll(); return; }
+  if (c === 'new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (!p) return;
   if (c === 'pdf-customer') { exportPdf(true); return; }
@@ -1446,7 +1424,7 @@ function runCmd(c) {
   }
   if (c === 'delete') {
     if (!confirm('Delete the plan for ' + (p.meta.account || 'this account') + '? Export it first if you might want it back.')) return;
-    delete plans[p.id]; currentId = Object.keys(plans)[0] || null; currentSec = 'quick'; saveNow(); renderAll(); return;
+    delete plans[p.id]; currentId = Object.keys(plans)[0] || null; currentSec = 'basics'; saveNow(); renderAll(); return;
   }
 }
 
@@ -1464,7 +1442,7 @@ function importFile(file) {
       migrate(p);
       if (plans[p.id] && !confirm('A plan with this ID is already here (' + (plans[p.id].meta.account || 'Untitled') + '). Replace it with the file?')) p.id = uid();
       if (!p.id) p.id = uid();
-      plans[p.id] = p; currentId = p.id; currentSec = 'quick'; saveNow(); renderAll();
+      plans[p.id] = p; currentId = p.id; currentSec = 'basics'; saveNow(); renderAll();
     } catch (err) { alert('That file could not be read as a success plan.'); }
   };
   r.readAsText(file);
@@ -1501,8 +1479,8 @@ document.addEventListener('keydown', e => {
 });
 document.getElementById('planPicker').addEventListener('change', e => {
   const v = e.target.value;
-  if (v === '__new') { currentId = null; currentSec = 'quick'; renderAll(); return; }
-  if (plans[v]) { currentId = v; currentSec = 'quick'; saveNow(); renderAll(); }
+  if (v === '__new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
+  if (plans[v]) { currentId = v; currentSec = 'basics'; saveNow(); renderAll(); }
 });
 document.getElementById('moreBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('pdfMenu').classList.remove('open'); document.getElementById('moreMenu').classList.toggle('open'); });
 document.getElementById('pdfBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.toggle('open'); });
@@ -1523,6 +1501,117 @@ document.addEventListener('change', e => {
 loadAll();
 if (!storageOk) document.getElementById('storageBanner').classList.add('show');
 renderAll();
+
+/* ---------- Focus mode: just the step you're on ---------- */
+let focusOn = false;
+try { focusOn = localStorage.getItem('spb.focus') === '1'; } catch (e) {}
+function applyFocus() {
+  document.body.classList.toggle('focus', focusOn);
+  const b = document.getElementById('focusBtn');
+  b.classList.toggle('on', focusOn);
+  b.textContent = focusOn ? 'Exit focus' : 'Focus';
+}
+document.getElementById('focusBtn').addEventListener('click', () => {
+  focusOn = !focusOn;
+  try { localStorage.setItem('spb.focus', focusOn ? '1' : '0'); } catch (e) {}
+  applyFocus();
+});
+applyFocus();
+
+/* ---------- Meeting timer: pops out a small window with Start, Pause and Reset ----------
+   Chrome and Edge: an always-on-top window (Document Picture-in-Picture). The browser picks where
+   it first opens; drag it to the top right once. Other browsers: a small pop-up opened at the
+   top right of the screen. The time keeps running here even if the window is closed. No alerts. */
+const TIMER_KEY = 'spb.timer';
+let timer = { running: false, startedAt: 0, acc: 0 };
+try { const t = JSON.parse(localStorage.getItem(TIMER_KEY) || 'null'); if (t && typeof t.acc === 'number') timer = t; } catch (e) {}
+let timerWin = null;
+function timerElapsed() { return timer.acc + (timer.running ? Date.now() - timer.startedAt : 0); }
+function fmtTime(ms) {
+  const t = Math.floor(ms / 1000), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const two = n => String(n).padStart(2, '0');
+  return h ? h + ':' + two(m) + ':' + two(s) : m + ':' + two(s);
+}
+function saveTimerState() { try { localStorage.setItem(TIMER_KEY, JSON.stringify(timer)); } catch (e) {} }
+function timerStart() { if (timer.running) return; timer.startedAt = Date.now(); timer.running = true; saveTimerState(); paintTimer(); }
+function timerPause() { if (!timer.running) return; timer.acc = timerElapsed(); timer.running = false; saveTimerState(); paintTimer(); }
+function timerReset() { timer = { running: false, startedAt: 0, acc: 0 }; saveTimerState(); paintTimer(); }
+function paintTimer() {
+  const t = fmtTime(timerElapsed());
+  const btn = document.getElementById('timerBtn');
+  btn.textContent = (timer.running || timer.acc) ? 'Timer ' + t : 'Timer';
+  btn.classList.toggle('on', timer.running);
+  if (timerWin && !timerWin.closed) {
+    const d = timerWin.document, el = d.getElementById('t');
+    if (el) {
+      el.textContent = t;
+      d.getElementById('start').disabled = timer.running;
+      d.getElementById('start').textContent = timer.acc && !timer.running ? 'Resume' : 'Start';
+      d.getElementById('pause').disabled = !timer.running;
+    }
+  }
+}
+async function openTimer() {
+  if (timerWin && !timerWin.closed) { timerWin.focus(); return; }
+  const w = 250, h = 130;
+  let win = null;
+  try { if (window.documentPictureInPicture) win = await window.documentPictureInPicture.requestWindow({ width: w, height: h }); } catch (e) { win = null; }
+  if (!win) {
+    const left = (screen.availLeft || 0) + screen.availWidth - w - 12, top = (screen.availTop || 0) + 8;
+    win = window.open('', 'spbTimer', 'popup=yes,width=' + w + ',height=' + h + ',left=' + left + ',top=' + top);
+    if (!win) { alert('Your browser blocked the timer window. Allow pop-ups for this page, then click Timer again.'); return; }
+    try { win.moveTo(left, top); } catch (e) {}
+  }
+  timerWin = win;
+  const d = win.document;
+  d.head.innerHTML = '<meta charset="utf-8"><title>Meeting timer</title><style>'
+    + 'html,body{margin:0;height:100%}body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:#1f3a5f;color:#fff;display:flex;align-items:center;justify-content:center}'
+    + '#t{font-size:40px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em}'
+    + '.row{display:flex;gap:6px;justify-content:center;margin-top:8px}'
+    + 'button{border:0;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}'
+    + '#start{background:#2e7d4f;color:#fff}#pause{background:#d9771f;color:#fff}#reset{background:transparent;color:#cfd8e6}'
+    + 'button:disabled{opacity:.35;cursor:default}</style>';
+  d.title = 'Meeting timer';
+  d.body.innerHTML = '<div><div id="t">0:00</div><div class="row"><button id="start">Start</button><button id="pause">Pause</button><button id="reset">Reset</button></div></div>';
+  d.getElementById('start').addEventListener('click', timerStart);
+  d.getElementById('pause').addEventListener('click', timerPause);
+  d.getElementById('reset').addEventListener('click', timerReset);
+  win.addEventListener('pagehide', () => { timerWin = null; });
+  paintTimer();
+}
+document.getElementById('timerBtn').addEventListener('click', openTimer);
+
+/* ---------- Customer window: a clean, live view to share on screen ----------
+   Shows only the customer view (no FactorLab-only parts, notes, context or curious questions).
+   It re-draws as you type in this window. Share that window, not your whole screen. */
+let shareWin = null;
+function renderShare() {
+  if (!shareWin || shareWin.closed) return;
+  const p = cur(), d = shareWin.document, y = shareWin.scrollY;
+  const s = sectionByKey(currentSec), c = customByKey(currentSec);
+  const showNow = p && (currentSec === 'basics' || c || (s && s.branch !== 'internal'));
+  d.title = p ? (p.meta.account || 'Success plan') + ' success plan' : 'Success plan';
+  d.body.innerHTML = p
+    ? `<div class="share-now">${showNow ? 'Working on: <b>' + esc(secName(currentSec)) + '</b>' : '&nbsp;'}</div><div class="present-body">${presentHtml(p, true)}</div>`
+    : '<div class="present-body"><p class="empty-note">Open a plan to share it.</p></div>';
+  shareWin.scrollTo(0, y);
+}
+function openShare() {
+  if (shareWin && !shareWin.closed) { shareWin.focus(); renderShare(); return; }
+  const w = Math.min(1200, screen.availWidth - 80), h = Math.min(900, screen.availHeight - 80);
+  shareWin = window.open('', 'spbShare', 'width=' + w + ',height=' + h + ',left=40,top=40');
+  if (!shareWin) { alert('Your browser blocked the customer window. Allow pop-ups for this page, then click Customer window again.'); return; }
+  shareWin.document.head.innerHTML = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Success plan</title>'
+    + document.querySelector('style').outerHTML
+    + '<style>body{background:#fff}.share-now{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 32px;font-size:13px;color:var(--muted)}.share-now b{color:var(--ink)}.leaf{cursor:default}</style>';
+  shareWin.addEventListener('pagehide', () => { shareWin = null; });
+  renderShare();
+}
+document.getElementById('shareBtn').addEventListener('click', openShare);
+
+setInterval(paintTimer, 500);
+paintTimer();
+
 
 /* Floating "See the map" button on smaller screens, where the map sits below the form. */
 (function () {

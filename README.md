@@ -12,8 +12,10 @@ A simple page for building customer success plans as you learn about an account.
 
 1. Open the page (the GitHub Pages link, or double-click `index.html`).
 2. Click **Create plan**, name the account, and pick what it needs this year.
-3. Fill in **Quick start**: the essentials every plan needs, on one page. Each step turns green when it's ready.
-4. Only when the account calls for more, open **Build out this plan** and add a section (first workflow, what good looks like, trade partners, experiments and more), or your own branch. Each section has questions to get curious with and a notes box for what you still need to find out.
+3. Work through the plan one step at a time with **Next**. The bar at the top shows which step you're on ("Step 3 of 8"); click any segment to jump. Each step has questions to get curious with and a notes box for what you still need to find out.
+4. Only when the account calls for more, open **Build out this plan** and add a section (first workflow, what good looks like, trade partners, experiments and more), or your own branch.
+
+**In a live meeting:** click **Focus** to see only the step you're on, **Timer** to pop out a small timer with Start and Pause, and **Customer window** to open a clean window you can share on screen. The customer window shows only what the customer should see and updates as you type. In Zoom or Teams, share that window, not your whole screen.
 5. Click **View plan** to see it the way the customer will.
 6. To share it, click **Export PDF, then For the customer**. Your browser's print window opens; pick **Save as PDF**. The customer version leaves out the FactorLab-only parts. **Internal (full plan)** keeps them.
 

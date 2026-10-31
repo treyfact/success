@@ -2,7 +2,12 @@
 
 This repo holds one web page, `index.html`, that FactorLab CSMs use to build customer success plans. A CSM fills in what they learn about an account, and the page builds a branch map, a milestone timeline, a scorecard and a ready-to-share check as they go.
 
-**Start simple, build out where needed.** Every plan opens on **Quick start**: one page with only what the Ready check needs (goal, a target or two, owners, recognition, biggest risk, renewal and next step, the confirm box). The core sections (`core: true`) are always in the plan. Every other section waits on the **Build out this plan** page until the CSM adds it. Never make an add-on section show up by default; that is what keeps plans short.
+**Start simple, one step at a time, build out where needed.** A new plan holds only the core sections (`core: true`), worked one at a time with Back and Next. A step bar at the top always shows "Step x of y" with a clickable strip, one segment per step (green when it has something in it). Every other section waits on the **Build out this plan** page until the CSM adds it. Never make an add-on section show up by default, and don't put several sections on one page; Trey tried a one-page Quick start and it was too much.
+
+**Built for live customer meetings.** Three top-bar buttons:
+- **Focus** hides the side menu and map so only the current step shows. Remembered per browser (`spb.focus`).
+- **Timer** pops out a small window with Start, Pause and Reset (`spb.timer`). Chrome and Edge use Document Picture-in-Picture so it stays on top; other browsers get a pop-up placed at the top right. Reference only: no warnings or alarms.
+- **Customer window** opens a separate window to screen-share. It shows only `presentHtml(plan, true)`, the customer view, and re-draws as the CSM types. Its "Working on" line hides FactorLab-only steps. Never put internal content (FactorLab-only sections, notes, context, curious questions) in that window.
 
 The owner is Trey Timmerman (CSM). He asks for changes in plain language. Read this file before every change.
 
@@ -64,7 +69,7 @@ Field types:
 
 `showIf: d => d.first === 'Other'` hides a field until it applies.
 
-A section shows in the plan if it is `core`, the CSM added it (`meta.sections`), or it already has something written in it. Written work never disappears. "Remove from this plan" only appears on an empty add-on section. If you add a field to Quick start, bind it to the same `data-sec` / `data-field` as the full section so both stay in sync.
+A section shows in the plan if it is `core`, the CSM added it (`meta.sections`), or it already has something written in it. Written work never disappears. "Remove from this plan" only appears on an empty add-on section.
 
 Sections marked `branch: 'internal'` are FactorLab-only. They show with a dashed border and are hidden when "Customer view" is on.
 
@@ -100,7 +105,7 @@ plan = {
 
 1. Open `index.html` in a browser (or run a quick headless check with Playwright if it's available).
 2. Create a plan with a fake name, fill a few sections, add a list item, add a table row, add your own branch.
-3. Confirm the map, timeline and ready check update, a reload keeps the plan, and "View plan" plus "Customer view" look right.
+3. Confirm the map, timeline, ready check and step bar update, a reload keeps the plan, and "View plan" plus "Customer view" look right. Open the Customer window, type in the main window, and confirm it updates and never shows FactorLab-only content.
 4. Export the plan, delete it, import the file, and confirm it comes back.
 5. Check the browser console for errors.
 6. Narrow the window to phone width and make sure nothing breaks.
