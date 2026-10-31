@@ -11,10 +11,11 @@ A simple page for building customer success plans as you learn about an account.
 ## Using it
 
 1. Open the page (the GitHub Pages link, or double-click `index.html`).
-2. Click **Create plan**, name the account, and pick the plan size and what the account needs this year.
-3. Work through the sections on the left. Start wherever you know the most. Each section has questions to get curious with and a notes box for what you still need to find out.
-4. Click **View plan** to see it the way the customer will.
-5. To share it, click **Export PDF, then For the customer**. Your browser's print window opens; pick **Save as PDF**. The customer version leaves out the FactorLab-only parts. **Internal (full plan)** keeps them.
+2. Click **Create plan**, name the account, and pick what it needs this year.
+3. Fill in **Quick start**: the essentials every plan needs, on one page. Each step turns green when it's ready.
+4. Only when the account calls for more, open **Build out this plan** and add a section (first workflow, what good looks like, trade partners, experiments and more), or your own branch. Each section has questions to get curious with and a notes box for what you still need to find out.
+5. Click **View plan** to see it the way the customer will.
+6. To share it, click **Export PDF, then For the customer**. Your browser's print window opens; pick **Save as PDF**. The customer version leaves out the FactorLab-only parts. **Internal (full plan)** keeps them.
 
 Sections marked with the small folded-page icon follow the pattern in Barry's 2027 model plan.
 

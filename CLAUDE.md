@@ -2,6 +2,8 @@
 
 This repo holds one web page, `index.html`, that FactorLab CSMs use to build customer success plans. A CSM fills in what they learn about an account, and the page builds a branch map, a milestone timeline, a scorecard and a ready-to-share check as they go.
 
+**Start simple, build out where needed.** Every plan opens on **Quick start**: one page with only what the Ready check needs (goal, a target or two, owners, recognition, biggest risk, renewal and next step, the confirm box). The core sections (`core: true`) are always in the plan. Every other section waits on the **Build out this plan** page until the CSM adds it. Never make an add-on section show up by default; that is what keeps plans short.
+
 The owner is Trey Timmerman (CSM). He asks for changes in plain language. Read this file before every change.
 
 ## Non-negotiables
@@ -37,8 +39,10 @@ Each section is an object in `SECTIONS`:
   branch: 'know',              // why | what | who | know | internal
   title: 'Closing the loop',   // shown in the nav and as the heading
   short: 'the loop',           // used in the map's "Add ..." ghost chip
+  core: true,                  // always in the plan (leave off for add-on sections)
+  when: 'When to add it, one line',  // add-on sections only; shown on Build out this plan
   model: true,                 // shows the dog-ear: pattern from Barry's 2027 model plan
-  tiers: ['growth', 'enterprise'],
+  tiers: ['growth', 'enterprise'],   // which size shortcuts add it (Growth set, Enterprise set)
   intro: 'One or two plain sentences.',
   ask: ['Curious question 1', 'Curious question 2'],
   hint: 'Optional grey tip box.',
@@ -60,6 +64,8 @@ Field types:
 
 `showIf: d => d.first === 'Other'` hides a field until it applies.
 
+A section shows in the plan if it is `core`, the CSM added it (`meta.sections`), or it already has something written in it. Written work never disappears. "Remove from this plan" only appears on an empty add-on section. If you add a field to Quick start, bind it to the same `data-sec` / `data-field` as the full section so both stay in sync.
+
 Sections marked `branch: 'internal'` are FactorLab-only. They show with a dashed border and are hidden when "Customer view" is on.
 
 ## Data model
@@ -67,14 +73,16 @@ Sections marked `branch: 'internal'` are FactorLab-only. They show with a dashed
 ```js
 plan = {
   id, app: 'success-plan-builder', version,
-  meta: { account, csm, backup, tier, mode, day1, context, sources, verified, created, updated },
+  meta: { account, csm, backup, tier, sections, mode, day1, context, sources, verified, created, updated },
   data: { [sectionKey]: { [fieldKey]: value } },
   custom: [{ id, title, items: [], notes }],   // the CSM's own branches
   notes: { [sectionKey]: 'notes and open questions' }
 }
 ```
 
-- Storage key: `spb.plans.v1` (all plans), `spb.current.v1` (the open plan).
+- Storage key: `spb.plans.v1` (all plans), `spb.current.v1` (the open plan). The key name stays the same across versions.
+- `APP_VERSION` is 2. Version 1 plans had no `meta.sections`; `migrate()` gives them their old size's sections so nothing they could see disappears. Run new migrations there.
+- `tier` is now a label plus a shortcut: picking a bigger size adds that size's sections. It never hides anything.
 - The "Export PDF" button (For the customer / Internal) opens the plan view and the browser's print dialog. No PDF library; the page title becomes the suggested file name. "More, then Export this plan (file)" saves JSON wrapped as `{ app, version, exported, plan }`, and "Import a plan file" reads it back. Keep both: a PDF can't be reopened for editing.
 - On import, `blankData()` fills in any sections or fields that were added after the file was saved. New fields therefore need a sensible empty default.
 

@@ -147,6 +147,25 @@ table.grid td.act { width: 30px; text-align: center; vertical-align: middle; }
 .ms input[type=text] { flex: 1; }
 .ms.done input[type=text] { text-decoration: line-through; color: var(--faint); }
 
+.qs-step { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 4px; margin-bottom: 12px; }
+.qs-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.qs-num { width: 24px; height: 24px; border-radius: 50%; background: var(--navy-soft); color: var(--navy); font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; flex: none; }
+.qs-step.ok .qs-num { background: var(--green); color: #fff; }
+.qs-title { font-weight: 700; font-size: 15px; }
+.qs-done { display: none; font-size: 11.5px; font-weight: 700; color: var(--green); background: var(--green-soft); border-radius: 999px; padding: 1px 8px; }
+.qs-step.ok .qs-done { display: inline-block; }
+.qs-more { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 12.5px; padding: 2px 4px; white-space: nowrap; }
+.qs-more:hover { color: var(--navy); text-decoration: underline; }
+.qs-note { font-size: 12.5px; color: var(--muted); margin: -4px 0 12px; }
+.catalog { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.cat-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.cat-card.in { border-color: #b9dcc6; background: #fbfefc; }
+.cat-branch { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+.cat-title { font-weight: 700; font-size: 14.5px; display: flex; align-items: center; gap: 6px; }
+.cat-when { color: var(--muted); font-size: 13px; flex: 1; }
+.cat-card .btn { align-self: flex-start; margin-top: 4px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; font-size: 13px; color: var(--muted); }
+@media (max-width: 760px) { .catalog { grid-template-columns: 1fr; } }
 .notes { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--line); }
 .sec-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 
@@ -373,15 +392,15 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
    To change a question, a prompt or a section, edit this block.
    ========================================================= */
 
-const APP_VERSION = 1;
+const APP_VERSION = 2;
 const STORE_KEY = 'spb.plans.v1';
 const CURRENT_KEY = 'spb.current.v1';
 const MODEL_TIP = "Pattern from Barry's 2027 model plan";
 
 const TIERS = {
-  starter:    { label: 'Starter',    help: 'New customer or one project group. One page.' },
-  growth:     { label: 'Growth',     help: 'One region or business unit with room to grow. Two pages.' },
-  enterprise: { label: 'Enterprise', help: 'Company-wide. The full plan.' }
+  starter:    { label: 'Core',       help: 'What every account needs. Add more as you learn the account.' },
+  growth:     { label: 'Growth',     help: 'Core plus the sections a growing account usually needs.' },
+  enterprise: { label: 'Enterprise', help: 'Everything, for company-wide accounts.' }
 };
 
 const MODES = {
@@ -413,7 +432,7 @@ const FAILURE_MODES = ['Adoption', 'Value', 'Champion', 'Fit', 'Product gap'];
 const SECTIONS = [
   /* ---------------- WHY ---------------- */
   {
-    key: 'goal', branch: 'why', title: 'Their goal', short: 'goal', model: true,
+    key: 'goal', core: true, branch: 'why', title: 'Their goal', short: 'goal', model: true,
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'What they are trying to do next year, in their own words, and the work we can take off their plate. Lead with relief, not features.',
     ask: [
@@ -433,7 +452,7 @@ const SECTIONS = [
     ]
   },
   {
-    key: 'hypothesis', branch: 'why', title: 'Change hypothesis', short: 'hypothesis',
+    key: 'hypothesis', when: "When you want one clear bet the whole team can repeat.", branch: 'why', title: 'Change hypothesis', short: 'hypothesis',
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'One sentence that says what we expect to change, and what that should improve. Plus one conversation we want more of and one we want less of.',
     ask: [
@@ -455,7 +474,7 @@ const SECTIONS = [
 
   /* ---------------- WHAT ---------------- */
   {
-    key: 'scope', branch: 'what', title: 'First workflow and what moves next', short: 'first workflow', model: true,
+    key: 'scope', when: "When you're choosing what to roll out first, or moving work off other systems.", branch: 'what', title: 'First workflow and what moves next', short: 'first workflow', model: true,
     tiers: ['growth', 'enterprise'],
     intro: 'One system at a time. Pick where to start, what moves next, and what they can stop doing. List the systems they juggle today so we can bring them together.',
     ask: [
@@ -479,7 +498,7 @@ const SECTIONS = [
     ]
   },
   {
-    key: 'targets', branch: 'what', title: 'Targets and baselines', short: 'targets', model: true,
+    key: 'targets', core: true, branch: 'what', title: 'Targets and baselines', short: 'targets', model: true,
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'The same six measures on every plan. Fill only the ones that matter for this account. No target goes live without a baseline.',
     hint: 'Three rules: baseline before any target; pair every volume target with a quality target; set each target as a plan line in their own SmartTagIt report. Show results by site or region, not just the company total.',
@@ -517,7 +536,7 @@ const SECTIONS = [
     ]
   },
   {
-    key: 'good', branch: 'what', title: 'What good looks like', short: 'the standard', model: true,
+    key: 'good', when: "When you're ready to show crews real examples of what good looks like.", branch: 'what', title: 'What good looks like', short: 'the standard', model: true,
     tiers: ['growth', 'enterprise'],
     intro: 'Show it, don\'t describe it. Pick real examples from their own jobs and the benchmark we\'ll compare against.',
     ask: [
@@ -539,7 +558,7 @@ const SECTIONS = [
 
   /* ---------------- WHO ---------------- */
   {
-    key: 'owners', branch: 'who', title: 'Owners on both sides', short: 'owners', model: true,
+    key: 'owners', core: true, branch: 'who', title: 'Owners on both sides', short: 'owners', model: true,
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'Every line gets a customer name and a FactorLab name. Include a field voice: the toughest critic tries every change before it rolls out.',
     ask: [
@@ -567,7 +586,7 @@ const SECTIONS = [
     leaves: d => (d.rows || []).filter(r => r.customer).map(r => r.role + ': ' + r.customer)
   },
   {
-    key: 'recognition', branch: 'who', title: 'Recognition plan', short: 'recognition',
+    key: 'recognition', core: true, branch: 'who', title: 'Recognition plan', short: 'recognition',
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'Recognition is what makes participation stick. Commit to it in the first 30 days.',
     ask: [
@@ -583,7 +602,7 @@ const SECTIONS = [
     leaves: d => [d.forWhat && ((d.often ? d.often + ': ' : '') + d.forWhat), d.channel && 'Via ' + d.channel]
   },
   {
-    key: 'trades', branch: 'who', title: 'Key trade partners', short: 'trade partners', model: true,
+    key: 'trades', when: "For general contractors who lean on a few key trade partners.", branch: 'who', title: 'Key trade partners', short: 'trade partners', model: true,
     tiers: ['enterprise'],
     intro: 'For general contractors: the trade partners they rely on most, and the extra support they get for helping set the standard.',
     ask: [
@@ -599,7 +618,7 @@ const SECTIONS = [
 
   /* ---------------- HOW WE KNOW ---------------- */
   {
-    key: 'milestones', branch: 'know', title: 'Milestones and rhythm', short: 'milestones', model: true,
+    key: 'milestones', core: true, branch: 'know', title: 'Milestones and rhythm', short: 'milestones', model: true,
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'Five phases, each closed by a short review. Edit the milestones to fit the account and tick them off as you go. Set Day 1 in Account basics to see dates.',
     fields: [
@@ -625,7 +644,7 @@ const SECTIONS = [
     }
   },
   {
-    key: 'loop', branch: 'know', title: 'Closing the loop', short: 'the loop', model: true,
+    key: 'loop', when: "When the field needs to see that what they raise leads somewhere.", branch: 'know', title: 'Closing the loop', short: 'the loop', model: true,
     tiers: ['growth', 'enterprise'],
     intro: 'How the field will hear back: what was raised, what leaders did, what changed. This is what keeps people contributing.',
     ask: ['When someone flags a problem today, how do they find out what happened?'],
@@ -636,7 +655,7 @@ const SECTIONS = [
     leaves: d => [d.how && trunc(d.how, 46)]
   },
   {
-    key: 'experiments', branch: 'know', title: 'Experiments', short: 'an experiment',
+    key: 'experiments', when: "When you want to test what's working, one small test a quarter.", branch: 'know', title: 'Experiments', short: 'an experiment',
     tiers: ['growth', 'enterprise'],
     intro: 'One small test a quarter, agreed with the customer. Report the result in the quarterly learning report.',
     hint: 'Ideas: compare trained and untrained jobs month over month; turn recognition on for one region first; try guest QR access with one trade; turn on AI Assist for one group; compare recorded plans with written ones on the same jobs.',
@@ -657,7 +676,7 @@ const SECTIONS = [
 
   /* ---------------- FACTORLAB ONLY ---------------- */
   {
-    key: 'economics', branch: 'internal', title: 'Account economics', short: 'renewal and ARR',
+    key: 'economics', core: true, branch: 'internal', title: 'Account economics', short: 'renewal and ARR',
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'Internal only. Enough to forecast the account and name the next step up. Leave a field blank until it is confirmed.',
     hint: 'Only license revenue, plus service hours committed in the contract, count as ARR.',
@@ -676,8 +695,8 @@ const SECTIONS = [
     ]
   },
   {
-    key: 'risks', branch: 'internal', title: 'Risks', short: 'risks',
-    tiers: ['growth', 'enterprise'],
+    key: 'risks', core: true, branch: 'internal', title: 'Risks', short: 'risks',
+    tiers: ['starter', 'growth', 'enterprise'],
     intro: 'Internal only. Name what you saw, tag the failure mode, and write the fix. Each failure mode has a different fix.',
     hint: 'Adoption: they don\'t know how (train, show game tape). Value: they know how but don\'t see the point (show their numbers). Champion: the person who cared is gone (find a new sponsor). Fit: the work doesn\'t match the product (rescope honestly). Product gap: they need something we can\'t do yet (log it and route it to product).',
     fields: [
@@ -696,7 +715,7 @@ const SECTIONS = [
     leaves: d => (d.rows || []).filter(r => r.risk).map(r => (r.mode || 'Untagged') + ': ' + r.risk)
   },
   {
-    key: 'advocacy', branch: 'internal', title: 'Advocacy', short: 'advocacy',
+    key: 'advocacy', when: "When the account is healthy enough to ask for a reference or a story.", branch: 'internal', title: 'Advocacy', short: 'advocacy',
     tiers: ['growth', 'enterprise'],
     intro: 'Internal only. Plan the ask instead of hoping for it. Aim for one by the 180-day review.',
     fields: [
@@ -706,7 +725,7 @@ const SECTIONS = [
     leaves: d => (d.asks || []).map(x => 'Ask: ' + x)
   },
   {
-    key: 'journey', branch: 'internal', title: 'Journey checklist', short: 'checklist',
+    key: 'journey', when: "When you're updating the customer journey checklist.", branch: 'internal', title: 'Journey checklist', short: 'checklist',
     tiers: ['growth', 'enterprise'],
     intro: 'Internal only. Which customer journey checklist items this plan completes. Update the checklist when they are done.',
     fields: [
@@ -722,18 +741,16 @@ function readyChecks(plan) {
   const owners = (d('owners').rows || []).filter(r => r.role);
   const measures = (d('targets').measures || []).filter(r => r.target);
   const phases = d('milestones').phases || {};
-  const tier = plan.meta.tier;
-  const checks = [
-    { label: 'Their goal is written in their words', ok: !!d('goal').words, sec: 'goal' },
-    { label: 'At least one target, and every target has a baseline', ok: measures.length > 0 && measures.every(r => r.baseline), sec: 'targets' },
-    { label: 'Every owner line has a customer name and a FactorLab name', ok: owners.length > 0 && owners.every(r => r.customer && r.factorlab), sec: 'owners' },
-    { label: 'A field voice is named', ok: owners.some(r => /field|foreman|superintendent|critic/i.test(r.role) && r.customer), sec: 'owners' },
-    { label: 'The 30-day milestones and the recognition plan are written', ok: (phases.d30 || []).some(m => m.text) && !!d('recognition').forWhat, sec: 'milestones' }
+  return [
+    { id: 'goal', label: 'Their goal is written in their words', ok: !!d('goal').words, sec: 'goal' },
+    { id: 'targets', label: 'At least one target, and every target has a baseline', ok: measures.length > 0 && measures.every(r => r.baseline), sec: 'targets' },
+    { id: 'owners', label: 'Every owner line has a customer name and a FactorLab name', ok: owners.length > 0 && owners.every(r => r.customer && r.factorlab), sec: 'owners' },
+    { id: 'field', label: 'A field voice is named', ok: owners.some(r => /field|foreman|superintendent|critic/i.test(r.role) && r.customer), sec: 'owners' },
+    { id: 'recognition', label: 'The 30-day milestones and the recognition plan are written', ok: (phases.d30 || []).some(m => m.text) && !!d('recognition').forWhat, sec: 'recognition' },
+    { id: 'risks', label: 'The biggest risk is named and tagged with a failure mode', ok: (d('risks').rows || []).some(r => r.risk && r.mode), sec: 'risks' },
+    { id: 'economics', label: 'Renewal date and next expansion step are filled in', ok: !!(d('economics').renewal && d('economics').next), sec: 'economics' },
+    { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it in Quick start)', ok: !!plan.meta.verified, sec: 'quick' }
   ];
-  if (tier !== 'starter') checks.push({ label: 'Risks are tagged with a failure mode', ok: (d('risks').rows || []).some(r => r.risk && r.mode), sec: 'risks' });
-  checks.push({ label: 'Renewal date and next expansion step are filled in', ok: !!(d('economics').renewal && d('economics').next), sec: 'economics' });
-  checks.push({ label: 'No placeholder numbers or unverified marketing figures (tick in Account basics)', ok: !!plan.meta.verified, sec: 'basics' });
-  return checks;
 }
 
 /* =========================================================
@@ -741,9 +758,8 @@ function readyChecks(plan) {
    ========================================================= */
 let plans = {};
 let currentId = null;
-let currentSec = 'basics';
+let currentSec = 'quick';
 let sideTab = 'map';
-let showAll = false;
 let storageOk = true;
 
 function uid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -754,8 +770,17 @@ function loadAll() {
     plans = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {};
     currentId = localStorage.getItem(CURRENT_KEY);
   } catch (e) { plans = {}; storageOk = false; }
+  Object.values(plans).forEach(migrate);
   if (!plans[currentId]) currentId = Object.keys(plans)[0] || null;
 }
+/* Version 1 plans showed sections by plan size. Keep showing those sections. */
+function migrate(p) {
+  if (!p || !p.meta) return;
+  if (!TIERS[p.meta.tier]) p.meta.tier = 'growth';
+  if (!Array.isArray(p.meta.sections)) p.meta.sections = presetSections(p.meta.tier);
+  p.version = APP_VERSION;
+}
+function presetSections(tier) { return SECTIONS.filter(s => !s.core && s.tiers.includes(tier)).map(s => s.key); }
 let saveTimer = null;
 function saveSoon() {
   const p = cur();
@@ -799,13 +824,13 @@ function newPlan(meta) {
   const id = uid();
   plans[id] = {
     id, app: 'success-plan-builder', version: APP_VERSION,
-    meta: Object.assign({ account: '', csm: '', backup: '', tier: 'growth', mode: 'launch', day1: '', context: '', sources: '', verified: false, created: new Date().toISOString(), updated: new Date().toISOString() }, meta || {}),
+    meta: Object.assign({ account: '', csm: '', backup: '', tier: 'starter', sections: [], mode: 'launch', day1: '', context: '', sources: '', verified: false, created: new Date().toISOString(), updated: new Date().toISOString() }, meta || {}),
     data: blankData(),
     custom: [],
     notes: {}
   };
   currentId = id;
-  currentSec = 'basics';
+  currentSec = 'quick';
   saveNow();
   return plans[id];
 }
@@ -831,8 +856,14 @@ function addDays(iso, n) {
 function slug(s) { return String(s || 'plan').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'plan'; }
 function sectionByKey(k) { return SECTIONS.find(s => s.key === k); }
 function customByKey(k) { const p = cur(); return p && k && k.startsWith('custom:') ? p.custom.find(c => 'custom:' + c.id === k) : null; }
-function visibleSections(p) {
-  return SECTIONS.filter(s => showAll || s.tiers.includes(p.meta.tier));
+/* A section is in the plan if it's core, the CSM added it, or it already has something in it. */
+function inPlan(p, s) {
+  return !!(s.core || (p.meta.sections || []).includes(s.key) || leavesFor(s, p).length || (p.notes || {})[s.key]);
+}
+function visibleSections(p) { return SECTIONS.filter(s => inPlan(p, s)); }
+function addSections(p, keys) {
+  p.meta.sections = p.meta.sections || [];
+  keys.forEach(k => { if (!p.meta.sections.includes(k)) p.meta.sections.push(k); });
 }
 function leavesFor(s, p) {
   try { return (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(x => trunc(x, 60)); }
@@ -863,7 +894,9 @@ function renderNav() {
   const nav = document.getElementById('nav');
   if (!p) { nav.innerHTML = ''; return; }
   const vis = visibleSections(p);
-  let html = `<div class="nav-group"><button class="nav-item ${currentSec === 'basics' ? 'active' : ''}" data-goto="basics"><span class="dot ${p.meta.account ? 'on' : ''}"></span>Account basics</button></div>`;
+  const allReady = readyChecks(p).every(c => c.ok);
+  let html = `<div class="nav-group"><button class="nav-item ${currentSec === 'quick' ? 'active' : ''}" data-goto="quick"><span class="dot ${allReady ? 'on' : ''}"></span>Quick start</button>
+    <button class="nav-item ${currentSec === 'basics' ? 'active' : ''}" data-goto="basics"><span class="dot ${p.meta.account ? 'on' : ''}"></span>Account basics</button></div>`;
   BRANCHES.forEach(b => {
     const secs = vis.filter(s => s.branch === b.key);
     const customs = b.key === 'know' ? p.custom : [];
@@ -882,8 +915,9 @@ function renderNav() {
       html += `<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
     }
   });
-  html += `<div class="nav-foot"><label class="toggle-row"><input type="checkbox" id="showAll" ${showAll ? 'checked' : ''}> Show all sections</label>
-    <div class="toggle-row" style="font-size:12px">${esc(TIERS[p.meta.tier].label)} plan: ${esc(TIERS[p.meta.tier].help)}</div>
+  html += `<div class="nav-group"><button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button></div>`;
+  html += `<div class="nav-foot">
+    <div class="toggle-row" style="font-size:12px">${esc(TIERS[p.meta.tier].label)} plan, ${visibleSections(p).length} of ${SECTIONS.length} sections in use</div>
     <div class="toggle-row" style="font-size:12px"><span class="dogear"></span> ${esc(MODEL_TIP)}</div></div>`;
   nav.innerHTML = html;
 }
@@ -895,8 +929,10 @@ function renderWork() {
   const work = document.getElementById('work');
   const p = cur();
   if (!p) { work.innerHTML = welcomeHtml(); return; }
-  if (currentSec !== 'basics' && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
+  if (!['quick', 'basics', 'addmore'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'quick';
   const jump = mobileJumpHtml(p);
+  if (currentSec === 'quick') { work.innerHTML = jump + quickHtml(p); updateQuickMarks(); return; }
+  if (currentSec === 'addmore') { work.innerHTML = jump + addMoreHtml(p); return; }
   if (currentSec === 'basics') { work.innerHTML = jump + basicsHtml(p); return; }
   const c = customByKey(currentSec);
   if (c) { work.innerHTML = jump + customHtml(p, c); return; }
@@ -904,6 +940,8 @@ function renderWork() {
 }
 
 function secName(k) {
+  if (k === 'quick') return 'Quick start';
+  if (k === 'addmore') return 'Build out this plan';
   if (k === 'basics') return 'Account basics';
   const c = customByKey(k);
   if (c) return c.title || 'Your branch';
@@ -911,18 +949,15 @@ function secName(k) {
   return s ? s.title : k;
 }
 function mobileJumpHtml(p) {
-  return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}<option value="__branch">+ Add your own branch</option></select>`;
+  return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}<option value="addmore" ${currentSec === 'addmore' ? 'selected' : ''}>+ Build out this plan</option><option value="__branch">+ Add your own branch</option></select>`;
 }
 
 function welcomeHtml() {
   return `<div class="welcome">
     <h1>Start a success plan</h1>
-    <p>Fill it in as you learn about the account. The map on the right builds itself as you go. Nothing here is required; start wherever you know the most.</p>
+    <p>Start with the essentials every account needs. Add more sections later, only where the account calls for it. The map builds itself as you go.</p>
     <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"></div>
-    <div class="row2">
-      <div class="field"><label for="w-tier">Plan size</label><select id="w-tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === 'growth' ? 'selected' : ''}>${t.label}: ${esc(t.help)}</option>`).join('')}</select></div>
-      <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}</select></div>
-    </div>
+    <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}</select></div>
     <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
   </div>`;
 }
@@ -935,7 +970,7 @@ function basicsHtml(p) {
   <div class="hint"><b>${esc(MODES[m.mode].label)}:</b> ${esc(MODES[m.mode].lead)}</div>
   <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
   <div class="row2">
-    <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)}</div></div>
+    <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} Changing it adds that size's usual sections; it never removes anything.</div></div>
     <div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}</select></div>
   </div>
   <div class="row2">
@@ -953,7 +988,7 @@ function sectionHtml(p, s) {
   const d = p.data[s.key] || (p.data[s.key] = {});
   const branch = BRANCHES.find(b => b.key === s.branch);
   let html = `<div class="sec-branch">${esc(branch.label)}${branch.internal ? ' (not shown to the customer)' : ''}</div>
-    <div class="sec-head"><h2>${esc(s.title)}</h2>${s.model ? `<span class="dogear" title="${esc(MODEL_TIP)}" style="margin-top:9px"></span>` : ''}</div>
+    <div class="sec-head"><h2>${esc(s.title)}</h2>${s.model ? `<span class="dogear" title="${esc(MODEL_TIP)}" style="margin-top:9px"></span>` : ''}${!s.core && !leavesFor(s, p).length && !(p.notes || {})[s.key] ? `<button class="qs-more" data-action="remove-section" data-key="${s.key}">Remove from this plan</button>` : ''}</div>
     <p class="sec-intro">${esc(s.intro)}</p>`;
   if (s.ask && s.ask.length) html += `<div class="ask"><div class="ask-title">Questions to get curious with</div><ul>${s.ask.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>`;
   if (s.hint) html += `<div class="hint">${esc(s.hint)}</div>`;
@@ -1003,14 +1038,16 @@ function listHtml(items, attr, placeholder) {
     + `<div class="list-add"><input type="text" ${attr} data-add="1" placeholder="${esc(placeholder)} (press Enter)"><button class="btn small" data-action="add-item" ${attr}>Add</button></div>`;
 }
 
-function tableHtml(s, f, rows) {
+function tableHtml(s, f, rows, opts) {
+  opts = opts || {};
   const attr = `data-sec="${s.key}" data-field="${f.key}"`;
-  return `<div class="field"><div class="field-label">${esc(f.label)}</div><div class="table-wrap"><table class="grid"><thead><tr>${f.columns.map(c => `<th ${c.width ? `style="width:${c.width}"` : ''}>${esc(c.label)}</th>`).join('')}<th></th></tr></thead><tbody>
-    ${rows.map((r, i) => `<tr>${f.columns.map((c, ci) => `<td data-label="${esc(c.label)}" class="${c.multi || ci === 0 ? 'full' : ''}">${c.type === 'select'
+  const cols = opts.cols ? f.columns.filter(c => opts.cols.includes(c.key)) : f.columns;
+  return `<div class="field">${opts.noLabel ? '' : `<div class="field-label">${esc(f.label)}</div>`}<div class="table-wrap"><table class="grid"><thead><tr>${cols.map(c => `<th ${c.width && !opts.cols ? `style="width:${c.width}"` : ''}>${esc(c.label)}</th>`).join('')}${opts.fixed ? '' : '<th></th>'}</tr></thead><tbody>
+    ${rows.map((r, i) => `<tr>${cols.map((c, ci) => `<td data-label="${esc(c.label)}" class="${c.multi || ci === 0 ? 'full' : ''}">${c.type === 'select'
       ? `<select ${attr} data-row="${i}" data-col="${c.key}">${c.options.map(o => `<option value="${esc(o)}" ${o === (r[c.key] || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select>`
-      : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td></tr>`).join('')}
-    ${rows.length ? '' : `<tr><td colspan="${f.columns.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
-    </tbody></table></div><button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button></div>`;
+      : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}${opts.fixed ? '' : `<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td>`}</tr>`).join('')}
+    ${rows.length ? '' : `<tr><td colspan="${cols.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
+    </tbody></table></div>${opts.fixed ? '' : `<button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button>`}</div>`;
 }
 
 function phaseHtml(p, ph, items, i) {
@@ -1021,8 +1058,86 @@ function phaseHtml(p, ph, items, i) {
     <div style="margin-top:6px"><span class="tl-gate">${esc(ph.gate)}</span></div></div>`;
 }
 
+/* ---------- Quick start: everything a plan needs to be ready, on one page ---------- */
+function qsStep(n, title, checks, more, body, note) {
+  return `<div class="qs-step" data-checks="${checks}"><div class="qs-head"><span class="qs-num">${n}</span><span class="qs-title">${esc(title)}</span><span class="qs-done">Ready</span>${more ? `<button class="qs-more" data-goto="${more}">More on this</button>` : ''}</div>${note ? `<div class="qs-note">${note}</div>` : ''}${body}</div>`;
+}
+function quickHtml(p) {
+  const m = p.meta, d = k => p.data[k] || (p.data[k] = {});
+  const S = k => sectionByKey(k), F = (k, f) => S(k).fields.find(x => x.key === f);
+  const risks = d('risks');
+  if (!(risks.rows || []).length) risks.rows = [{ risk: '', mode: '', signal: '', fix: '' }];
+  const riskModes = S('risks').fields[0].columns.find(c => c.key === 'mode').options;
+  const recOften = F('recognition', 'often').options;
+  return `<div class="sec-branch">Start here</div>
+  <div class="sec-head"><h2>Quick start</h2></div>
+  <p class="sec-intro">The essentials every plan needs before you share it. Fill in what you know now. Add more sections later, only where this account calls for it.</p>
+  ${qsStep(1, 'The account', 'account', 'basics', `
+    <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
+    <div class="row2">
+      <div class="field"><label>What it needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(MODES[m.mode].lead)}</div></div>
+      <div class="field"><label>Day 1</label><input type="date" data-meta="day1" value="${esc(m.day1)}"></div>
+    </div>`)}
+  ${qsStep(2, 'Their goal, in their words', 'goal', 'goal', `<div class="field"><textarea data-sec="goal" data-field="words" placeholder="Quote them as closely as you can.">${esc(d('goal').words)}</textarea></div>`,
+    'Try: ' + esc(S('goal').ask[0]))}
+  ${qsStep(3, 'One or two targets', 'targets', 'targets', tableHtml(S('targets'), F('targets', 'measures'), d('targets').measures || [], { cols: ['measure', 'baseline', 'target'], fixed: true, noLabel: true }),
+    'Pick the one or two that matter most. Baseline first.')}
+  ${qsStep(4, 'Who owns it', 'owners field', 'owners', tableHtml(S('owners'), F('owners', 'rows'), d('owners').rows || [], { noLabel: true }),
+    'A customer name and a FactorLab name on every line, including a field voice.')}
+  ${qsStep(5, 'First 30 days and recognition', 'recognition', 'recognition', `<div class="row2">
+      <div class="field"><label>Recognized for what</label><input type="text" data-sec="recognition" data-field="forWhat" value="${esc(d('recognition').forWhat)}" placeholder="e.g. best planner, most improved"></div>
+      <div class="field"><label>How often</label><select data-sec="recognition" data-field="often">${recOften.map(o => `<option value="${esc(o)}" ${o === (d('recognition').often || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select></div>
+    </div>`, 'The 30-day milestones are already filled in. <button class="qs-more" style="padding:0" data-goto="milestones">Review them</button>')}
+  ${qsStep(6, 'Biggest risk right now', 'risks', 'risks', `<div class="row2">
+      <div class="field"><label>The risk</label><input type="text" data-sec="risks" data-field="rows" data-row="0" data-col="risk" value="${esc(risks.rows[0].risk)}"></div>
+      <div class="field"><label>Failure mode</label><select data-sec="risks" data-field="rows" data-row="0" data-col="mode">${riskModes.map(o => `<option value="${esc(o)}" ${o === (risks.rows[0].mode || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select></div>
+    </div>`, 'FactorLab only. Adoption: they don\'t know how. Value: they don\'t see the point. Champion: the person who cared is gone. Fit: the work doesn\'t match.')}
+  ${qsStep(7, 'Renewal and next step', 'economics', 'economics', `<div class="row2">
+      <div class="field"><label>Renewal date</label><input type="date" data-sec="economics" data-field="renewal" value="${esc(d('economics').renewal)}"></div>
+      <div class="field"><label>Next expansion step</label><input type="text" data-sec="economics" data-field="next" value="${esc(d('economics').next)}" placeholder="e.g. second region"></div>
+    </div>`, 'FactorLab only. Leave blank until confirmed.')}
+  ${qsStep(8, 'Confirm the numbers', 'verified', '', `<div class="field"><label class="check ${m.verified ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-meta="verified" ${m.verified ? 'checked' : ''}> Every number here is confirmed. No placeholders and no unverified marketing figures.</label></div>`)}
+  <div class="sec-foot"><button class="btn ghost" data-goto="addmore">+ Build out this plan</button><button class="btn primary" data-action="present">View the plan</button></div>`;
+}
+/* Hide "Remove from this plan" once the section has something in it. */
+function updateRemoveLink() {
+  const p = cur(), btn = document.querySelector('#work [data-action=remove-section]');
+  if (!p || !btn) return;
+  const s = sectionByKey(btn.dataset.key);
+  if (s && (leavesFor(s, p).length || (p.notes || {})[s.key])) btn.remove();
+}
+function updateQuickMarks() {
+  const p = cur(); if (!p || currentSec !== 'quick') return;
+  const ok = { account: !!p.meta.account }; readyChecks(p).forEach(c => ok[c.id] = c.ok);
+  document.querySelectorAll('#work .qs-step[data-checks]').forEach(el => {
+    const ids = el.dataset.checks.split(' ').filter(Boolean);
+    el.classList.toggle('ok', ids.length > 0 && ids.every(i => ok[i]));
+  });
+}
+
+/* ---------- Build out: add sections only where the account needs them ---------- */
+function addMoreHtml(p) {
+  const extras = SECTIONS.filter(s => !s.core);
+  const cards = extras.map(s => {
+    const on = inPlan(p, s);
+    const branch = BRANCHES.find(b => b.key === s.branch);
+    return `<div class="cat-card ${on ? 'in' : ''}"><div class="cat-branch">${esc(branch.label)}</div>
+      <div class="cat-title">${esc(s.title)}${s.model ? `<span class="dogear" title="${esc(MODEL_TIP)}"></span>` : ''}</div>
+      <div class="cat-when">${esc(s.when || s.intro)}</div>
+      ${on ? `<button class="btn small" data-goto="${s.key}">In this plan: open</button>` : `<button class="btn small primary" data-action="add-section" data-key="${s.key}">+ Add</button>`}</div>`;
+  }).join('');
+  return `<div class="sec-branch">Grow the plan</div>
+  <div class="sec-head"><h2>Build out this plan</h2></div>
+  <p class="sec-intro">Add a section when this account calls for it. It joins the plan and the map. An empty section can be removed any time; anything you've written in stays.</p>
+  <div class="presets">Shortcuts: <button class="btn small" data-action="add-preset" data-tier="growth">Add the Growth set</button><button class="btn small" data-action="add-preset" data-tier="enterprise">Add the Enterprise set</button></div>
+  <div class="catalog">${cards}
+    <div class="cat-card"><div class="cat-branch">Your own</div><div class="cat-title">Your own branch</div><div class="cat-when">Anything this account needs that the standard plan doesn't cover.</div><button class="btn small" data-action="add-branch">+ Add a branch</button></div>
+  </div>
+  <div class="sec-foot"><button class="btn ghost" data-goto="quick">Back: Quick start</button><button class="btn primary" data-action="present">View the plan</button></div>`;
+}
+
 function navOrder(p) {
-  const keys = ['basics'];
+  const keys = ['quick', 'basics'];
   BRANCHES.forEach(b => {
     visibleSections(p).filter(s => s.branch === b.key).forEach(s => keys.push(s.key));
     if (b.key === 'know') p.custom.forEach(c => keys.push('custom:' + c.id));
@@ -1033,16 +1148,14 @@ function footNextHtml(p) {
   const order = navOrder(p);
   const i = order.indexOf(currentSec);
   const next = order[i + 1];
-  if (!next) return `<button class="btn primary" data-action="present">View the plan</button>`;
-  const name = next === 'basics' ? 'Account basics' : (customByKey(next) ? (customByKey(next).title || 'Your branch') : sectionByKey(next).title);
-  return `<button class="btn primary" data-goto="${next}">Next: ${esc(name)}</button>`;
+  if (!next) return `<button class="btn primary" data-goto="addmore">+ Build out this plan</button>`;
+  return `<button class="btn primary" data-goto="${next}">Next: ${esc(secName(next))}</button>`;
 }
 function footHtml(p) {
   const order = navOrder(p);
   const i = order.indexOf(currentSec);
   const prev = order[i - 1];
-  const prevName = !prev ? '' : (prev === 'basics' ? 'Account basics' : (customByKey(prev) ? (customByKey(prev).title || 'Your branch') : sectionByKey(prev).title));
-  return `<div class="sec-foot">${prev ? `<button class="btn ghost" data-goto="${prev}">Back: ${esc(prevName)}</button>` : '<span></span>'}${footNextHtml(p)}</div>`;
+  return `<div class="sec-foot">${prev ? `<button class="btn ghost" data-goto="${prev}">Back: ${esc(secName(prev))}</button>` : '<span></span>'}${footNextHtml(p)}</div>`;
 }
 
 /* =========================================================
@@ -1074,7 +1187,7 @@ function mapHtml(p, opts) {
   const m = p.meta;
   const root = `<div class="map-root"><b>${esc(m.account || 'Untitled plan')}</b><span>${esc(TIERS[m.tier].label)} plan · ${esc(MODES[m.mode].label)}</span></div>`;
   if (wide) return `<div class="map-wide">${root}<div class="map-link"></div><div class="map-branches">${branchesHtml}</div></div>`;
-  return `${root}<div class="map-branches">${branchesHtml}</div>`;
+  return `${root}<div class="map-branches">${branchesHtml}</div><div style="margin:12px 0 0 34px"><button class="leaf ghost" data-goto="addmore">+ Build out this plan</button></div>`;
 }
 function branchHtml(label, sub, leaves, cls, wide) {
   return `<div class="map-branch ${cls}"><div class="map-label">${esc(label)} <small>${esc(sub)}</small></div>
@@ -1170,7 +1283,7 @@ function renderAll() {
    EVENTS
    ========================================================= */
 let sideTimer = null;
-function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { renderSide(); renderNav(); }, 150); }
+function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { renderSide(); renderNav(); updateQuickMarks(); updateRemoveLink(); }, 150); }
 
 function go(sec) {
   currentSec = sec;
@@ -1187,7 +1300,8 @@ function handleInput(e) {
     p.meta[k] = t.type === 'checkbox' ? t.checked : t.value;
     if (k === 'verified') t.closest('.check').classList.toggle('on', t.checked);
     saveSoon();
-    if (k === 'tier' || k === 'mode') { renderAll(); return; }
+    if (k === 'tier') addSections(p, presetSections(t.value));
+    if (k === 'tier' || k === 'mode') { saveSoon(); renderAll(); return; }
     if (k === 'account') renderPicker();
     sideSoon(); return;
   }
@@ -1259,7 +1373,7 @@ function handleClick(e) {
   const act = a.dataset.action;
   if (act === 'create') {
     const name = document.getElementById('w-account').value.trim();
-    newPlan({ account: name, tier: document.getElementById('w-tier').value, mode: document.getElementById('w-mode').value });
+    newPlan({ account: name, mode: document.getElementById('w-mode').value });
     renderAll(); return;
   }
   if (act === 'present') { openPresent(); return; }
@@ -1289,6 +1403,13 @@ function handleClick(e) {
     return;
   }
   if (act === 'remove-ms') { p.data.milestones.phases[a.dataset.ms].splice(+a.dataset.idx, 1); saveSoon(); renderWork(); sideSoon(); return; }
+  if (act === 'add-section') { addSections(p, [a.dataset.key]); saveSoon(); go(a.dataset.key); renderSide(); return; }
+  if (act === 'remove-section') { p.meta.sections = (p.meta.sections || []).filter(k => k !== a.dataset.key); saveSoon(); go('addmore'); renderSide(); return; }
+  if (act === 'add-preset') {
+    addSections(p, presetSections(a.dataset.tier));
+    if (Object.keys(TIERS).indexOf(a.dataset.tier) > Object.keys(TIERS).indexOf(p.meta.tier)) p.meta.tier = a.dataset.tier;
+    saveSoon(); renderAll(); return;
+  }
   if (act === 'add-branch') {
     const c = { id: uid(), title: '', items: [], notes: '' };
     p.custom.push(c); saveSoon(); go('custom:' + c.id);
@@ -1297,13 +1418,13 @@ function handleClick(e) {
   }
   if (act === 'delete-branch') {
     if (!confirm('Delete this branch and its items?')) return;
-    p.custom = p.custom.filter(c => c.id !== a.dataset.id); saveSoon(); go('basics'); renderSide(); return;
+    p.custom = p.custom.filter(c => c.id !== a.dataset.id); saveSoon(); go('quick'); renderSide(); return;
   }
 }
 
 function runCmd(c) {
   const p = cur();
-  if (c === 'new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
+  if (c === 'new') { currentId = null; currentSec = 'quick'; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (!p) return;
   if (c === 'pdf-customer') { exportPdf(true); return; }
@@ -1324,7 +1445,7 @@ function runCmd(c) {
   }
   if (c === 'delete') {
     if (!confirm('Delete the plan for ' + (p.meta.account || 'this account') + '? Export it first if you might want it back.')) return;
-    delete plans[p.id]; currentId = Object.keys(plans)[0] || null; currentSec = 'basics'; saveNow(); renderAll(); return;
+    delete plans[p.id]; currentId = Object.keys(plans)[0] || null; currentSec = 'quick'; saveNow(); renderAll(); return;
   }
 }
 
@@ -1339,9 +1460,10 @@ function importFile(file) {
       const fresh = blankData();
       Object.keys(fresh).forEach(k => { p.data[k] = Object.assign(fresh[k], p.data[k] || {}); });
       p.custom = p.custom || []; p.notes = p.notes || {};
+      migrate(p);
       if (plans[p.id] && !confirm('A plan with this ID is already here (' + (plans[p.id].meta.account || 'Untitled') + '). Replace it with the file?')) p.id = uid();
       if (!p.id) p.id = uid();
-      plans[p.id] = p; currentId = p.id; currentSec = 'basics'; saveNow(); renderAll();
+      plans[p.id] = p; currentId = p.id; currentSec = 'quick'; saveNow(); renderAll();
     } catch (err) { alert('That file could not be read as a success plan.'); }
   };
   r.readAsText(file);
@@ -1378,8 +1500,8 @@ document.addEventListener('keydown', e => {
 });
 document.getElementById('planPicker').addEventListener('change', e => {
   const v = e.target.value;
-  if (v === '__new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
-  if (plans[v]) { currentId = v; currentSec = 'basics'; saveNow(); renderAll(); }
+  if (v === '__new') { currentId = null; currentSec = 'quick'; renderAll(); return; }
+  if (plans[v]) { currentId = v; currentSec = 'quick'; saveNow(); renderAll(); }
 });
 document.getElementById('moreBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('pdfMenu').classList.remove('open'); document.getElementById('moreMenu').classList.toggle('open'); });
 document.getElementById('pdfBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.toggle('open'); });
@@ -1396,7 +1518,6 @@ document.addEventListener('change', e => {
   if (e.target.value === '__branch') { const a = document.querySelector('[data-action=add-branch]'); if (a) a.click(); return; }
   go(e.target.value);
 });
-document.getElementById('nav').addEventListener('change', e => { if (e.target.id === 'showAll') { showAll = e.target.checked; renderAll(); } });
 
 loadAll();
 if (!storageOk) document.getElementById('storageBanner').classList.add('show');
