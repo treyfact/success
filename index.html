@@ -173,6 +173,16 @@ body.focus .app { grid-template-columns: minmax(0, 1fr); }
 body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .btn.on { background: var(--navy-soft); border-color: #8fa8c9; color: var(--navy); }
 #timerBtn { font-variant-numeric: tabular-nums; min-width: 64px; }
+.team-panel { width: 300px; padding: 14px; }
+.team-panel p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.team-panel .btn { width: 100%; text-align: center; margin-top: 4px; }
+.team-code { font-size: 24px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; margin: 2px 0 6px; }
+.team-row { display: flex; gap: 6px; margin-top: 6px; }
+.team-row input { flex: 1; text-transform: uppercase; letter-spacing: .06em; }
+.team-row .btn { width: auto; margin: 0; }
+.team-status { font-size: 12.5px; color: var(--muted); margin: 6px 0 10px; }
+.team-err { font-size: 12.5px; color: var(--red); margin-top: 6px; }
+.live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-right: 6px; vertical-align: 1px; }
 .notes { margin-top: 26px; padding-top: 16px; border-top: 1px dashed var(--line); }
 .sec-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 
@@ -302,7 +312,9 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   #pdfMenu > .btn { width: 100%; }
   .sec-foot { flex-direction: column-reverse; gap: 8px; }
   .stepbar { top: 0; margin: -18px -16px 16px; padding: 12px 16px 10px; }
-  #focusBtn, #shareBtn { display: none; }
+  #focusBtn, #shareBtn, #teamBtn { display: none; }
+  #teamMenu { order: 1; }
+  #teamMenu .team-panel { position: fixed; left: 14px; right: 14px; top: 64px; width: auto; }
   #timerBtn { order: 1; }
   .sec-foot .btn { width: 100%; white-space: normal; }
   .welcome { margin: 8px auto; padding: 20px 18px; }
@@ -347,6 +359,10 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   <select class="plan-picker" id="planPicker" aria-label="Choose a plan"></select>
   <div class="spacer"></div>
   <span class="saved" id="savedNote"></span>
+  <div class="menu" id="teamMenu">
+    <button class="btn" id="teamBtn" title="Build this plan together with a teammate on a call">Team code</button>
+    <div class="menu-list team-panel" id="teamPanel"></div>
+  </div>
   <button class="btn" id="timerBtn" title="Pop out a meeting timer">Timer</button>
   <button class="btn" id="focusBtn" title="Hide the side panels while you work through the plan">Focus</button>
   <button class="btn" id="shareBtn" title="Opens a clean window to share on screen. It shows only what the customer should see and updates as you type.">Customer window</button>
@@ -362,6 +378,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
     <button class="btn" id="moreBtn" aria-haspopup="true">More</button>
     <div class="menu-list">
       <button data-cmd="new">New plan</button>
+      <button data-cmd="team">Team code</button>
       <button data-cmd="duplicate">Duplicate this plan</button>
       <hr>
       <button data-cmd="export">Export this plan (file)</button>
@@ -796,6 +813,7 @@ function migrate(p) {
 function presetSections(tier) { return SECTIONS.filter(s => !s.core && s.tiers.includes(tier)).map(s => s.key); }
 let saveTimer = null;
 function saveSoon() {
+  if (typeof teamSendSoon === 'function') teamSendSoon();
   const p = cur();
   if (p) p.meta.updated = new Date().toISOString();
   setSaved('Saving...');
@@ -1430,6 +1448,7 @@ function handleClick(e) {
 
 function runCmd(c) {
   const p = cur();
+  if (c === 'team') { openTeamPanel(); return; }
   if (c === 'new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (!p) return;
@@ -1635,6 +1654,180 @@ function openShare() {
   renderShare();
 }
 document.getElementById('shareBtn').addEventListener('click', openShare);
+
+/* ---------- Team code: build one plan together, live, on a call ----------
+   Uses Supabase Realtime "broadcast" over a plain WebSocket (no library). Changes pass between the
+   people on the same code; nothing is stored on Supabase. Each person's browser keeps its own saved
+   copy, same as always. Changes merge section by section: two people on different sections never
+   overwrite each other; on the same section, the last change wins. */
+const TEAM_URL = 'https://ccsqgjxqxhijvxjidzjb.supabase.co';
+const TEAM_KEY = 'sb_publishable_b-PeSQRqJH0YAwoD9Mlykg_jHFQjouv';   // publishable: safe to be public
+let teamWsUrl = TEAM_URL.replace(/^http/, 'ws') + '/realtime/v1/websocket?apikey=' + encodeURIComponent(TEAM_KEY) + '&vsn=1.0.0';
+try { const o = localStorage.getItem('spb.teamWs'); if (o) teamWsUrl = o; } catch (e) {}   // testing only
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+let team = null;   // { code, planId, ws, topic, me, peers, ref, joinRef, joined, snap, error, hbTimer, pingTimer, closing }
+
+function newTeamCode() {
+  const a = new Uint32Array(8); crypto.getRandomValues(a);
+  const c = Array.from(a, n => CODE_CHARS[n % CODE_CHARS.length]).join('');
+  return c.slice(0, 4) + '-' + c.slice(4);
+}
+function cleanCode(v) { const c = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); return c.length === 8 ? c.slice(0, 4) + '-' + c.slice(4) : ''; }
+function teamPeers() { if (!team) return 0; const now = Date.now(); return Object.values(team.peers).filter(t => now - t < 25000).length; }
+
+function planSnap(p) {
+  const snap = { meta: {}, data: {}, notes: {}, custom: JSON.stringify(p.custom || []) };
+  Object.keys(p.meta).forEach(k => { if (k !== 'updated') snap.meta[k] = JSON.stringify(p.meta[k]); });
+  Object.keys(p.data).forEach(k => { snap.data[k] = JSON.stringify(p.data[k]); });
+  Object.keys(p.notes || {}).forEach(k => { snap.notes[k] = JSON.stringify(p.notes[k]); });
+  return snap;
+}
+function planPatch(p, old) {
+  const now = planSnap(p), patch = {}; let any = false;
+  ['meta', 'data', 'notes'].forEach(part => Object.keys(now[part]).forEach(k => {
+    if (now[part][k] !== old[part][k]) { (patch[part] = patch[part] || {})[k] = JSON.parse(now[part][k]); any = true; }
+  }));
+  if (now.custom !== old.custom) { patch.custom = JSON.parse(now.custom); any = true; }
+  return any ? { patch, snap: now } : null;
+}
+
+function teamSend(event, payload) {
+  if (!team || !team.ws || team.ws.readyState !== 1 || !team.joined) return;
+  team.ws.send(JSON.stringify({ topic: team.topic, event: 'broadcast', payload: { type: 'broadcast', event, payload: Object.assign({ from: team.me }, payload) }, ref: String(++team.ref), join_ref: team.joinRef }));
+}
+let teamTimer = null;
+function teamSendSoon() {
+  if (!team || !team.planId) return;
+  clearTimeout(teamTimer);
+  teamTimer = setTimeout(() => {
+    const p = plans[team.planId]; if (!p || !team.snap) return;
+    const d = planPatch(p, team.snap);
+    if (d) { team.snap = d.snap; teamSend('patch', { planId: p.id, patch: d.patch }); }
+  }, 250);
+}
+
+let pendingWork = false;
+function workIsBusy() { const a = document.activeElement; return !!(a && a.closest && a.closest('#work') && /INPUT|TEXTAREA|SELECT/.test(a.tagName)); }
+function afterRemote() {
+  saveNow(); renderPicker(); renderNav(); renderSide(); updateStepBar(); renderShare();
+  if (workIsBusy()) pendingWork = true; else renderWork();
+  paintTeam();
+}
+document.addEventListener('focusout', () => setTimeout(() => { if (pendingWork && !workIsBusy()) { pendingWork = false; renderWork(); } }, 0));
+
+function teamReceive(ev, msg) {
+  if (!team || !msg || msg.from === team.me) return;
+  team.peers[msg.from] = Date.now();
+  if (ev === 'hello') { if (team.planId && plans[team.planId]) teamSend('full', { plan: plans[team.planId] }); paintTeam(); return; }
+  if (ev === 'full') {
+    if (team.planId) { paintTeam(); return; }            // already have the plan
+    const p = msg.plan; if (!p || !p.meta || !p.data) return;
+    migrate(p); p.custom = p.custom || []; p.notes = p.notes || {};
+    plans[p.id] = p; currentId = p.id; team.planId = p.id; team.snap = planSnap(p);
+    currentSec = 'basics'; saveNow(); renderAll(); paintTeam(); return;
+  }
+  if (ev === 'patch') {
+    const p = plans[msg.planId]; if (!p || msg.planId !== team.planId) return;
+    const patch = msg.patch || {};
+    if (patch.meta) Object.keys(patch.meta).forEach(k => { p.meta[k] = patch.meta[k]; team.snap.meta[k] = JSON.stringify(patch.meta[k]); });
+    if (patch.data) Object.keys(patch.data).forEach(k => { p.data[k] = patch.data[k]; team.snap.data[k] = JSON.stringify(patch.data[k]); });
+    if (patch.notes) Object.keys(patch.notes).forEach(k => { p.notes[k] = patch.notes[k]; team.snap.notes[k] = JSON.stringify(patch.notes[k]); });
+    if (patch.custom) { p.custom = patch.custom; team.snap.custom = JSON.stringify(patch.custom); }
+    p.meta.updated = new Date().toISOString();
+    if (currentId === p.id) afterRemote(); else saveNow();
+    return;
+  }
+  paintTeam();   // ping
+}
+
+function teamConnect() {
+  const t = team; if (!t) return;
+  t.error = ''; t.joined = false;
+  let ws;
+  try { ws = new WebSocket(teamWsUrl); } catch (e) { t.error = 'Could not reach the team service.'; paintTeam(); return; }
+  t.ws = ws; t.joinRef = String(++t.ref);
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ topic: t.topic, event: 'phx_join', payload: { config: { broadcast: { ack: false, self: false }, presence: { key: '' }, private: false } }, ref: t.joinRef, join_ref: t.joinRef }));
+    clearInterval(t.hbTimer);
+    t.hbTimer = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: String(++t.ref) })); }, 25000);
+  };
+  ws.onmessage = e => {
+    let m; try { m = JSON.parse(e.data); } catch (err) { return; }
+    if (m.topic !== t.topic) return;
+    if (m.event === 'phx_reply' && m.ref === t.joinRef) {
+      if (m.payload && m.payload.status === 'ok') {
+        t.joined = true;
+        if (t.planId) { t.snap = planSnap(plans[t.planId]); }
+        teamSend('hello', {});
+      } else { t.error = 'The team service said no: ' + JSON.stringify((m.payload && m.payload.response) || m.payload || {}); }
+      paintTeam(); return;
+    }
+    if (m.event === 'broadcast' && m.payload) teamReceive(m.payload.event, m.payload.payload);
+    if (m.event === 'phx_error' || m.event === 'system' && m.payload && m.payload.status === 'error') { t.error = 'Connection problem: ' + JSON.stringify(m.payload || {}); paintTeam(); }
+  };
+  ws.onerror = () => { t.error = t.joined ? '' : 'Could not reach the team service.'; paintTeam(); };
+  ws.onclose = () => {
+    t.joined = false; clearInterval(t.hbTimer); paintTeam();
+    if (team === t && !t.closing) setTimeout(() => { if (team === t && !t.closing) teamConnect(); }, 3000);
+  };
+}
+function teamStart(code, host) {
+  teamLeave(true);
+  team = { code, planId: host ? currentId : null, ws: null, topic: 'realtime:spb-' + code.replace('-', '').toLowerCase(), me: uid(), peers: {}, ref: 0, joinRef: '0', joined: false, snap: null, error: '', closing: false };
+  teamConnect();
+  clearInterval(teamPing);
+  teamPing = setInterval(() => { teamSend('ping', {}); paintTeam(); }, 10000);
+  paintTeam();
+}
+let teamPing = null;
+function teamLeave(quiet) {
+  if (!team) return;
+  team.closing = true; clearInterval(team.hbTimer); clearInterval(teamPing);
+  try { teamSend('bye', {}); team.ws && team.ws.close(); } catch (e) {}
+  team = null;
+  if (!quiet) paintTeam();
+}
+
+function paintTeam() {
+  const btn = document.getElementById('teamBtn'), panel = document.getElementById('teamPanel');
+  if (!team) {
+    btn.innerHTML = 'Team code'; btn.classList.remove('on');
+    panel.innerHTML = `<p>Build this plan together with a teammate on a call. Changes show up on both screens as you type.</p>
+      <button class="btn primary" data-team="start" ${cur() ? '' : 'disabled'}>Start a team code for this plan</button>
+      <p style="margin:14px 0 0">Have a code from a teammate?</p>
+      <div class="team-row"><input type="text" id="teamJoinInput" placeholder="ABCD-1234" maxlength="9" autocomplete="off"><button class="btn" data-team="join">Join</button></div>
+      <p style="margin:12px 0 0;font-size:12px">Plans pass between you but aren't stored online. Each person keeps a saved copy in their own browser.</p>`;
+    return;
+  }
+  const n = teamPeers();
+  const status = !team.joined ? (team.error ? '' : 'Connecting...') : !team.planId ? 'Waiting for your teammate to share the plan...' : (n ? (n + 1) + ' people on this plan' : 'Waiting for a teammate to join with this code');
+  btn.innerHTML = `${team.joined ? '<span class="live-dot"></span>' : ''}Team ${esc(team.code)}`; btn.classList.toggle('on', team.joined);
+  panel.innerHTML = `<p style="margin:0">Team code</p><div class="team-code">${esc(team.code)}</div>
+    <div class="team-status">${esc(status)}</div>
+    ${team.error ? `<div class="team-err">${esc(team.error)}</div>` : ''}
+    <button class="btn" data-team="copy">Copy code</button>
+    <button class="btn danger" data-team="leave">Leave team code</button>`;
+}
+function openTeamPanel() { paintTeam(); document.getElementById('teamMenu').classList.add('open'); }
+document.getElementById('teamBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); paintTeam(); document.getElementById('teamMenu').classList.toggle('open'); });
+document.getElementById('teamPanel').addEventListener('click', e => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-team]'); if (!b) return;
+  const a = b.dataset.team;
+  if (a === 'start') { if (cur()) teamStart(newTeamCode(), true); }
+  if (a === 'join') {
+    const code = cleanCode(document.getElementById('teamJoinInput').value);
+    if (!code) { document.getElementById('teamJoinInput').focus(); return; }
+    teamStart(code, false);
+  }
+  if (a === 'copy') { try { navigator.clipboard.writeText(team.code); b.textContent = 'Copied'; } catch (err) {} }
+  if (a === 'leave') { teamLeave(); }
+});
+document.getElementById('teamPanel').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'teamJoinInput') { e.preventDefault(); document.querySelector('[data-team=join]').click(); } });
+document.addEventListener('click', e => { if (!e.target.closest('#teamMenu') && !e.target.closest('[data-cmd=team]')) document.getElementById('teamMenu').classList.remove('open'); });
+window.addEventListener('beforeunload', () => { if (team) { try { teamSend('bye', {}); } catch (e) {} } });
+paintTeam();
+
 
 setInterval(paintTimer, 500);
 paintTimer();

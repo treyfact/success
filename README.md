@@ -16,6 +16,8 @@ A simple page for building customer success plans as you learn about an account.
 4. Only when the account calls for more, open **Build out this plan** and add a section (first workflow, what good looks like, trade partners, experiments and more), or your own branch.
 
 **In a live meeting:** click **Focus** to see only the step you're on, **Timer** to pop out a small timer with Start and Pause, and **Customer window** to open a clean window you can share on screen. The customer window shows only what the customer should see and updates as you type. In Zoom or Teams, share that window, not your whole screen.
+
+**Building a plan with a teammate:** click **Team code**, then **Start a team code**, and read the code out (or paste it in chat). Your teammate opens the page, clicks **Team code**, types it in and clicks **Join**. The plan appears on their screen and changes show up on both screens as you type. The plan passes between you but isn't stored online; you each keep a saved copy in your own browser.
 5. Click **View plan** to see it the way the customer will.
 6. To share it, click **Export PDF, then For the customer**. Your browser's print window opens; pick **Save as PDF**. The customer version leaves out the FactorLab-only parts. **Internal (full plan)** keeps them.
 
