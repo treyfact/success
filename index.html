@@ -1294,6 +1294,7 @@ function presentHtml(p, customer) {
 }
 
 function renderAll() {
+  if (typeof paintTeam === 'function') setTimeout(paintTeam, 0);
   if (typeof renderShare === 'function') setTimeout(renderShare, 0);
   renderPicker();
   renderNav();
@@ -1777,12 +1778,14 @@ function teamStart(code, host) {
   teamConnect();
   clearInterval(teamPing);
   teamPing = setInterval(() => { teamSend('ping', {}); paintTeam(); }, 10000);
+  clearInterval(teamAsk);
+  teamAsk = setInterval(() => { if (team && team.joined && !team.planId) teamSend('hello', {}); }, 3000);
   paintTeam();
 }
-let teamPing = null;
+let teamPing = null, teamAsk = null;
 function teamLeave(quiet) {
   if (!team) return;
-  team.closing = true; clearInterval(team.hbTimer); clearInterval(teamPing);
+  team.closing = true; clearInterval(team.hbTimer); clearInterval(teamPing); clearInterval(teamAsk);
   try { teamSend('bye', {}); team.ws && team.ws.close(); } catch (e) {}
   team = null;
   if (!quiet) paintTeam();
@@ -1793,14 +1796,14 @@ function paintTeam() {
   if (!team) {
     btn.innerHTML = 'Team code'; btn.classList.remove('on');
     panel.innerHTML = `<p>Build this plan together with a teammate on a call. Changes show up on both screens as you type.</p>
-      <button class="btn primary" data-team="start" ${cur() ? '' : 'disabled'}>Start a team code for this plan</button>
+      ${cur() ? '<button class="btn primary" data-team="start">Start a team code for this plan</button>' : '<p style="color:var(--ink)"><b>Open or create a plan first</b> to start a code. To join a teammate\'s plan, use their code below.</p>'}
       <p style="margin:14px 0 0">Have a code from a teammate?</p>
       <div class="team-row"><input type="text" id="teamJoinInput" placeholder="ABCD-1234" maxlength="9" autocomplete="off"><button class="btn" data-team="join">Join</button></div>
       <p style="margin:12px 0 0;font-size:12px">Plans pass between you but aren't stored online. Each person keeps a saved copy in their own browser.</p>`;
     return;
   }
   const n = teamPeers();
-  const status = !team.joined ? (team.error ? '' : 'Connecting...') : !team.planId ? 'Waiting for your teammate to share the plan...' : (n ? (n + 1) + ' people on this plan' : 'Waiting for a teammate to join with this code');
+  const status = !team.joined ? (team.error ? '' : 'Connecting...') : !team.planId ? (n ? 'Getting the plan from your teammate...' : "Looking for your teammate. Keep the page open on their screen, with the plan showing.") : (n ? (n + 1) + ' people on this plan' : 'Waiting for a teammate to join. Keep this page open.');
   btn.innerHTML = `${team.joined ? '<span class="live-dot"></span>' : ''}Team ${esc(team.code)}`; btn.classList.toggle('on', team.joined);
   panel.innerHTML = `<p style="margin:0">Team code</p><div class="team-code">${esc(team.code)}</div>
     <div class="team-status">${esc(status)}</div>
@@ -1825,6 +1828,9 @@ document.getElementById('teamPanel').addEventListener('click', e => {
 });
 document.getElementById('teamPanel').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'teamJoinInput') { e.preventDefault(); document.querySelector('[data-team=join]').click(); } });
 document.addEventListener('click', e => { if (!e.target.closest('#teamMenu') && !e.target.closest('[data-cmd=team]')) document.getElementById('teamMenu').classList.remove('open'); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && team && !team.closing && (!team.ws || team.ws.readyState > 1)) teamConnect();
+});
 window.addEventListener('beforeunload', () => { if (team) { try { teamSend('bye', {}); } catch (e) {} } });
 paintTeam();
 
