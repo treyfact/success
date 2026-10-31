@@ -263,7 +263,7 @@ body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .present { display: none; position: fixed; inset: 0; background: #fff; z-index: 50; overflow-y: auto; }
 .present.show { display: block; }
 .present-bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 24px; background: #fff; border-bottom: 1px solid var(--line); z-index: 2; }
-.present-body { max-width: 1100px; margin: 0 auto; padding: 28px 32px 60px; }
+.present-body { padding: 0; }
 .p-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); }
 .p-title { font-size: 30px; font-weight: 700; margin: 4px 0 4px; letter-spacing: -.01em; }
 .p-meta { color: var(--muted); }
@@ -299,7 +299,6 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   table.grid td.act { text-align: right; padding: 0; }
   table.grid td input, table.grid td select, table.grid td textarea { border-color: var(--line); }
   .tl-wide { grid-template-columns: 1fr 1fr; }
-  .present-body { padding: 22px 20px 50px; }
 }
 @media screen and (max-width: 760px) {
   .topbar { flex-wrap: wrap; row-gap: 8px; padding: 10px 14px; }
@@ -325,7 +324,6 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   .present-bar > b, .present-bar .spacer { display: none; }
   .present-bar .btn { flex: 1; }
   .present-bar .toggle-row { order: 3; flex: 1 1 100%; padding: 0; }
-  .present-body { padding: 18px 16px 50px; }
   .p-title { font-size: 24px; }
   .p-goal { font-size: 15.5px; }
   .tl-wide { grid-template-columns: 1fr; }
@@ -342,13 +340,76 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   .map-wide .leaves { margin: 8px 0 0; }
 }
 
+/* ---------- Plan document pages ---------- */
+.doc { background: #e9ecf1; padding: 24px 0 40px; min-height: 100%; }
+.doc-pages { width: 1056px; margin: 0 auto; }
+.doc-page { width: 1056px; height: 816px; background: #fff; margin: 0 auto 24px; padding: 40px 56px 30px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 14px rgba(20,30,50,.12); border-radius: 4px; }
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 1.5px solid var(--line); padding-bottom: 14px; }
+.doc-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
+.doc-account { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-top: 2px; }
+.doc-logo { height: 28px; width: auto; margin-top: 4px; }
+.doc-title { font-size: 17px; font-weight: 700; margin: 20px 0 14px; }
+.doc-body { flex: 1; min-height: 0; overflow: hidden; }
+.doc-foot { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 12px; }
+.doc-goal { font-size: 19px; line-height: 1.38; border-left: 3px solid var(--amber); padding: 2px 0 2px 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.doc-bet { margin: 12px 0 0; font-size: 14px; }
+.doc-cards { display: grid; gap: 16px; margin-top: 22px; }
+.doc-card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.doc-card-head { background: var(--navy); color: #fff; padding: 10px 14px; }
+.doc-card-head b { display: block; font-size: 15px; }
+.doc-card-head span { font-size: 11.5px; opacity: .8; }
+.doc-card.custom .doc-card-head { background: #4a6a92; }
+.doc-card ul, .doc-phase ul { list-style: none; margin: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
+.doc-card li, .doc-phase li { font-size: 13px; line-height: 1.38; padding-left: 14px; position: relative; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.doc-card li::before, .doc-phase li::before { content: ''; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+.doc-card li.doc-empty::before, .doc-phase li.doc-empty::before { background: var(--line); }
+.doc-more { font-size: 12px; color: var(--muted); padding: 0 14px 12px; margin-top: auto; }
+.doc-empty { color: var(--faint); font-style: italic; }
+.doc-muted { color: var(--muted); }
+.doc-tl { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.doc-phase { border: 1px solid var(--line); border-radius: 12px; padding: 14px 4px 12px; display: flex; flex-direction: column; }
+.doc-phase > div { padding: 0 10px; }
+.doc-phase ul { padding: 8px 10px; gap: 6px; }
+.doc-phase li { font-size: 12.5px; -webkit-line-clamp: 2; }
+.doc-phase li.done { color: var(--faint); text-decoration: line-through; }
+.doc-pnum { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; margin: 0 10px 8px; padding: 0 !important; }
+.doc-pnum.done { background: var(--green); }
+.doc-pname { font-weight: 700; font-size: 14px; }
+.doc-pwhen { font-size: 11.5px; color: var(--muted); }
+.doc-gate { margin: auto 10px 0 !important; font-size: 11px; background: var(--amber-soft); border-radius: 6px; padding: 5px 8px !important; }
+.doc-h3 { font-size: 14px; margin: 22px 0 10px; }
+.doc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.doc-table th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; border-bottom: 1.5px solid var(--line); padding: 6px 8px; }
+.doc-table td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical-align: top; }
+.doc-run th { width: 140px; color: var(--ink); font-size: 13px; border-bottom: 1px solid var(--soft); }
+.doc-split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; }
+.doc-split.one { grid-template-columns: 1fr; }
+.doc-note { font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
+.doc-context { font-size: 13px; white-space: pre-wrap; margin: 0; display: -webkit-box; -webkit-line-clamp: 9; -webkit-box-orient: vertical; overflow: hidden; }
+.doc-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.doc-ftitle { font-weight: 700; font-size: 13px; color: var(--navy); margin: 0 0 6px; padding-top: 4px; }
+.doc-fitem { font-size: 12.5px; line-height: 1.4; padding: 0 0 6px 12px; position: relative; }
+.doc-fitem::before { content: ''; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+@media screen {
+  .doc.flow { padding: 12px 0 30px; }
+  .doc.flow .doc-pages { width: auto; }
+  .doc.flow .doc-page { width: auto; height: auto; margin: 0 10px 14px; padding: 20px 18px 16px; }
+  .doc.flow .doc-cards, .doc.flow .doc-tl, .doc.flow .doc-cols, .doc.flow .doc-split { grid-template-columns: 1fr !important; }
+  .doc.flow .doc-account { font-size: 21px; }
+  .doc.flow .doc-table { display: block; overflow-x: auto; }
+}
+
+@page { size: 11in 8.5in; margin: 0; }
 @media print {
-  @page { size: letter landscape; margin: 0.45in; }
-  body { background: #fff; }
-  .topbar, .app, .banner, .present-bar, .fab { display: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { background: #fff; }
+  .topbar, .app, .banner, .present-bar, .fab, .share-now { display: none !important; }
   .present { display: block !important; position: static; overflow: visible; }
-  .present-body { max-width: none; padding: 0; }
-  .p-sec { break-inside: avoid; }
+  .present-body { padding: 0; }
+  .doc { background: #fff; padding: 0; }
+  .doc-pages { zoom: 1 !important; width: auto; }
+  .doc-page { width: 11in; height: 8.5in; margin: 0; box-shadow: none; border-radius: 0; break-after: page; page-break-after: always; }
+  .doc-page:last-child { break-after: auto; page-break-after: auto; }
 }
 </style>
 </head>
@@ -580,7 +641,7 @@ const SECTIONS = [
       { key: 'benchmark', label: 'Benchmark we\'ll compare against', type: 'text' }
     ],
     leaves: d => [
-      d.standard && trunc(d.standard, 46),
+      d.standard,
       (d.goodTape || []).length && (d.goodTape.length + ' good example' + (d.goodTape.length > 1 ? 's' : '')),
       d.benchmark && 'Benchmark: ' + d.benchmark
     ]
@@ -682,7 +743,7 @@ const SECTIONS = [
       { key: 'how', label: 'How the field hears back', type: 'textarea' },
       { key: 'channel', label: 'Channel and timing', type: 'text', placeholder: 'e.g. monthly note from the safety director' }
     ],
-    leaves: d => [d.how && trunc(d.how, 46)]
+    leaves: d => [d.how]
   },
   {
     key: 'experiments', when: "When you want to test what's working, one small test a quarter.", branch: 'know', title: 'Experiments', short: 'an experiment',
@@ -1244,53 +1305,159 @@ function renderSide() {
   else body.innerHTML = readyHtml(p);
 }
 
+/* =========================================================
+   THE PLAN DOCUMENT (View plan, Customer window, PDFs)
+   Fixed letter-size landscape pages, drawn exactly as they print. Each page carries the
+   FactorLab logo top right. Page 1 is a calm summary with a few items per card; anything
+   that doesn't fit goes to an "In full" page instead of being squeezed or cut off.
+   ========================================================= */
+const DOC_W = 1056;   // 11in at 96 dpi
+function docLogo() { const l = document.querySelector('.brand-logo'); return l ? l.src : ''; }
+function docBranches(p, customer) {
+  const vis = visibleSections(p), out = [];
+  BRANCHES.filter(b => !b.internal).forEach(b => {
+    let items = [];
+    vis.filter(s => s.branch === b.key).forEach(s => {
+      if (customer && s.key === 'milestones' && !milestonesTouched(p)) return;
+      let ls = [];
+      try { ls = (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
+      if (s.key === 'goal') ls = ls.filter(x => !x.startsWith('"'));              // the goal is shown at the top
+      if (s.key === 'hypothesis') ls = ls.filter(x => !x.startsWith('If we improve'));
+      items = items.concat(ls);
+    });
+    if (items.length || !customer) out.push({ label: b.label, sub: b.sub, items, cls: '' });
+    if (b.key === 'know') p.custom.forEach(c => {
+      const ci = (c.items || []).filter(Boolean);
+      if (ci.length || !customer) out.push({ label: c.title || 'Your branch', sub: 'Added for this account', items: ci, cls: 'custom' });
+    });
+  });
+  return out;
+}
+function docPage(p, customer, title, body) {
+  return { title, body };
+}
+function docWrap(p, customer, pages) {
+  const m = p.meta, logo = docLogo(), n = pages.length;
+  const foot = (customer ? 'Prepared by FactorLab' : 'FactorLab internal') + (m.csm ? ' · ' + esc(m.csm) : '') + ' · Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)));
+  return `<div class="doc"><div class="doc-pages">${pages.map((pg, i) => `<section class="doc-page">
+    <header class="doc-head"><div><div class="doc-eyebrow">Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div>${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</header>
+    ${pg.title ? `<h2 class="doc-title">${esc(pg.title)}</h2>` : ''}
+    <div class="doc-body">${pg.body}</div>
+    <footer class="doc-foot"><span>${foot}</span><span>Page ${i + 1} of ${n}</span></footer></section>`).join('')}</div></div>`;
+}
+/* Rough height of a line of text in the In full columns, to split them across pages. */
+function docPaginate(blocks) {
+  const COLS = 3, CAP = 560, perLine = 50, lineH = 18, pages = [];
+  let page = [[]], col = 0, used = 0;
+  const nextCol = () => { col++; used = 0; if (col === COLS) { pages.push(page); page = [[]]; col = 0; } else page.push([]); };
+  blocks.forEach(b => {
+    let titled = false;
+    b.items.forEach((it, i) => {
+      const h = Math.ceil(String(it).length / perLine) * lineH + 8, th = titled ? 0 : 30;
+      if (used + th + h > CAP && used > 0) { nextCol(); titled = false; }
+      if (!titled) { page[col].push(`<div class="doc-ftitle">${esc(b.title)}${i ? ' (continued)' : ''}</div>`); used += 30; titled = true; }
+      page[col].push(`<div class="doc-fitem">${esc(it)}</div>`); used += h;
+    });
+  });
+  if (page.some(c => c.length)) pages.push(page);
+  return pages.map(cols => `<div class="doc-cols">${cols.map(c => `<div>${c.join('')}</div>`).join('')}</div>`);
+}
 function presentHtml(p, customer) {
   const m = p.meta, d = k => p.data[k] || {};
-  const vis = visibleSections(p).map(s => s.key);
-  const show = k => vis.includes(k);
-  const metaBits = customer
-    ? [m.csm && 'FactorLab: ' + esc(m.csm), m.day1 && 'Day 1: ' + esc(fmtDate(m.day1)), 'Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)))]
-    : [esc(TIERS[m.tier].label) + ' plan', esc(MODES[m.mode].label), m.csm && 'CSM: ' + esc(m.csm), m.day1 && 'Day 1: ' + esc(fmtDate(m.day1)), 'Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)))];
-  let h = `<div class="p-eyebrow">Success plan${customer ? '' : ' · internal view'}</div>
-    <div class="p-title">${esc(m.account || 'Untitled plan')}</div>
-    <div class="p-meta">${metaBits.filter(Boolean).join(' · ')}</div>`;
-  const start = h.length;
-  if (d('goal').words) h += `<div class="p-goal">"${esc(d('goal').words)}"</div>`;
-  const hy = d('hypothesis');
-  if (hy.improve && hy.result) h += `<p style="margin:12px 0 0"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
-  const map = mapHtml(p, { wide: true, customer });
-  if (map) h += `<div class="p-sec"><h3>The plan at a glance</h3>${map}</div>`;
-  const touched = milestonesTouched(p);
-  if (!customer || touched) h += `<div class="p-sec"><h3>Milestones</h3>${timelineHtml(p, true)}</div>`;
-  const ms = (d('targets').measures || []).filter(r => r.target || r.baseline);
-  if (ms.length) h += `<div class="p-sec"><h3>Scorecard</h3><table class="view"><thead><tr><th>Measure</th><th>How we score it</th><th>Baseline</th><th>Target</th><th>Now</th><th>By when</th></tr></thead><tbody>${ms.map(r => `<tr><td><b>${esc(r.measure)}</b></td><td>${esc(r.how)}</td><td>${esc(r.baseline)}</td><td>${esc(r.target)}</td><td>${esc(r.current)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table>${d('targets').outcome ? `<p style="color:var(--muted);font-size:13px">Also tracking: ${esc(d('targets').outcome)}</p>` : ''}</div>`;
-  const owners = (d('owners').rows || []).filter(r => r.customer || r.factorlab);
-  if (owners.length) h += `<div class="p-sec"><h3>Owners</h3><table class="view"><thead><tr><th>Role</th><th>${esc(m.account || 'Customer')}</th><th>FactorLab</th></tr></thead><tbody>${owners.map(r => `<tr><td>${esc(r.role)}</td><td>${esc(r.customer)}</td><td>${esc(r.factorlab)}</td></tr>`).join('')}</tbody></table></div>`;
-  const rec = d('recognition'), mi = d('milestones');
-  const runRows = [
-    (!customer || touched) && mi.weekly ? `<tr><td style="width:140px"><b>Weekly</b></td><td>${esc(mi.weekly)}</td></tr>` : '',
-    (!customer || touched) && mi.monthly ? `<tr><td style="width:140px"><b>Monthly</b></td><td>${esc(mi.monthly)}${(mi.workbooks || []).length ? ' (' + esc(mi.workbooks.join(', ')) + ')' : ''}</td></tr>` : '',
-    (!customer || touched) && mi.quarterly ? `<tr><td style="width:140px"><b>Quarterly</b></td><td>${esc(mi.quarterly)}</td></tr>` : '',
-    rec.forWhat ? `<tr><td style="width:140px"><b>Recognition</b></td><td>${esc([rec.often, rec.forWhat].filter(Boolean).join(': '))}${rec.channel ? ', via ' + esc(rec.channel) : ''}</td></tr>` : '',
-    show('loop') && d('loop').how ? `<tr><td style="width:140px"><b>Closing the loop</b></td><td>${esc(d('loop').how)}</td></tr>` : ''
-  ].join('');
-  if (runRows) h += `<div class="p-sec"><h3>How we'll run it</h3><table class="view"><tbody>${runRows}</tbody></table></div>`;
-  if (customer && h.length === start) h += `<p class="empty-note" style="margin-top:28px">The plan builds here as we talk it through.</p>`;
-  if (!customer) {
-    const e = d('economics');
-    const risks = (d('risks').rows || []).filter(r => r.risk);
-    h += `<div class="internal-block"><div class="p-eyebrow">FactorLab only</div>
-      <table class="view" style="margin-top:10px"><tbody>
-        <tr><td style="width:180px"><b>ARR</b></td><td>${esc(e.arr || '') || '<span class="empty-note">Not confirmed</span>'}</td></tr>
-        <tr><td><b>Renewal</b></td><td>${esc(fmtDate(e.renewal)) || '<span class="empty-note">Not confirmed</span>'}</td></tr>
-        <tr><td><b>Service hours</b></td><td>${esc(e.hours || '')}</td></tr>
-        <tr><td><b>Next expansion step</b></td><td>${esc(e.next || '')}${e.mustBeTrue ? ' <span style="color:var(--muted)">(first: ' + esc(e.mustBeTrue) + ')</span>' : ''}</td></tr>
-      </tbody></table>
-      ${risks.length ? `<h3 style="margin:18px 0 8px;font-size:14px">Risks</h3><table class="view"><thead><tr><th>Risk</th><th>Failure mode</th><th>What we saw</th><th>The fix</th></tr></thead><tbody>${risks.map(r => `<tr><td>${esc(r.risk)}</td><td>${esc(r.mode)}</td><td>${esc(r.signal)}</td><td>${esc(r.fix)}</td></tr>`).join('')}</tbody></table>` : ''}
-      ${m.context ? `<h3 style="margin:18px 0 8px;font-size:14px">What we know so far</h3><p style="white-space:pre-wrap;margin:0">${esc(m.context)}</p>` : ''}
-    </div>`;
+  const pages = [], full = [];
+  let cut = false;
+
+  // ---- Page 1: the plan at a glance ----
+  const branches = docBranches(p, customer);
+  const n = branches.length, cols = n <= 4 ? Math.max(n, 1) : n <= 6 ? 3 : 4, rows = Math.ceil(n / cols);
+  const goal = d('goal').words, hy = d('hypothesis');
+  const per = rows === 1 ? (goal ? 7 : 9) : rows === 2 ? (goal ? 3 : 4) : 2;
+  let b1 = '';
+  if (goal) b1 += `<div class="doc-goal">"${esc(goal)}"</div>`;
+  if (hy.improve && hy.result) b1 += `<p class="doc-bet"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
+  if (n) {
+    b1 += `<div class="doc-cards" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${branches.map(b => {
+      const shown = b.items.slice(0, per), hidden = b.items.length - shown.length;
+      if (hidden > 0 || b.items.some(x => x.length > 110)) { cut = true; }
+      if (b.items.length) full.push({ title: b.label, items: b.items });
+      return `<div class="doc-card ${b.cls}"><div class="doc-card-head"><b>${esc(b.label)}</b><span>${esc(b.sub)}</span></div>
+        ${b.items.length ? `<ul>${shown.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<ul><li class="doc-empty">Not started yet</li></ul>'}
+        ${hidden > 0 ? `<div class="doc-more">+ ${hidden} more on the "In full" page</div>` : ''}</div>`;
+    }).join('')}</div>`;
   }
-  return h;
+  if (!b1) b1 = '<p class="doc-empty" style="margin-top:30px;font-size:15px">The plan builds here as we talk it through.</p>';
+  pages.push({ title: 'The plan at a glance', body: b1 });
+
+  // ---- Page 2: milestones and how we'll run it ----
+  const touched = milestonesTouched(p), mi = d('milestones'), rec = d('recognition');
+  let b2 = '';
+  if (!customer || touched) {
+    const ph = mi.phases || {}, msAll = []; let msCut = false;
+    b2 += `<div class="doc-tl">${PHASES.map((x, i) => {
+      const items = (ph[x.key] || []).filter(it => it.text), shown = items.slice(0, 4), hidden = items.length - shown.length;
+      if (hidden > 0) { cut = true; msCut = true; }
+      items.forEach(it => msAll.push(x.label + ': ' + it.text + (it.done ? ' (done)' : '')));
+      const date = phaseDate(p, x), allDone = items.length && items.every(it => it.done);
+      return `<div class="doc-phase"><div class="doc-pnum ${allDone ? 'done' : ''}">${i + 1}</div><div class="doc-pname">${esc(x.label)}</div>
+        <div class="doc-pwhen">${esc(date || x.when)}</div>
+        <ul>${shown.map(it => `<li class="${it.done ? 'done' : ''}">${esc(it.text)}</li>`).join('') || '<li class="doc-empty">To be set</li>'}</ul>
+        ${hidden > 0 ? `<div class="doc-more" style="padding:0">+ ${hidden} more</div>` : ''}
+        <div class="doc-gate">${esc(x.gate)}</div></div>`;
+    }).join('')}</div>`;
+    if (msCut) full.push({ title: 'Milestones', items: msAll });
+  }
+  const run = [
+    (!customer || touched) && mi.weekly ? ['Weekly', esc(mi.weekly)] : null,
+    (!customer || touched) && mi.monthly ? ['Monthly', esc(mi.monthly) + ((mi.workbooks || []).length ? ' (' + esc(mi.workbooks.join(', ')) + ')' : '')] : null,
+    (!customer || touched) && mi.quarterly ? ['Quarterly', esc(mi.quarterly)] : null,
+    rec.forWhat ? ['Recognition', esc([rec.often, rec.forWhat].filter(Boolean).join(': ')) + (rec.channel ? ', via ' + esc(rec.channel) : '')] : null,
+    visibleSections(p).some(x => x.key === 'loop') && d('loop').how ? ['Closing the loop', esc(d('loop').how)] : null
+  ].filter(Boolean);
+  if (run.length) b2 += `<h3 class="doc-h3">How we'll run it</h3><table class="doc-table doc-run"><tbody>${run.map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('')}</tbody></table>`;
+  if (b2) pages.push({ title: 'Milestones and how we’ll run it'.replace('’', "'"), body: b2 });
+
+  // ---- Page 3: scorecard and owners ----
+  const ms = (d('targets').measures || []).filter(r => r.target || r.baseline);
+  const owners = (d('owners').rows || []).filter(r => r.customer || r.factorlab);
+  let b3 = '';
+  if (ms.length || owners.length) {
+    const msShown = ms.slice(0, 8), owShown = owners.slice(0, 10);
+    if (ms.length > 8 || owners.length > 10) cut = true;
+    if (ms.length > 8) full.push({ title: 'Scorecard', items: ms.map(r => `${r.measure}: ${r.baseline || '?'} to ${r.target || '?'}${r.by ? ', by ' + r.by : ''}`) });
+    if (owners.length > 10) full.push({ title: 'Owners', items: owners.map(r => `${r.role}: ${[r.customer, r.factorlab].filter(Boolean).join(' / ')}`) });
+    b3 = `<div class="doc-split ${ms.length && owners.length ? '' : 'one'}">
+      ${ms.length ? `<div><h3 class="doc-h3" style="margin-top:0">Scorecard</h3><table class="doc-table"><thead><tr><th>Measure</th><th>How we score it</th><th>Baseline</th><th>Target</th><th>Now</th><th>By</th></tr></thead><tbody>${msShown.map(r => `<tr><td><b>${esc(r.measure)}</b></td><td>${esc(r.how)}</td><td>${esc(r.baseline)}</td><td>${esc(r.target)}</td><td>${esc(r.current)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table>
+        ${d('targets').outcome ? `<p class="doc-note">Also tracking: ${esc(d('targets').outcome)}</p>` : ''}</div>` : ''}
+      ${owners.length ? `<div><h3 class="doc-h3" style="margin-top:0">Owners</h3><table class="doc-table"><thead><tr><th>Role</th><th>${esc(m.account || 'Customer')}</th><th>FactorLab</th></tr></thead><tbody>${owShown.map(r => `<tr><td>${esc(r.role)}</td><td>${esc(r.customer)}</td><td>${esc(r.factorlab)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    </div>`;
+    pages.push({ title: 'Scorecard and owners', body: b3 });
+  }
+
+  // ---- In full: everything that didn't fit, laid out in tidy columns ----
+  if (cut && full.length) docPaginate(full).forEach((body, i) => pages.push({ title: i ? 'In full (continued)' : 'In full', body }));
+
+  // ---- FactorLab only (internal PDF and view only) ----
+  if (!customer) {
+    const e = d('economics'), risks = (d('risks').rows || []).filter(r => r.risk), asks = d('advocacy').asks || [];
+    let b5 = `<div class="doc-split"><div><h3 class="doc-h3" style="margin-top:0">The account</h3><table class="doc-table doc-run"><tbody>
+        <tr><th>ARR</th><td>${esc(e.arr) || '<span class="doc-empty">Not confirmed</span>'}</td></tr>
+        <tr><th>Renewal</th><td>${esc(fmtDate(e.renewal)) || '<span class="doc-empty">Not confirmed</span>'}</td></tr>
+        <tr><th>Service hours</th><td>${esc(e.hours)}</td></tr>
+        <tr><th>Next step</th><td>${esc(e.next)}${e.mustBeTrue ? ` <span class="doc-muted">(first: ${esc(e.mustBeTrue)})</span>` : ''}</td></tr>
+        ${asks.length ? `<tr><th>Advocacy ask</th><td>${esc(asks.join(', '))}${d('advocacy').who ? ` <span class="doc-muted">(${esc(d('advocacy').who)})</span>` : ''}</td></tr>` : ''}
+      </tbody></table>
+      ${m.context ? `<h3 class="doc-h3">What we know so far</h3><p class="doc-context">${esc(m.context)}</p>` : ''}</div>
+      <div><h3 class="doc-h3" style="margin-top:0">Risks</h3>${risks.length ? `<table class="doc-table"><thead><tr><th>Risk</th><th>Type</th><th>The fix</th></tr></thead><tbody>${risks.slice(0, 7).map(r => `<tr><td>${esc(r.risk)}</td><td>${esc(r.mode)}</td><td>${esc(r.fix)}</td></tr>`).join('')}</tbody></table>${risks.length > 7 ? `<p class="doc-note">+ ${risks.length - 7} more in the builder</p>` : ''}` : '<p class="doc-empty">None named yet</p>'}</div></div>`;
+    pages.push({ title: 'FactorLab only', body: b5 });
+  }
+  return docWrap(p, customer, pages);
+}
+/* Scale the fixed-size pages to the window; on narrow screens let them flow instead. */
+function fitDoc(root) {
+  const doc = root && root.querySelector('.doc'); if (!doc) return;
+  const pagesEl = doc.querySelector('.doc-pages'), w = doc.clientWidth;
+  if (w && w < 760) { doc.classList.add('flow'); pagesEl.style.zoom = ''; }
+  else { doc.classList.remove('flow'); pagesEl.style.zoom = w ? Math.min(1, (w - 40) / DOC_W) : 1; }
 }
 
 function renderAll() {
@@ -1515,7 +1682,9 @@ function openPresent() {
   document.getElementById('presentBody').innerHTML = presentHtml(p, document.getElementById('customerView').checked);
   document.getElementById('present').classList.add('show');
   document.getElementById('present').scrollTop = 0;
+  fitDoc(document.getElementById('presentBody'));
 }
+window.addEventListener('resize', () => { if (document.getElementById('present').classList.contains('show')) fitDoc(document.getElementById('presentBody')); });
 
 document.addEventListener('input', handleInput);
 document.addEventListener('change', e => { if (e.target.matches('select, input[type=checkbox], input[type=date]')) handleInput(e); });
@@ -1641,6 +1810,7 @@ function renderShare() {
   d.body.innerHTML = p
     ? `<div class="share-now">${showNow ? 'Working on: <b>' + esc(secName(currentSec)) + '</b>' : '&nbsp;'}</div><div class="present-body">${presentHtml(p, true)}</div>`
     : '<div class="present-body"><p class="empty-note">Open a plan to share it.</p></div>';
+  fitDoc(d.body);
   shareWin.scrollTo(0, y);
 }
 function openShare() {
@@ -1650,8 +1820,9 @@ function openShare() {
   if (!shareWin) { alert('Your browser blocked the customer window. Allow pop-ups for this page, then click Customer window again.'); return; }
   shareWin.document.head.innerHTML = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Success plan</title>'
     + document.querySelector('style').outerHTML
-    + '<style>body{background:#fff}.share-now{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 32px;font-size:13px;color:var(--muted)}.share-now b{color:var(--ink)}.leaf{cursor:default}</style>';
+    + '<style>body{background:#e9ecf1}.share-now{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 32px;font-size:13px;color:var(--muted)}.share-now b{color:var(--ink)}.leaf{cursor:default}</style>';
   shareWin.addEventListener('pagehide', () => { shareWin = null; });
+  shareWin.addEventListener('resize', () => fitDoc(shareWin.document.body));
   renderShare();
 }
 document.getElementById('shareBtn').addEventListener('click', openShare);

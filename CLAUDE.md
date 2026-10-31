@@ -13,6 +13,8 @@ This repo holds one web page, `index.html`, that FactorLab CSMs use to build cus
 
 **The customer view builds itself as the CSM fills it in.** Everywhere the customer view appears (Customer window, View plan with Customer view ticked, the customer PDF), empty branches and sections stay hidden, and the pre-filled milestones and rhythm only appear once the CSM sets Day 1 or changes or ticks something (`milestonesTouched()`). It also leaves out the plan size and mode labels (a customer shouldn't read "Recover"). The CSM's own views, the side map and the internal plan view, always show everything, including the empty "Add ..." and "Not started" chips.
 
+**The plan document is fixed landscape pages, not a long scroll.** `presentHtml()` builds 11 x 8.5 in pages (1056 x 816 px), and the same pages appear in View plan, the Customer window and both PDFs. Every page has the account name top left, the FactorLab logo top right (taken from the `.brand-logo` image, so there's one copy of it) and a footer with who prepared it, the date and "Page x of y". The order: **The plan at a glance** (goal, our bet, one card per branch with a few lines each), **Milestones and how we'll run it**, **Scorecard and owners**, then **In full** pages only when a card or the timeline had to cut lines ("+ N more on the In full page"), then **FactorLab only** on the internal version. Nothing may ever split across a page or run off the bottom: when there's more than fits, cut it to the In full page instead of shrinking the text. `docPaginate()` lays the In full pages out in three columns. On screens `fitDoc()` scales the pages to fit, and under 760 px wide it switches to a plain single-column flow. Print uses `@page { margin: 0 }` so the browser adds no headers or footers. After any change to the document, render both PDFs with a plan that has lots of answers and look at every page.
+
 The owner is Trey Timmerman (CSM). He asks for changes in plain language. Read this file before every change.
 
 ## Non-negotiables
@@ -92,7 +94,7 @@ plan = {
 - Storage key: `spb.plans.v1` (all plans), `spb.current.v1` (the open plan). The key name stays the same across versions.
 - `APP_VERSION` is 2. Version 1 plans had no `meta.sections`; `migrate()` gives them their old size's sections so nothing they could see disappears. Run new migrations there.
 - `tier` is now a label plus a shortcut: picking a bigger size adds that size's sections. It never hides anything.
-- The "Export PDF" button (For the customer / Internal) opens the plan view and the browser's print dialog. No PDF library; the page title becomes the suggested file name. "More, then Export this plan (file)" saves JSON wrapped as `{ app, version, exported, plan }`, and "Import a plan file" reads it back. Keep both: a PDF can't be reopened for editing.
+- The "Export PDF" button (For the customer / Internal) opens the plan view and the browser's print dialog, landscape, one document page per sheet. No PDF library; the page title becomes the suggested file name. "More, then Export this plan (file)" saves JSON wrapped as `{ app, version, exported, plan }`, and "Import a plan file" reads it back. Keep both: a PDF can't be reopened for editing.
 - On import, `blankData()` fills in any sections or fields that were added after the file was saved. New fields therefore need a sensible empty default.
 
 ## Writing the words on the page
