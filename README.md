@@ -13,7 +13,8 @@ A simple page for building customer success plans as you learn about an account.
 1. Open the page (the GitHub Pages link, or double-click `index.html`).
 2. Click **Create plan**, name the account, and pick the plan size and what the account needs this year.
 3. Work through the sections on the left. Start wherever you know the most. Each section has questions to get curious with and a notes box for what you still need to find out.
-4. Click **View plan** to see it the way the customer will. Turn on **Customer view** before you share it, then **Print or save as PDF**.
+4. Click **View plan** to see it the way the customer will.
+5. To share it, click **Export PDF, then For the customer**. Your browser's print window opens; pick **Save as PDF**. The customer version leaves out the FactorLab-only parts. **Internal (full plan)** keeps them.
 
 Sections marked with the small folded-page icon follow the pattern in Barry's 2027 model plan.
 
@@ -22,7 +23,7 @@ Sections marked with the small folded-page icon follow the pattern in Barry's 20
 **Plans are saved in your browser, not on GitHub.** That keeps customer details out of this public repo.
 
 - Your plans stay in the browser you made them in. Clearing your browser data deletes them.
-- To back up a plan or hand it to a teammate: **More, then Export this plan**. Save the file in Google Drive.
+- To back up a plan or hand it to a teammate: **More, then Export this plan (file)**. Save the file in Google Drive. A PDF can't be reopened for editing; this file can.
 - To open a plan someone sent you: **More, then Import a plan file**.
 
 Never commit an exported plan file to this repo.

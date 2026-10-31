@@ -255,6 +255,13 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   <div class="spacer"></div>
   <span class="saved" id="savedNote"></span>
   <button class="btn primary" id="presentBtn">View plan</button>
+  <div class="menu" id="pdfMenu">
+    <button class="btn" id="pdfBtn" aria-haspopup="true">Export PDF</button>
+    <div class="menu-list">
+      <button data-cmd="pdf-customer">For the customer</button>
+      <button data-cmd="pdf-internal">Internal (full plan)</button>
+    </div>
+  </div>
   <div class="menu" id="moreMenu">
     <button class="btn" id="moreBtn" aria-haspopup="true">More</button>
     <div class="menu-list">
@@ -1180,7 +1187,7 @@ function handleClick(e) {
   const g = e.target.closest('[data-goto]');
   if (g) { e.preventDefault(); go(g.dataset.goto); return; }
   const cmd = e.target.closest('[data-cmd]');
-  if (cmd) { document.getElementById('moreMenu').classList.remove('open'); runCmd(cmd.dataset.cmd); return; }
+  if (cmd) { document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); runCmd(cmd.dataset.cmd); return; }
   const a = e.target.closest('[data-action]');
   if (!a) return;
   const p = cur();
@@ -1234,6 +1241,8 @@ function runCmd(c) {
   if (c === 'new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (!p) return;
+  if (c === 'pdf-customer') { exportPdf(true); return; }
+  if (c === 'pdf-internal') { exportPdf(false); return; }
   if (c === 'duplicate') {
     const copy = clone(p); copy.id = uid(); copy.meta.account = (p.meta.account || 'Untitled') + ' (copy)';
     copy.meta.created = copy.meta.updated = new Date().toISOString();
@@ -1273,6 +1282,21 @@ function importFile(file) {
   r.readAsText(file);
 }
 
+const APP_TITLE = document.title;
+/* Opens the plan view and the browser's print dialog. Choosing "Save as PDF" there saves the file;
+   the page title becomes the suggested file name. */
+function printPlan() {
+  const p = cur(); if (!p) return;
+  const customer = document.getElementById('customerView').checked;
+  document.title = (p.meta.account || 'Untitled') + ' success plan' + (customer ? '' : ' (internal)');
+  setTimeout(() => window.print(), 50);
+}
+function exportPdf(customer) {
+  document.getElementById('customerView').checked = customer;
+  openPresent();
+  printPlan();
+}
+
 function openPresent() {
   const p = cur(); if (!p) return;
   document.getElementById('presentBody').innerHTML = presentHtml(p, document.getElementById('customerView').checked);
@@ -1285,20 +1309,22 @@ document.addEventListener('change', e => { if (e.target.matches('select, input[t
 document.addEventListener('click', handleClick);
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.dataset && e.target.dataset.add) { e.preventDefault(); addFromInput(e.target); }
-  if (e.key === 'Escape') { document.getElementById('present').classList.remove('show'); document.getElementById('moreMenu').classList.remove('open'); }
+  if (e.key === 'Escape') { document.getElementById('present').classList.remove('show'); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); }
 });
 document.getElementById('planPicker').addEventListener('change', e => {
   const v = e.target.value;
   if (v === '__new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
   if (plans[v]) { currentId = v; currentSec = 'basics'; saveNow(); renderAll(); }
 });
-document.getElementById('moreBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('moreMenu').classList.toggle('open'); });
-document.addEventListener('click', e => { if (!e.target.closest('#moreMenu')) document.getElementById('moreMenu').classList.remove('open'); });
+document.getElementById('moreBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('pdfMenu').classList.remove('open'); document.getElementById('moreMenu').classList.toggle('open'); });
+document.getElementById('pdfBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.toggle('open'); });
+document.addEventListener('click', e => { if (!e.target.closest('#moreMenu')) document.getElementById('moreMenu').classList.remove('open'); if (!e.target.closest('#pdfMenu')) document.getElementById('pdfMenu').classList.remove('open'); });
 document.getElementById('importFile').addEventListener('change', e => { if (e.target.files[0]) importFile(e.target.files[0]); e.target.value = ''; });
 document.getElementById('presentBtn').addEventListener('click', openPresent);
 document.getElementById('closePresent').addEventListener('click', () => document.getElementById('present').classList.remove('show'));
 document.getElementById('customerView').addEventListener('change', openPresent);
-document.getElementById('printBtn').addEventListener('click', () => window.print());
+document.getElementById('printBtn').addEventListener('click', printPlan);
+window.addEventListener('afterprint', () => { document.title = APP_TITLE; });
 document.querySelector('.side-tabs').addEventListener('click', e => { const t = e.target.closest('.side-tab'); if (t) { sideTab = t.dataset.tab; renderSide(); } });
 document.addEventListener('change', e => {
   if (e.target.id !== 'mobileJump') return;

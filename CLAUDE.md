@@ -75,7 +75,7 @@ plan = {
 ```
 
 - Storage key: `spb.plans.v1` (all plans), `spb.current.v1` (the open plan).
-- Export wraps the plan as `{ app, version, exported, plan }`.
+- The "Export PDF" button (For the customer / Internal) opens the plan view and the browser's print dialog. No PDF library; the page title becomes the suggested file name. "More, then Export this plan (file)" saves JSON wrapped as `{ app, version, exported, plan }`, and "Import a plan file" reads it back. Keep both: a PDF can't be reopened for editing.
 - On import, `blankData()` fills in any sections or fields that were added after the file was saved. New fields therefore need a sensible empty default.
 
 ## Writing the words on the page
