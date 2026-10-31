@@ -9,6 +9,8 @@ This repo holds one web page, `index.html`, that FactorLab CSMs use to build cus
 - **Timer** pops out a small window with Start, Pause and Reset (`spb.timer`). Chrome and Edge use Document Picture-in-Picture so it stays on top; other browsers get a pop-up placed at the top right. Reference only: no warnings or alarms.
 - **Customer window** opens a separate window to screen-share. It shows only `presentHtml(plan, true)`, the customer view, and re-draws as the CSM types. Its "Working on" line hides FactorLab-only steps. Never put internal content (FactorLab-only sections, notes, context, curious questions) in that window.
 
+**The customer view builds itself as the CSM fills it in.** Everywhere the customer view appears (Customer window, View plan with Customer view ticked, the customer PDF), empty branches and sections stay hidden, and the pre-filled milestones and rhythm only appear once the CSM sets Day 1 or changes or ticks something (`milestonesTouched()`). It also leaves out the plan size and mode labels (a customer shouldn't read "Recover"). The CSM's own views, the side map and the internal plan view, always show everything, including the empty "Add ..." and "Not started" chips.
+
 The owner is Trey Timmerman (CSM). He asks for changes in plain language. Read this file before every change.
 
 ## Non-negotiables

@@ -1138,6 +1138,22 @@ function footHtml(p) {
 /* =========================================================
    RENDER: map, timeline, ready, present
    ========================================================= */
+/* The milestones and rhythm come pre-filled. In the customer view they appear only once the CSM
+   has set Day 1 or changed or ticked something, so the customer sees the plan build as it's filled in. */
+function milestonesTouched(p) {
+  if (p.meta.day1) return true;
+  const s = sectionByKey('milestones'), d = p.data.milestones || {};
+  const def = s.fields.find(f => f.key === 'phases').default();
+  const ph = d.phases || {};
+  for (const k of Object.keys(ph)) {
+    const items = ph[k] || [];
+    if (items.some(m => m.done)) return true;
+    if (JSON.stringify(items.map(m => m.text)) !== JSON.stringify(def[k] || [])) return true;
+  }
+  if ((d.workbooks || []).length) return true;
+  return ['weekly', 'monthly', 'quarterly'].some(k => (d[k] || '') !== s.fields.find(f => f.key === k).default());
+}
+
 function mapHtml(p, opts) {
   opts = opts || {};
   const wide = !!opts.wide, customer = !!opts.customer;
@@ -1146,23 +1162,26 @@ function mapHtml(p, opts) {
     const secs = vis.filter(s => s.branch === b.key);
     let leaves = [];
     secs.forEach(s => {
+      if (customer && s.key === 'milestones' && !milestonesTouched(p)) return;
       const ls = leavesFor(s, p);
       if (ls.length) ls.forEach(l => leaves.push({ text: l, sec: s.key }));
       else if (!wide) leaves.push({ text: 'Add ' + s.short, sec: s.key, ghost: true });
     });
-    if (wide && !leaves.length) leaves.push({ text: 'Not started', sec: secs[0] && secs[0].key, ghost: true });
-    let out = branchHtml(b.label, b.sub, leaves, b.internal ? 'internal' : '', wide);
+    if (wide && !customer && !leaves.length) leaves.push({ text: 'Not started', sec: secs[0] && secs[0].key, ghost: true });
+    let out = customer && !leaves.length ? '' : branchHtml(b.label, b.sub, leaves, b.internal ? 'internal' : '', wide);
     if (b.key === 'know') {
       p.custom.forEach(c => {
-        const items = (c.items || []).map(x => ({ text: trunc(x, 60), sec: 'custom:' + c.id }));
+        const items = (c.items || []).filter(Boolean).map(x => ({ text: trunc(x, 60), sec: 'custom:' + c.id }));
+        if (customer && !items.length) return;
         if (!items.length) items.push({ text: wide ? 'Not started' : 'Add items', sec: 'custom:' + c.id, ghost: true });
         out += branchHtml(c.title || 'Your branch', 'Your branch', items, 'custom', wide);
       });
     }
     return out;
   }).join('');
+  if (customer && !branchesHtml) return '';
   const m = p.meta;
-  const root = `<div class="map-root"><b>${esc(m.account || 'Untitled plan')}</b><span>${esc(TIERS[m.tier].label)} plan · ${esc(MODES[m.mode].label)}</span></div>`;
+  const root = `<div class="map-root"><b>${esc(m.account || 'Untitled plan')}</b><span>${customer ? 'Success plan' : esc(TIERS[m.tier].label) + ' plan · ' + esc(MODES[m.mode].label)}</span></div>`;
   if (wide) return `<div class="map-wide">${root}<div class="map-link"></div><div class="map-branches">${branchesHtml}</div></div>`;
   return `${root}<div class="map-branches">${branchesHtml}</div><div style="margin:12px 0 0 34px"><button class="leaf ghost" data-goto="addmore">+ Build out this plan</button></div>`;
 }
@@ -1211,26 +1230,34 @@ function presentHtml(p, customer) {
   const m = p.meta, d = k => p.data[k] || {};
   const vis = visibleSections(p).map(s => s.key);
   const show = k => vis.includes(k);
+  const metaBits = customer
+    ? [m.csm && 'FactorLab: ' + esc(m.csm), m.day1 && 'Day 1: ' + esc(fmtDate(m.day1)), 'Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)))]
+    : [esc(TIERS[m.tier].label) + ' plan', esc(MODES[m.mode].label), m.csm && 'CSM: ' + esc(m.csm), m.day1 && 'Day 1: ' + esc(fmtDate(m.day1)), 'Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)))];
   let h = `<div class="p-eyebrow">Success plan${customer ? '' : ' · internal view'}</div>
     <div class="p-title">${esc(m.account || 'Untitled plan')}</div>
-    <div class="p-meta">${esc(TIERS[m.tier].label)} plan · ${esc(MODES[m.mode].label)}${m.csm ? ' · CSM: ' + esc(m.csm) : ''}${m.day1 ? ' · Day 1: ' + esc(fmtDate(m.day1)) : ''} · Updated ${esc(fmtDate((m.updated || '').slice(0, 10)))}</div>`;
+    <div class="p-meta">${metaBits.filter(Boolean).join(' · ')}</div>`;
+  const start = h.length;
   if (d('goal').words) h += `<div class="p-goal">"${esc(d('goal').words)}"</div>`;
   const hy = d('hypothesis');
   if (hy.improve && hy.result) h += `<p style="margin:12px 0 0"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
-  h += `<div class="p-sec"><h3>The plan at a glance</h3>${mapHtml(p, { wide: true, customer })}</div>`;
-  h += `<div class="p-sec"><h3>Milestones</h3>${timelineHtml(p, true)}</div>`;
+  const map = mapHtml(p, { wide: true, customer });
+  if (map) h += `<div class="p-sec"><h3>The plan at a glance</h3>${map}</div>`;
+  const touched = milestonesTouched(p);
+  if (!customer || touched) h += `<div class="p-sec"><h3>Milestones</h3>${timelineHtml(p, true)}</div>`;
   const ms = (d('targets').measures || []).filter(r => r.target || r.baseline);
   if (ms.length) h += `<div class="p-sec"><h3>Scorecard</h3><table class="view"><thead><tr><th>Measure</th><th>How we score it</th><th>Baseline</th><th>Target</th><th>Now</th><th>By when</th></tr></thead><tbody>${ms.map(r => `<tr><td><b>${esc(r.measure)}</b></td><td>${esc(r.how)}</td><td>${esc(r.baseline)}</td><td>${esc(r.target)}</td><td>${esc(r.current)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table>${d('targets').outcome ? `<p style="color:var(--muted);font-size:13px">Also tracking: ${esc(d('targets').outcome)}</p>` : ''}</div>`;
   const owners = (d('owners').rows || []).filter(r => r.customer || r.factorlab);
   if (owners.length) h += `<div class="p-sec"><h3>Owners</h3><table class="view"><thead><tr><th>Role</th><th>${esc(m.account || 'Customer')}</th><th>FactorLab</th></tr></thead><tbody>${owners.map(r => `<tr><td>${esc(r.role)}</td><td>${esc(r.customer)}</td><td>${esc(r.factorlab)}</td></tr>`).join('')}</tbody></table></div>`;
   const rec = d('recognition'), mi = d('milestones');
-  h += `<div class="p-sec"><h3>How we'll run it</h3><table class="view"><tbody>
-    <tr><td style="width:140px"><b>Weekly</b></td><td>${esc(mi.weekly || '')}</td></tr>
-    <tr><td><b>Monthly</b></td><td>${esc(mi.monthly || '')}${(mi.workbooks || []).length ? ' (' + esc(mi.workbooks.join(', ')) + ')' : ''}</td></tr>
-    <tr><td><b>Quarterly</b></td><td>${esc(mi.quarterly || '')}</td></tr>
-    ${rec.forWhat ? `<tr><td><b>Recognition</b></td><td>${esc([rec.often, rec.forWhat].filter(Boolean).join(': '))}${rec.channel ? ', via ' + esc(rec.channel) : ''}</td></tr>` : ''}
-    ${show('loop') && d('loop').how ? `<tr><td><b>Closing the loop</b></td><td>${esc(d('loop').how)}</td></tr>` : ''}
-    </tbody></table></div>`;
+  const runRows = [
+    (!customer || touched) && mi.weekly ? `<tr><td style="width:140px"><b>Weekly</b></td><td>${esc(mi.weekly)}</td></tr>` : '',
+    (!customer || touched) && mi.monthly ? `<tr><td style="width:140px"><b>Monthly</b></td><td>${esc(mi.monthly)}${(mi.workbooks || []).length ? ' (' + esc(mi.workbooks.join(', ')) + ')' : ''}</td></tr>` : '',
+    (!customer || touched) && mi.quarterly ? `<tr><td style="width:140px"><b>Quarterly</b></td><td>${esc(mi.quarterly)}</td></tr>` : '',
+    rec.forWhat ? `<tr><td style="width:140px"><b>Recognition</b></td><td>${esc([rec.often, rec.forWhat].filter(Boolean).join(': '))}${rec.channel ? ', via ' + esc(rec.channel) : ''}</td></tr>` : '',
+    show('loop') && d('loop').how ? `<tr><td style="width:140px"><b>Closing the loop</b></td><td>${esc(d('loop').how)}</td></tr>` : ''
+  ].join('');
+  if (runRows) h += `<div class="p-sec"><h3>How we'll run it</h3><table class="view"><tbody>${runRows}</tbody></table></div>`;
+  if (customer && h.length === start) h += `<p class="empty-note" style="margin-top:28px">The plan builds here as we talk it through.</p>`;
   if (!customer) {
     const e = d('economics');
     const risks = (d('risks').rows || []).filter(r => r.risk);
