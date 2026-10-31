@@ -4,6 +4,12 @@ This repo holds one web page, `index.html`, that FactorLab CSMs use to build cus
 
 **Start simple, one step at a time, build out where needed.** A new plan holds only the core sections (`core: true`), worked one at a time with Back and Next. A step bar at the top always shows "Step x of y" with a clickable strip, one segment per step (green when it has something in it). Every other section waits on the **Build out this plan** page until the CSM adds it. Never make an add-on section show up by default, and don't put several sections on one page; Trey tried a one-page Quick start and it was too much.
 
+**Three starting points.** Create plan fades into a "Pick a starting point" screen with three large choices in condensed caps (Barlow Condensed, embedded as a small base64 subset under the SIL Open Font License, so it works offline). Then Account basics, always step 1.
+- **Guided Plan**: the setup described above. No `meta.flow`; core sections plus anything added.
+- **Flintco Plan**: the steps and questions of Barry's 2027 model plan in its order (`FLINTCO_STEPS`, the `fc...` sections with `set: 'flintco'`). Every customer name, person and figure is removed. Trey approved the label "Flintco Plan" for the CSM side only (the starting-point screen, the side menu, the side map, the builder). It must never reach the customer view, the Customer window or either PDF, and nothing Flintco-specific (names, their strategy, their numbers) goes in this public repo.
+- **Custom Build**: a step builder. Pick steps from both sets, order them (number dropdown or arrows), rename a built-in step and edit its curious questions, or add steps of your own with your own questions and answer boxes (Short answer, Long answer, List, Pick one, Tick boxes, Date, Table). Built-in steps keep their answer boxes so they still feed the map, timeline, ready check and PDF. Builds save in the browser (`spb.builds`) and export as a `-build.json` file a teammate can open, so the team can run the same build. "Change the steps" reopens the builder on any Flintco or Custom plan.
+Keep the starting-point screen to these three choices. Saved builds live inside Custom Build, under "Start from".
+
 **Built for live customer meetings.** Three top-bar buttons:
 - **Focus** hides the side menu and map so only the current step shows. Remembered per browser (`spb.focus`).
 - **Timer** pops out a small window with Start, Pause and Reset (`spb.timer`). Chrome and Edge use Document Picture-in-Picture so it stays on top; other browsers get a pop-up placed at the top right. Reference only: no warnings or alarms.
@@ -53,6 +59,7 @@ Each section is an object in `SECTIONS`:
   core: true,                  // always in the plan (leave off for add-on sections)
   when: 'When to add it, one line',  // add-on sections only; shown on Build out this plan
   model: true,                 // shows the dog-ear: pattern from Barry's 2027 model plan
+  set: 'flintco',              // Flintco Plan steps only: hidden from the Guided catalog, offered in Custom Build
   tiers: ['growth', 'enterprise'],   // which size shortcuts add it (Growth set, Enterprise set)
   intro: 'One or two plain sentences.',
   ask: ['Curious question 1', 'Curious question 2'],
@@ -84,7 +91,10 @@ Sections marked `branch: 'internal'` are FactorLab-only. They show with a dashed
 ```js
 plan = {
   id, app: 'success-plan-builder', version,
-  meta: { account, csm, backup, tier, sections, mode, day1, context, sources, verified, created, updated },
+  meta: { account, csm, backup, tier, sections, template, flow, mode, day1, context, sources, verified, created, updated },
+  // template: 'guided' | 'flintco' | 'custom' (missing means guided)
+  // flow (Flintco and Custom plans only): { name, steps: [{ key, title?, ask? }], own: { id: { title, branch, intro, ask, fields: [{ key, label, type, options }] } } }
+  //   steps list the plan's steps in order; "own-<id>" keys are steps the CSM wrote; answers live in data['own-<id>']
   data: { [sectionKey]: { [fieldKey]: value } },
   custom: [{ id, title, items: [], notes }],   // the CSM's own branches
   notes: { [sectionKey]: 'notes and open questions' }
@@ -92,7 +102,8 @@ plan = {
 ```
 
 - Storage key: `spb.plans.v1` (all plans), `spb.current.v1` (the open plan). The key name stays the same across versions.
-- `APP_VERSION` is 2. Version 1 plans had no `meta.sections`; `migrate()` gives them their old size's sections so nothing they could see disappears. Run new migrations there.
+- `spb.builds` holds saved Custom Builds (steps and questions only, never customer answers).
+- `APP_VERSION` is 2. `template` and `flow` were added without a version bump: a plan without them is a Guided plan, exactly as before. Version 1 plans had no `meta.sections`; `migrate()` gives them their old size's sections so nothing they could see disappears. Run new migrations there.
 - `tier` is now a label plus a shortcut: picking a bigger size adds that size's sections. It never hides anything.
 - The "Export PDF" button (For the customer / Internal) opens the plan view and the browser's print dialog, landscape, one document page per sheet. No PDF library; the page title becomes the suggested file name. "More, then Export this plan (file)" saves JSON wrapped as `{ app, version, exported, plan }`, and "Import a plan file" reads it back. Keep both: a PDF can't be reopened for editing.
 - On import, `blankData()` fills in any sections or fields that were added after the file was saved. New fields therefore need a sensible empty default.
@@ -110,7 +121,7 @@ plan = {
 ## Checking your work
 
 1. Open `index.html` in a browser (or run a quick headless check with Playwright if it's available).
-2. Create a plan with a fake name, fill a few sections, add a list item, add a table row, add your own branch.
+2. Create a plan with a fake name from each starting point (Guided, Flintco, Custom Build with a step of your own), fill a few sections, add a list item, add a table row, add your own branch. Confirm the word "Flintco" never shows in the customer view, the Customer window or either PDF.
 3. Confirm the map, timeline, ready check and step bar update, a reload keeps the plan, and "View plan" plus "Customer view" look right. Open the Customer window, type in the main window, and confirm it updates and never shows FactorLab-only content.
 4. Export the plan, delete it, import the file, and confirm it comes back.
 5. Check the browser console for errors.

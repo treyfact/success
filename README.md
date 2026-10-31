@@ -11,7 +11,10 @@ A simple page for building customer success plans as you learn about an account.
 ## Using it
 
 1. Open the page (the GitHub Pages link, or double-click `index.html`).
-2. Click **Create plan**, name the account, and pick what it needs this year.
+2. Click **Create plan**, name the account, and pick what it needs this year. Then pick a starting point:
+   - **Guided Plan**: the core steps every account needs. Build out as you go.
+   - **Flintco Plan**: Barry's 2027 model plan, step by step, with no customer names in it. The label shows only on your side; the customer never sees it.
+   - **Custom Build**: choose the steps, their order and the questions first. Add steps of your own with your own answer boxes. **Save this build** keeps it in your browser; **Export build (file)** gives you a file a teammate can open with **Open a build file**, so you both run the same plan. **Change the steps** reopens it later.
 3. Work through the plan one step at a time with **Next**. The bar at the top shows which step you're on ("Step 3 of 8"); click any segment to jump. Each step has questions to get curious with and a notes box for what you still need to find out.
 4. Only when the account calls for more, open **Build out this plan** and add a section (first workflow, what good looks like, trade partners, experiments and more), or your own branch.
 
