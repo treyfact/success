@@ -82,7 +82,7 @@ a { color: var(--navy); }
   .mobile-jump { display: block; margin-bottom: 16px; }
   .topbar { position: static; }
   .side { position: static; }
-  .work { padding: 18px 16px 60px; }
+  .work { padding: 18px 16px 84px; }
 }
 
 /* ---------- Nav ---------- */
@@ -343,6 +343,10 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
    SMALLER SCREENS (screen only, so printing is unaffected)
    ========================================================= */
 .fab { display: none; }
+/* Floating Back: one step back through the plan, from any step. From Account basics it goes to the starting point. */
+.back-fab { position: fixed; left: 16px; bottom: 16px; z-index: 25; border: 1px solid var(--line); border-radius: 999px; padding: 9px 16px 9px 13px; background: #fff; color: var(--navy); font-weight: 600; font-size: 13px; box-shadow: 0 6px 18px rgba(20,30,50,.16); }
+.back-fab span { margin-right: 4px; font-weight: 700; }
+.back-fab:hover { background: var(--navy-soft); }
 .fab-arrow { display: inline-block; margin-left: 7px; font-weight: 700; }
 @media screen and (max-width: 1180px) {
   .saved { display: none; }
@@ -473,7 +477,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 @media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { background: #fff; }
-  .topbar, .app, .banner, .present-bar, .fab, .share-now { display: none !important; }
+  .topbar, .app, .banner, .present-bar, .fab, .back-fab, .share-now { display: none !important; }
   .present { display: block !important; position: static; overflow: visible; }
   .present-body { padding: 0; }
   .doc { background: #fff; padding: 0; }
@@ -536,6 +540,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 </div>
 
 <button class="fab" id="mapFab" type="button">See the map</button>
+<button class="back-fab" id="backFab" type="button" style="display:none"><span aria-hidden="true">&larr;</span> Back</button>
 <div class="present" id="present">
   <div class="present-bar">
     <b>Plan view</b>
@@ -1155,7 +1160,7 @@ const SECTIONS = [
     ask: ['Which of these could we answer today, and which need work?'],
     fields: [
       { key: 'rows', label: 'The test', type: 'table',
-        columns: [{ key: 'question', label: 'Question', width: '22%' }, { key: 'test', label: 'Yes means', width: '30%', multi: true }, { key: 'answer', label: 'Our answer', multi: true }, { key: 'ready', label: 'Ready', type: 'select', options: ['', 'Yes', 'Not yet'] }],
+        columns: [{ key: 'question', label: 'Question', width: '22%', multi: true }, { key: 'test', label: 'Yes means', width: '30%', multi: true }, { key: 'answer', label: 'Our answer', multi: true }, { key: 'ready', label: 'Ready', type: 'select', options: ['', 'Yes', 'Not yet'] }],
         defaultRows: () => [
           ['Where are we starting?', 'Regional rollout order and first workflows are agreed.'],
           ['Who owns the work?', 'Every major workstream has a customer owner and a FactorLab owner.'],
@@ -1438,7 +1443,23 @@ function renderNav() {
 /* =========================================================
    RENDER: work area (forms)
    ========================================================= */
-function renderWork() {
+function renderWork() { renderWorkInner(); updateBackFab(); }
+/* Where the floating Back goes from here: the step before, the starting point from Account basics. */
+function backTarget() {
+  const p = cur();
+  if (!p || builder || repick) return null;
+  const order = navOrder(p);
+  if (currentSec === 'addmore') return order[order.length - 1];
+  const i = order.indexOf(currentSec);
+  return i > 0 ? order[i - 1] : i === 0 ? '__start' : null;
+}
+function updateBackFab() {
+  const b = document.getElementById('backFab'); if (!b) return;
+  const t = backTarget(), presenting = document.getElementById('present').classList.contains('show');
+  b.style.display = t && !presenting ? '' : 'none';
+  if (t) b.title = 'Back to ' + (t === '__start' ? 'the starting point' : secName(t));
+}
+function renderWorkInner() {
   const work = document.getElementById('work');
   if (builder && (!builder.forPlan || builder.forPlan === currentId)) { work.innerHTML = builderHtml(); return; }
   const p = cur();
@@ -2765,6 +2786,14 @@ paintTeam();
 setInterval(paintTimer, 500);
 paintTimer();
 
+
+document.getElementById('backFab').addEventListener('click', () => {
+  const t = backTarget(); if (!t) return;
+  if (t === '__start') fadeSwap(() => { repick = true; renderAll(); });
+  else go(t);
+});
+document.addEventListener('click', () => setTimeout(updateBackFab, 60));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setTimeout(updateBackFab, 60); });
 
 /* Floating "See the map" button on smaller screens, where the map sits below the form. */
 (function () {
