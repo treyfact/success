@@ -1676,35 +1676,51 @@ function newTeamCode() {
 function cleanCode(v) { const c = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); return c.length === 8 ? c.slice(0, 4) + '-' + c.slice(4) : ''; }
 function teamPeers() { if (!team) return 0; const now = Date.now(); return Object.values(team.peers).filter(t => now - t < 25000).length; }
 
-function planSnap(p) {
-  const snap = { meta: {}, data: {}, notes: {}, custom: JSON.stringify(p.custom || []) };
-  Object.keys(p.meta).forEach(k => { if (k !== 'updated') snap.meta[k] = JSON.stringify(p.meta[k]); });
-  Object.keys(p.data).forEach(k => { snap.data[k] = JSON.stringify(p.data[k]); });
-  Object.keys(p.notes || {}).forEach(k => { snap.notes[k] = JSON.stringify(p.notes[k]); });
-  return snap;
+/* Every piece of a plan has a key: m:<meta field>, d:<section>, n:<section notes>, c (your branches).
+   Each key carries the time it was last changed. When two versions meet, the newer change wins for
+   that piece only, so nothing newer is ever replaced by something older. */
+function planKeys(p) {
+  const k = { c: JSON.stringify(p.custom || []) };
+  Object.keys(p.meta).forEach(f => { if (f !== 'updated') k['m:' + f] = JSON.stringify(p.meta[f]); });
+  Object.keys(p.data).forEach(f => { k['d:' + f] = JSON.stringify(p.data[f]); });
+  Object.keys(p.notes || {}).forEach(f => { k['n:' + f] = JSON.stringify(p.notes[f]); });
+  return k;
 }
-function planPatch(p, old) {
-  const now = planSnap(p), patch = {}; let any = false;
-  ['meta', 'data', 'notes'].forEach(part => Object.keys(now[part]).forEach(k => {
-    if (now[part][k] !== old[part][k]) { (patch[part] = patch[part] || {})[k] = JSON.parse(now[part][k]); any = true; }
-  }));
-  if (now.custom !== old.custom) { patch.custom = JSON.parse(now.custom); any = true; }
-  return any ? { patch, snap: now } : null;
+function setKey(p, key, val) {
+  if (key === 'c') { p.custom = val; return; }
+  const part = key.slice(0, 1), f = key.slice(2);
+  if (part === 'm') p.meta[f] = val; else if (part === 'd') p.data[f] = val; else if (part === 'n') (p.notes = p.notes || {})[f] = val;
+}
+function getKey(p, key) {
+  if (key === 'c') return p.custom || [];
+  const part = key.slice(0, 1), f = key.slice(2);
+  return part === 'm' ? p.meta[f] : part === 'd' ? p.data[f] : (p.notes || {})[f];
+}
+/* Note the time of anything changed here since we last looked. */
+function teamMarkLocal() {
+  const p = team && team.planId && plans[team.planId]; if (!p || !team.base) return;
+  const now = planKeys(p), t = Date.now();
+  Object.keys(now).forEach(k => { if (now[k] !== team.base[k]) { team.ver[k] = t; team.base[k] = now[k]; } });
+}
+/* Send every change the others haven't had yet. Kept for later if we're offline. */
+function teamFlush() {
+  const p = team && team.planId && plans[team.planId]; if (!p || !team.joined) return;
+  const vals = {}, ts = {}; let any = false;
+  Object.keys(team.ver).forEach(k => { if ((team.ver[k] || 0) > (team.sent[k] || 0)) { vals[k] = getKey(p, k); ts[k] = team.ver[k]; any = true; } });
+  if (any && teamSend('patch', { planId: p.id, vals, ts })) Object.keys(ts).forEach(k => { team.sent[k] = ts[k]; });
 }
 
 function teamSend(event, payload) {
-  if (!team || !team.ws || team.ws.readyState !== 1 || !team.joined) return;
+  if (!team || !team.ws || team.ws.readyState !== 1 || !team.joined) return false;
   team.ws.send(JSON.stringify({ topic: team.topic, event: 'broadcast', payload: { type: 'broadcast', event, payload: Object.assign({ from: team.me }, payload) }, ref: String(++team.ref), join_ref: team.joinRef }));
+  return true;
 }
 let teamTimer = null;
 function teamSendSoon() {
   if (!team || !team.planId) return;
+  setTimeout(teamMarkLocal, 0);          // stamp the change with the time it happened
   clearTimeout(teamTimer);
-  teamTimer = setTimeout(() => {
-    const p = plans[team.planId]; if (!p || !team.snap) return;
-    const d = planPatch(p, team.snap);
-    if (d) { team.snap = d.snap; teamSend('patch', { planId: p.id, patch: d.patch }); }
-  }, 250);
+  teamTimer = setTimeout(() => { teamMarkLocal(); teamFlush(); }, 250);
 }
 
 let pendingWork = false;
@@ -1719,23 +1735,37 @@ document.addEventListener('focusout', () => setTimeout(() => { if (pendingWork &
 function teamReceive(ev, msg) {
   if (!team || !msg || msg.from === team.me) return;
   team.peers[msg.from] = Date.now();
-  if (ev === 'hello') { if (team.planId && plans[team.planId]) teamSend('full', { plan: plans[team.planId] }); paintTeam(); return; }
+  if (ev === 'hello') {
+    if (team.planId && plans[team.planId]) { teamMarkLocal(); teamSend('full', { plan: plans[team.planId], ver: team.ver }); }
+    paintTeam(); return;
+  }
   if (ev === 'full') {
     if (team.planId) { paintTeam(); return; }            // already have the plan
     const p = msg.plan; if (!p || !p.meta || !p.data) return;
     migrate(p); p.custom = p.custom || []; p.notes = p.notes || {};
-    plans[p.id] = p; currentId = p.id; team.planId = p.id; team.snap = planSnap(p);
+    plans[p.id] = p; currentId = p.id; team.planId = p.id;
+    team.base = planKeys(p); team.ver = Object.assign({}, msg.ver || {}); team.sent = Object.assign({}, team.ver);
     currentSec = 'basics'; saveNow(); renderAll(); paintTeam(); return;
+  }
+  if (ev === 'sync') {                                    // someone came back: send what they missed
+    const p = plans[msg.planId]; if (!p || msg.planId !== team.planId) return;
+    teamMarkLocal();
+    const theirs = msg.ver || {}, vals = {}, ts = {}; let any = false;
+    Object.keys(team.ver).forEach(k => { if ((team.ver[k] || 0) > (theirs[k] || 0)) { vals[k] = getKey(p, k); ts[k] = team.ver[k]; any = true; } });
+    if (any) teamSend('patch', { planId: p.id, vals, ts });
+    paintTeam(); return;
   }
   if (ev === 'patch') {
     const p = plans[msg.planId]; if (!p || msg.planId !== team.planId) return;
-    const patch = msg.patch || {};
-    if (patch.meta) Object.keys(patch.meta).forEach(k => { p.meta[k] = patch.meta[k]; team.snap.meta[k] = JSON.stringify(patch.meta[k]); });
-    if (patch.data) Object.keys(patch.data).forEach(k => { p.data[k] = patch.data[k]; team.snap.data[k] = JSON.stringify(patch.data[k]); });
-    if (patch.notes) Object.keys(patch.notes).forEach(k => { p.notes[k] = patch.notes[k]; team.snap.notes[k] = JSON.stringify(patch.notes[k]); });
-    if (patch.custom) { p.custom = patch.custom; team.snap.custom = JSON.stringify(patch.custom); }
-    p.meta.updated = new Date().toISOString();
-    if (currentId === p.id) afterRemote(); else saveNow();
+    teamMarkLocal();                                      // our own unsent edits count with their real times
+    const vals = msg.vals || {}, ts = msg.ts || {}; let changed = false;
+    Object.keys(vals).forEach(k => {
+      if ((ts[k] || 0) > (team.ver[k] || 0)) {            // only a newer change replaces ours
+        setKey(p, k, vals[k]); team.ver[k] = ts[k]; team.sent[k] = Math.max(team.sent[k] || 0, ts[k]);
+        team.base[k] = JSON.stringify(vals[k]); changed = true;
+      }
+    });
+    if (changed) { p.meta.updated = new Date().toISOString(); if (currentId === p.id) afterRemote(); else saveNow(); }
     return;
   }
   paintTeam();   // ping
@@ -1758,7 +1788,11 @@ function teamConnect() {
     if (m.event === 'phx_reply' && m.ref === t.joinRef) {
       if (m.payload && m.payload.status === 'ok') {
         t.joined = true;
-        if (t.planId) { t.snap = planSnap(plans[t.planId]); }
+        if (t.planId) {                                   // (re)joined with the plan: send ours, then catch up
+          if (!t.base) { t.base = planKeys(plans[t.planId]); t.ver = {}; t.sent = {}; }
+          teamMarkLocal(); teamFlush();
+          teamSend('sync', { planId: t.planId, ver: t.ver });
+        }
         teamSend('hello', {});
       } else { t.error = 'The team service said no: ' + JSON.stringify((m.payload && m.payload.response) || m.payload || {}); }
       paintTeam(); return;
@@ -1774,7 +1808,7 @@ function teamConnect() {
 }
 function teamStart(code, host) {
   teamLeave(true);
-  team = { code, planId: host ? currentId : null, ws: null, topic: 'realtime:spb-' + code.replace('-', '').toLowerCase(), me: uid(), peers: {}, ref: 0, joinRef: '0', joined: false, snap: null, error: '', closing: false };
+  team = { code, planId: host ? currentId : null, ws: null, topic: 'realtime:spb-' + code.replace('-', '').toLowerCase(), me: uid(), peers: {}, ref: 0, joinRef: '0', joined: false, base: null, ver: {}, sent: {}, error: '', closing: false };
   teamConnect();
   clearInterval(teamPing);
   teamPing = setInterval(() => { teamSend('ping', {}); paintTeam(); }, 10000);
