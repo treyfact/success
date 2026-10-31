@@ -202,10 +202,10 @@ body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .start-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
 .start-h { margin: 6px 0 20px; font-size: 22px; font-weight: 600; }
 .start-list { border-top: 2px solid var(--navy); }
-.start-opt { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 24px; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 22px 8px 20px; color: var(--navy); transition: background .18s ease, padding-left .18s ease; }
-.start-opt::before { content: ''; position: absolute; left: 0; top: 20px; bottom: 18px; width: 4px; background: var(--amber); transform: scaleY(0); transform-origin: top; transition: transform .18s ease; }
-.start-opt:hover, .start-opt:focus-visible { background: #fff; padding-left: 24px; outline: none; }
-.start-opt:hover::before, .start-opt:focus-visible::before { transform: scaleY(1); }
+.start-opt { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 24px; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 22px 8px 20px 24px; color: var(--navy); transition: background .18s ease, padding-left .18s ease; }
+.start-opt::before { content: ''; position: absolute; left: 0; top: 20px; bottom: 18px; width: 4px; background: var(--amber); transition: width .18s ease; }
+.start-opt:hover, .start-opt:focus-visible { background: #fff; padding-left: 30px; outline: none; }
+.start-opt:hover::before, .start-opt:focus-visible::before { width: 6px; }
 .start-name { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 46px; line-height: .92; letter-spacing: .015em; text-transform: uppercase; }
 .start-desc { grid-column: 1; font-size: 14px; color: var(--muted); }
 .start-meta { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 16px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
@@ -213,7 +213,7 @@ body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 @media (max-width: 760px) {
   .start { margin-top: 10px; }
   .start-name { font-size: 36px; }
-  .start-opt { grid-template-columns: 1fr; padding: 18px 4px 16px; }
+  .start-opt { grid-template-columns: 1fr; padding: 18px 4px 16px 20px; }
   .start-meta { grid-column: 1; grid-row: auto; font-size: 14px; }
 }
 /* Fade between the first screens */
@@ -343,6 +343,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
    SMALLER SCREENS (screen only, so printing is unaffected)
    ========================================================= */
 .fab { display: none; }
+.fab-arrow { display: inline-block; margin-left: 7px; font-weight: 700; }
 @media screen and (max-width: 1180px) {
   .saved { display: none; }
   .plan-picker { min-width: 0; flex: 1 1 160px; }
@@ -1442,6 +1443,7 @@ function renderWork() {
   if (builder && (!builder.forPlan || builder.forPlan === currentId)) { work.innerHTML = builderHtml(); return; }
   const p = cur();
   if (!p) { work.innerHTML = pendingNew ? startHtml() : welcomeHtml(); return; }
+  if (repick) { work.innerHTML = startHtml(); return; }
   if (!['basics', 'addmore'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
   const jump = stepBarHtml(p) + mobileJumpHtml(p);
   if (currentSec === 'addmore') { work.innerHTML = jump + addMoreHtml(p); return; }
@@ -1475,19 +1477,40 @@ function welcomeHtml() {
 
 /* ---------- Starting point: picked once, right after Create plan ---------- */
 let pendingNew = null;   // { account, mode } between Create plan and picking a starting point
+let repick = false;   // true while an existing plan is back on the starting-point screen
 function startHtml() {
-  const nw = pendingNew;
-  const opt = (t, name, desc, meta) => `<button class="start-opt" data-action="start" data-t="${t}"><span class="start-name">${name}</span><span class="start-desc">${desc}</span><span class="start-meta">${meta}</span></button>`;
+  const p = repick ? cur() : null, nw = p ? p.meta : pendingNew, now = p ? (p.meta.template || 'guided') : '';
+  const opt = (t, name, desc, meta) => `<button class="start-opt" data-action="start" data-t="${t}"><span class="start-name">${name}</span><span class="start-desc">${desc}</span><span class="start-meta">${t === now ? 'Current' : meta}</span></button>`;
   return `<div class="start">
-    <div class="start-eyebrow">New plan${nw.account ? ' · ' + esc(nw.account) : ''}</div>
+    <div class="start-eyebrow">${p ? 'This plan' : 'New plan'}${nw.account ? ' · ' + esc(nw.account) : ''}</div>
     <h1 class="start-h">Pick a starting point</h1>
     <div class="start-list">
       ${opt('guided', 'Guided Plan', 'The core steps every account needs. Build out as you learn the account.', (GUIDED_STEPS().length + 1) + ' steps')}
       ${opt('flintco', 'Flintco Plan', "Barry's 2027 model plan, step by step, from the objective to the ready test.", (FLINTCO_STEPS.length + 1) + ' steps')}
       ${opt('custom', 'Custom Build', 'Choose the steps, their order and the questions before you start.', 'You pick')}
     </div>
-    <div class="start-foot"><button class="btn ghost" data-action="start-back">Back</button><span style="font-size:12.5px;color:var(--faint)">Steps can be added or changed later.</span></div>
+    <div class="start-foot"><button class="btn ghost" data-action="start-back">${p ? 'Back: Account basics' : 'Back'}</button><span style="font-size:12.5px;color:var(--faint)">${p ? 'Anything you have written stays in the plan.' : 'Steps can be added or changed later.'}</span></div>
   </div>`;
+}
+/* Re-pick the starting point for a plan that already exists. Nothing written is lost: sections
+   with answers stay in the plan, and steps of your own with answers come along to the new steps. */
+function switchStart(p, t) {
+  const now = p.meta.template || 'guided';
+  if (t === 'custom') {
+    fadeSwap(() => { repick = false; builder = { forPlan: p.id, draft: p.meta.flow ? clone(p.meta.flow) : { name: '', steps: visibleSections(p).map(s => ({ key: s.key })), own: {} }, open: null, msg: '' }; renderAll(); });
+    return;
+  }
+  if (t === now && !(t === 'guided' && p.meta.flow)) { fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); }); return; }
+  if (!confirm('Switch this plan to the ' + (t === 'flintco' ? 'Flintco Plan' : 'Guided Plan') + ' steps? Anything you have written stays in the plan.')) return;
+  const old = p.meta.flow, kept = {};
+  if (old) Object.keys(old.own || {}).forEach(id => { const s = sectionByKey('own-' + id, p); if (s && hasWork(p, s)) kept[id] = old.own[id]; });
+  const keptSteps = Object.keys(kept).map(id => ({ key: 'own-' + id }));
+  if (t === 'flintco') { const f = seedFlow('flintco'); f.steps = f.steps.concat(keptSteps); f.own = kept; p.meta.flow = f; }
+  else if (keptSteps.length) p.meta.flow = { name: 'Guided Plan', steps: GUIDED_STEPS().map(k => ({ key: k })).concat(keptSteps), own: kept };
+  else p.meta.flow = null;   // null rather than delete, so a team code passes the change on
+  p.meta.template = t;
+  saveSoon();
+  fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); });
 }
 /* Fade the whole work area out, swap the screen, fade it back in. */
 function fadeSwap(fn) {
@@ -1843,7 +1866,9 @@ function footHtml(p) {
   const order = navOrder(p);
   const i = order.indexOf(currentSec);
   const prev = order[i - 1];
-  return `<div class="sec-foot">${prev ? `<button class="btn ghost" data-goto="${prev}">Back: ${esc(secName(prev))}</button>` : '<span></span>'}${footNextHtml(p)}</div>`;
+  const back = prev ? `<button class="btn ghost" data-goto="${prev}">Back: ${esc(secName(prev))}</button>`
+    : currentSec === 'basics' ? `<button class="btn ghost" data-action="repick">Back: Starting point</button>` : '<span></span>';
+  return `<div class="sec-foot">${back}${footNextHtml(p)}</div>`;
 }
 
 /* =========================================================
@@ -2142,7 +2167,7 @@ let sideTimer = null;
 function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { renderSide(); renderNav(); updateStepBar(); updateRemoveLink(); renderShare(); }, 150); }
 
 function go(sec) {
-  builder = null;
+  builder = null; repick = false;
   currentSec = sec;
   setTimeout(() => renderShare(), 0);
   renderNav(); renderWork();
@@ -2233,6 +2258,9 @@ function handleClick(e) {
     const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value };
     fadeSwap(() => { pendingNew = nw; renderAll(); }); return;
   }
+  if (act === 'repick') { fadeSwap(() => { repick = true; renderAll(); }); return; }
+  if (act === 'start-back' && repick) { fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); }); return; }
+  if (act === 'start' && repick && p) { switchStart(p, a.dataset.t); return; }
   if (act === 'start-back') {
     fadeSwap(() => {
       const nw = pendingNew; pendingNew = null; renderAll();
@@ -2302,7 +2330,7 @@ function handleClick(e) {
 function runCmd(c) {
   const p = cur();
   if (c === 'team') { openTeamPanel(); return; }
-  if (c === 'new') { currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; renderAll(); return; }
+  if (c === 'new') { currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (!p) return;
   if (c === 'pdf-customer') { exportPdf(true); return; }
@@ -2388,7 +2416,7 @@ document.addEventListener('keydown', e => {
 });
 document.getElementById('planPicker').addEventListener('change', e => {
   const v = e.target.value;
-  pendingNew = null; builder = null;
+  pendingNew = null; builder = null; repick = false;
   if (v === '__new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
   if (plans[v]) { currentId = v; currentSec = 'basics'; saveNow(); renderAll(); }
 });
@@ -2742,7 +2770,11 @@ paintTimer();
 (function () {
   const fab = document.getElementById('mapFab'), side = document.getElementById('side');
   function sideInView() { return side.getBoundingClientRect().top < window.innerHeight * 0.6; }
-  function update() { fab.textContent = sideInView() ? 'Back to editing' : 'See the map'; fab.style.display = cur() ? '' : 'none'; }
+  function update() {
+    const up = sideInView(), html = up ? 'Back to editing<span class="fab-arrow" aria-hidden="true">&uarr;</span>' : 'See the map<span class="fab-arrow" aria-hidden="true">&darr;</span>';
+    if (fab.innerHTML !== html) fab.innerHTML = html;
+    fab.style.display = cur() && !builder && !repick ? '' : 'none';
+  }
   fab.addEventListener('click', () => {
     if (sideInView()) window.scrollTo({ top: 0, behavior: 'smooth' });
     else side.scrollIntoView({ behavior: 'smooth', block: 'start' });
