@@ -386,7 +386,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   #focusBtn, #shareBtn, #teamBtn { display: none; }
   #teamMenu { order: 1; }
   #teamMenu .team-panel { position: fixed; left: 14px; right: 14px; top: 64px; width: auto; }
-  #timerBtn { order: 1; }
+  #timerBtn, #noteBtn { order: 1; }
   .sec-foot .btn { width: 100%; white-space: normal; }
   .welcome { margin: 8px auto; padding: 20px 18px; }
   .welcome .actions { flex-wrap: wrap; }
@@ -491,6 +491,45 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   .doc-page:last-child { break-after: auto; page-break-after: auto; }
 }
 
+/* ---------- Note: the plan as one plain note ---------- */
+body.note-mode { background: #fff; }
+body.note-mode .topbar, body.note-mode .app, body.note-mode .banner, body.note-mode .fab, body.note-mode .back-fab, body.note-mode #present { display: none !important; }
+.note-root { max-width: 720px; margin: 0 auto; padding: 0 26px 140px; }
+.note-top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 16px 0 12px; background: #fff; border-bottom: 1px solid var(--soft); box-shadow: 0 8px 12px -12px rgba(20,30,50,.18); }
+.note-eyebrow { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+.note-acct { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 28px; line-height: 1; text-transform: uppercase; letter-spacing: .01em; color: var(--navy); }
+.note-saved { margin-left: auto; font-size: 12px; color: var(--faint); }
+.note-hint { color: var(--faint); font-size: 14px; margin: 14px 0 0; }
+.ns { margin-top: 34px; }
+.nsh { display: flex; align-items: center; gap: 10px; margin: 0 0 2px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 21px; letter-spacing: .05em; text-transform: uppercase; color: var(--navy); }
+.ntag { font-family: var(--font); font-size: 11px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--amber); border: 1px dashed #e8b98a; border-radius: 6px; padding: 1px 6px; }
+.nask { margin: 0 0 4px; font-size: 13.5px; font-style: italic; color: var(--faint); }
+.nb { margin-top: 14px; }
+.nq { font-size: 17px; font-weight: 700; line-height: 1.35; color: var(--ink); }
+.nh { font-size: 12.5px; color: var(--faint); margin-top: 1px; }
+.note-root textarea.na { display: block; width: 100%; min-height: 0; margin: 0; padding: 3px 0; border: 0; border-radius: 0; background: none; resize: none; overflow: hidden; font: inherit; font-size: 17px; line-height: 1.5; color: var(--ink); }
+.note-root textarea.na::placeholder, .note-root input.nq-own::placeholder { color: #cdd2da; }
+.note-root textarea.na:focus, .note-root input:focus { outline: 0; border-color: transparent; }
+.note-root input.nq-own { display: block; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; font: inherit; font-size: 17px; font-weight: 700; line-height: 1.35; color: var(--ink); }
+.nb-own .nq-own { color: var(--navy); }
+.note-root input.na-date { width: auto; padding: 3px 0; border: 0; border-radius: 0; background: none; font: inherit; font-size: 17px; color: var(--ink); }
+.np { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; }
+.npo { border: 0; background: none; padding: 2px 0; font: inherit; font-size: 16.5px; color: var(--faint); }
+.npo.on { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--amber); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.nc { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.nco { display: flex; align-items: flex-start; gap: 10px; border: 0; background: none; padding: 1px 0; text-align: left; font: inherit; font-size: 16.5px; line-height: 1.4; color: var(--muted); }
+.nco-dot { position: relative; flex: none; width: 20px; height: 20px; margin-top: 1px; border: 1.5px solid #c3cad4; border-radius: 50%; }
+.nco.on { color: var(--ink); }
+.nco.on .nco-dot { background: var(--amber); border-color: var(--amber); }
+.nco.on .nco-dot::after { content: ''; position: absolute; left: 6px; top: 2.5px; width: 4px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+@media (max-width: 760px) { .note-root { padding: 0 16px 120px; } .note-acct { font-size: 24px; } }
+/* Notes to sort, in the main view */
+.sort-item { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--amber); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.sort-q { font-weight: 700; }
+.sort-a { white-space: pre-wrap; margin-top: 4px; color: var(--ink); }
+.sort-act { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.sort-act select { flex: 1 1 220px; width: auto; }
+
 /* ---------- Type: Barlow for reading, Barlow Condensed caps for headings and labels ---------- */
 .sec-head h2, .doc-title, .welcome h1, .start-h { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .012em; line-height: 1; }
 .sec-head h2 { font-size: 34px; }
@@ -522,6 +561,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
     <button class="btn" id="teamBtn" title="Build this plan together with a teammate on a call">Team code</button>
     <div class="menu-list team-panel" id="teamPanel"></div>
   </div>
+  <button class="btn" id="noteBtn" title="Fill in the whole plan as one simple note, in its own window">Note</button>
   <button class="btn" id="timerBtn" title="Pop out a meeting timer">Timer</button>
   <button class="btn" id="focusBtn" title="Hide the side panels while you work through the plan">Focus</button>
   <button class="btn" id="shareBtn" title="Opens a clean window to share on screen. It shows only what the customer should see and updates as you type.">Customer window</button>
@@ -564,6 +604,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 </div>
 
 <button class="fab" id="mapFab" type="button">See the map</button>
+<div class="note-root" id="noteRoot" hidden></div>
 <button class="back-fab" id="backFab" type="button" style="display:none"><span aria-hidden="true">&larr;</span> Back</button>
 <div class="present" id="present">
   <div class="present-bar">
@@ -708,6 +749,7 @@ const SECTIONS = [
           { key: 'current', label: 'Now' },
           { key: 'by', label: 'By when' }
         ],
+        noteCols: ['measure', 'baseline', 'target', 'current', 'by'],
         defaultRows: () => [
           { measure: 'Effort', how: 'Minutes to complete a targeted activity' },
           { measure: 'Participation', how: 'Active contributors vs expected, per week' },
@@ -1107,6 +1149,7 @@ const SECTIONS = [
     fields: [
       { key: 'rows', label: 'Measures', type: 'table',
         columns: [{ key: 'measure', label: 'Area', width: '18%' }, { key: 'how', label: 'What it means', width: '36%', multi: true }, { key: 'baseline', label: 'Baseline' }, { key: 'target', label: 'Target' }],
+        noteCols: ['measure', 'baseline', 'target'],
         defaultRows: () => [
           { measure: 'Efficiency', how: 'Less time to complete targeted compliance work' },
           { measure: 'Participation', how: 'More employees, leaders and trade partners contributing' },
@@ -1145,6 +1188,7 @@ const SECTIONS = [
     fields: [
       { key: 'rows', label: 'Punch list', type: 'table',
         columns: [{ key: 'item', label: 'Item', width: '20%' }, { key: 'outcome', label: 'Done looks like', width: '36%', multi: true }, { key: 'owner', label: 'Owner' }, { key: 'by', label: 'By when' }, { key: 'status', label: 'Status', type: 'select', options: ['', 'Not started', 'In progress', 'Done'] }],
+        noteCols: ['item', 'owner', 'by', 'status'],
         defaultRows: () => [
           ['Prioritize regional rollout', 'Regional safety leaders agree on priorities, order and timing for each region.'],
           ['Select premier trade partners', 'Each region picks its top trade partners for focused support, benchmarking and improvement.'],
@@ -1185,6 +1229,7 @@ const SECTIONS = [
     fields: [
       { key: 'rows', label: 'The test', type: 'table',
         columns: [{ key: 'question', label: 'Question', width: '22%', multi: true }, { key: 'test', label: 'Yes means', width: '30%', multi: true }, { key: 'answer', label: 'Our answer', multi: true }, { key: 'ready', label: 'Ready', type: 'select', options: ['', 'Yes', 'Not yet'] }],
+        noteCols: ['question', 'answer', 'ready'],
         defaultRows: () => [
           ['Where are we starting?', 'Regional rollout order and first workflows are agreed.'],
           ['Who owns the work?', 'Every major workstream has a customer owner and a FactorLab owner.'],
@@ -1246,7 +1291,8 @@ function clone(x) { return JSON.parse(JSON.stringify(x)); }
 
 function loadAll() {
   try {
-    plans = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {};
+    lastStored = localStorage.getItem(STORE_KEY) || '{}';
+    plans = JSON.parse(lastStored) || {};
     currentId = localStorage.getItem(CURRENT_KEY);
   } catch (e) { plans = {}; storageOk = false; }
   Object.values(plans).forEach(migrate);
@@ -1269,10 +1315,45 @@ function saveSoon() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveNow, 300);
 }
+/* Several windows can have the plan open (the Note window, another tab). Before saving, take in
+   what they saved and keep our own changes on top, piece by piece, so nobody's edit is lost. */
+let lastStored = null;
+/* Every answer box of a plan as its own piece, so two windows editing the same step both keep their change. */
+function fineKeys(p) {
+  const k = { c: JSON.stringify(p.custom || []) };
+  Object.keys(p.meta || {}).forEach(f => { if (f !== 'updated') k['m:' + f] = JSON.stringify(p.meta[f]); });
+  Object.keys(p.data || {}).forEach(sec => Object.keys(p.data[sec] || {}).forEach(f => { k['f:' + sec + '|' + f] = JSON.stringify(p.data[sec][f]); }));
+  Object.keys(p.notes || {}).forEach(f => { k['n:' + f] = JSON.stringify(p.notes[f]); });
+  return k;
+}
+function setFine(p, key, val) {
+  if (key.startsWith('f:')) { const [sec, f] = key.slice(2).split('|'); (p.data[sec] = p.data[sec] || {})[f] = val; return; }
+  setKey(p, key, val);
+}
+function mergeDisk() {
+  let raw, disk, base;
+  try { raw = localStorage.getItem(STORE_KEY) || '{}'; } catch (e) { return false; }
+  if (raw === lastStored) return false;
+  try { disk = JSON.parse(raw) || {}; base = JSON.parse(lastStored || '{}') || {}; } catch (e) { return false; }
+  new Set(Object.keys(disk).concat(Object.keys(plans))).forEach(id => {
+    const mem = plans[id], b = base[id], dk = disk[id];
+    if (!dk) { if (b && mem && JSON.stringify(mem) === JSON.stringify(b)) delete plans[id]; return; }   // deleted elsewhere
+    migrate(dk);
+    if (!mem) { if (!b) plans[id] = dk; return; }                                                       // new elsewhere
+    const bk = b ? fineKeys(b) : {}, mk = fineKeys(mem);
+    Object.keys(mk).forEach(k => { if (mk[k] !== bk[k]) setFine(dk, k, JSON.parse(mk[k])); });         // ours on top, question by question
+    plans[id] = dk;
+  });
+  lastStored = raw;
+  if (!plans[currentId]) currentId = Object.keys(plans)[0] || null;
+  return true;
+}
 function saveNow() {
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify(plans));
-    if (currentId) localStorage.setItem(CURRENT_KEY, currentId);
+    mergeDisk();
+    const raw = JSON.stringify(plans);
+    localStorage.setItem(STORE_KEY, raw); lastStored = raw;
+    if (currentId && !NOTE_MODE) localStorage.setItem(CURRENT_KEY, currentId);
     setSaved('Saved in this browser');
   } catch (e) {
     storageOk = false;
@@ -1280,7 +1361,8 @@ function saveNow() {
     setSaved('Not saved');
   }
 }
-function setSaved(t) { document.getElementById('savedNote').textContent = t; }
+function setSaved(t) { document.getElementById('savedNote').textContent = t; const n = document.getElementById('noteSaved'); if (n) n.textContent = t; }
+const NOTE_MODE = /^#note/.test(location.hash);
 function cur() { return currentId ? plans[currentId] : null; }
 
 function blankData() {
@@ -1438,7 +1520,7 @@ function renderNav() {
   if (p.meta.flow) {
     html += `<div class="nav-group"><div class="nav-group-title">${esc(planLabel(p))}</div>${vis.map(navItem).join('')}</div>`;
     html += `<div class="nav-group"><div class="nav-group-title">Your branches</div>${p.custom.map(c => `<button class="nav-item ${currentSec === 'custom:' + c.id ? 'active' : ''}" data-goto="custom:${c.id}"><span class="dot ${(c.items || []).length ? 'on' : ''}"></span>${esc(c.title || 'Untitled branch')}</button>`).join('')}<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
-    html += `<div class="nav-group"><button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item" data-action="edit-steps" style="color:var(--muted)">Change the steps</button></div>`;
+    html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item" data-action="edit-steps" style="color:var(--muted)">Change the steps</button></div>`;
     html += `<div class="nav-foot"><div class="toggle-row" style="font-size:12px">${esc(planLabel(p))}, ${vis.length + 1} steps. Dashed steps stay FactorLab only.</div></div>`;
     nav.innerHTML = html; return;
   }
@@ -1460,7 +1542,7 @@ function renderNav() {
       html += `<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
     }
   });
-  html += `<div class="nav-group"><button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button></div>`;
+  html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button></div>`;
   html += `<div class="nav-foot">
     <div class="toggle-row" style="font-size:12px">${esc(TIERS[p.meta.tier].label)} plan, ${visibleSections(p).length} of ${SECTIONS.filter(s => !s.set).length} sections in use</div>
     <div class="toggle-row" style="font-size:12px"><span class="dogear"></span> ${esc(MODEL_TIP)}</div></div>`;
@@ -1476,7 +1558,7 @@ function backTarget() {
   const p = cur();
   if (!p || builder || repick) return null;
   const order = navOrder(p);
-  if (currentSec === 'addmore') return order[order.length - 1];
+  if (currentSec === 'addmore' || currentSec === 'sort') return order[order.length - 1];
   const i = order.indexOf(currentSec);
   return i > 0 ? order[i - 1] : i === 0 ? '__start' : null;
 }
@@ -1492,9 +1574,10 @@ function renderWorkInner() {
   const p = cur();
   if (!p) { work.innerHTML = pendingNew ? startHtml() : welcomeHtml(); return; }
   if (repick) { work.innerHTML = startHtml(); return; }
-  if (!['basics', 'addmore'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
+  if (!['basics', 'addmore', 'sort'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
   const jump = stepBarHtml(p) + mobileJumpHtml(p);
   if (currentSec === 'addmore') { work.innerHTML = jump + addMoreHtml(p); return; }
+  if (currentSec === 'sort') { work.innerHTML = jump + sortHtml(p); return; }
   if (currentSec === 'basics') { work.innerHTML = jump + basicsHtml(p); return; }
   const c = customByKey(currentSec);
   if (c) { work.innerHTML = jump + customHtml(p, c); return; }
@@ -1503,6 +1586,7 @@ function renderWorkInner() {
 
 function secName(k) {
   if (k === 'addmore') return 'Build out this plan';
+  if (k === 'sort') return 'Notes to sort';
   if (k === 'basics') return 'Account basics';
   const c = customByKey(k);
   if (c) return c.title || 'Your branch';
@@ -1510,7 +1594,7 @@ function secName(k) {
   return s ? s.title : k;
 }
 function mobileJumpHtml(p) {
-  return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}<option value="addmore" ${currentSec === 'addmore' ? 'selected' : ''}>+ Build out this plan</option><option value="__branch">+ Add your own branch</option></select>`;
+  return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}${miscCount(p) ? `<option value="sort" ${currentSec === 'sort' ? 'selected' : ''}>Notes to sort (${miscCount(p)})</option>` : ''}<option value="addmore" ${currentSec === 'addmore' ? 'selected' : ''}>+ Build out this plan</option><option value="__branch">+ Add your own branch</option></select>`;
 }
 
 function welcomeHtml() {
@@ -1851,7 +1935,7 @@ function tableHtml(s, f, rows, opts) {
   const cols = opts.cols ? f.columns.filter(c => opts.cols.includes(c.key)) : f.columns;
   return `<div class="field">${opts.noLabel ? '' : `<div class="field-label">${esc(f.label)}</div>`}<div class="table-wrap"><table class="grid"><thead><tr>${cols.map(c => `<th ${c.width && !opts.cols ? `style="width:${c.width}"` : ''}>${esc(c.label)}</th>`).join('')}${opts.fixed ? '' : '<th></th>'}</tr></thead><tbody>
     ${rows.map((r, i) => `<tr>${cols.map((c, ci) => `<td data-label="${esc(c.label)}" class="${c.multi || ci === 0 ? 'full' : ''}">${c.type === 'select'
-      ? `<select ${attr} data-row="${i}" data-col="${c.key}">${c.options.map(o => `<option value="${esc(o)}" ${o === (r[c.key] || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select>`
+      ? `<select ${attr} data-row="${i}" data-col="${c.key}">${c.options.concat(r[c.key] && !c.options.includes(r[c.key]) ? [r[c.key]] : []).map(o => `<option value="${esc(o)}" ${o === (r[c.key] || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select>`
       : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}${opts.fixed ? '' : `<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td>`}</tr>`).join('')}
     ${rows.length ? '' : `<tr><td colspan="${cols.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
     </tbody></table></div>${opts.fixed ? '' : `<button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button>`}</div>`;
@@ -2342,6 +2426,17 @@ function handleClick(e) {
   }
   if (act === 'present') { openPresent(); return; }
   if (!p) return;
+  if (act === 'sort-move' || act === 'sort-delete') {
+    const m = miscOf(p), id = a.dataset.id, it = id === 'end' ? { q: '', a: m.end } : m.items.find(x => x.id === id);
+    if (!it) return;
+    if (act === 'sort-move') {
+      const to = document.querySelector(`[data-sort-to="${id}"]`).value;
+      if (!to) { alert('Pick where this goes first.'); return; }
+      if (!sortApply(p, to, it.q, it.a)) { alert("That doesn't match the choices there. Pick another spot, or move it to that step's notes."); return; }
+    } else if (!confirm('Delete this note?')) return;
+    if (id === 'end') m.end = ''; else { m.items.forEach(x => { if (x.at === 'x|' + id) x.at = it.at; }); m.items = m.items.filter(x => x.id !== id); }
+    saveSoon(); renderAll(); return;
+  }
   if (act === 'edit-steps') {
     builder = { forPlan: p.id, draft: p.meta.flow ? clone(p.meta.flow) : { name: '', steps: visibleSections(p).map(s => ({ key: s.key })), own: {} }, open: null, msg: '' };
     renderWork(); window.scrollTo(0, 0); return;
@@ -2506,6 +2601,16 @@ document.addEventListener('change', e => {
 loadAll();
 if (!storageOk) document.getElementById('storageBanner').classList.add('show');
 renderAll();
+/* Another window (the Note, another tab) saved: take its changes in. */
+function onDiskChange() {
+  if (NOTE_MODE) { noteRefresh(); return; }
+  if (typeof teamSendSoon === 'function') teamSendSoon();
+  renderPicker(); renderNav(); renderSide(); updateStepBar(); renderShare();
+  if (workIsBusy()) pendingWork = true; else renderWork();
+}
+window.addEventListener('storage', e => { if (e.key === STORE_KEY && mergeDisk()) onDiskChange(); });
+window.addEventListener('focus', () => { if (mergeDisk()) onDiskChange(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && mergeDisk()) onDiskChange(); });
 
 /* ---------- Focus mode: just the step you're on ---------- */
 let focusOn = false;
@@ -2615,6 +2720,7 @@ function openShare() {
   renderShare();
 }
 document.getElementById('shareBtn').addEventListener('click', openShare);
+document.getElementById('noteBtn').addEventListener('click', openNote);
 
 /* ---------- Team code: build one plan together, live, on a call ----------
    Uses Supabase Realtime "broadcast" over a plain WebSocket (no library). Changes pass between the
@@ -2850,6 +2956,307 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') setTimeout(u
   if (window.ResizeObserver) new ResizeObserver(set).observe(bar); else window.addEventListener('resize', set);
 })();
 
+
+/* =========================================================
+   NOTE: the whole plan as one plain note, in its own window
+   Questions are bold, answers are plain text typed underneath. It reads and writes the same plan
+   (saved in this browser), so the main window and the note keep each other up to date.
+   End a line with ? and press Enter to add a question of your own. If it matches a question in the
+   plan, the answer goes there; if not, it waits in "Notes to sort" (never in the customer view).
+   ========================================================= */
+const META_Q = [['account', 'Account name', 'text'], ['mode', 'What the account needs this year', 'mode'], ['csm', 'CSM', 'text'], ['backup', 'Backup', 'text'], ['day1', 'Day 1', 'date'], ['context', 'What you know so far', 'textarea'], ['sources', 'Where it came from', 'text']];
+function miscOf(p) { const m = p.data.misc || (p.data.misc = { items: [], end: '' }); if (!Array.isArray(m.items)) m.items = []; return m; }
+function miscCount(p) { const m = (p && p.data && p.data.misc) || {}; return (m.items || []).filter(it => (it.q || '').trim() || (it.a || '').trim()).length + ((m.end || '').trim() ? 1 : 0); }
+function noteCols(f) { return f.noteCols ? f.columns.filter(c => f.noteCols.includes(c.key)) : f.columns; }
+function cellsOf(line) { return line.split(/\s+\/\s*|\s*\/\s+/).map(x => x.trim()); }
+function tableToText(f, rows) {
+  const cols = noteCols(f);
+  return (rows || []).map(r => { const c = cols.map(x => r[x.key] || ''); while (c.length > 1 && !c[c.length - 1]) c.pop(); return c.join(' / '); }).filter(x => x.trim()).join('\n');
+}
+/* Lines back into rows. A line keeps the row it came from (matched by its first cell, or by position
+   while you're editing that first cell), so columns the note doesn't show are never lost. */
+function textToTable(f, text, base) {
+  const cols = noteCols(f), used = new Set(), out = [];
+  base = Array.isArray(base) ? base : [];
+  String(text).split('\n').forEach((line, i) => {
+    if (!line.trim()) return;
+    let cells = cellsOf(line);
+    if (cells.length > cols.length) cells = cells.slice(0, cols.length - 1).concat(cells.slice(cols.length - 1).join(' / '));
+    let j = base.findIndex((r, k) => !used.has(k) && String(r[cols[0].key] || '').trim().toLowerCase() === (cells[0] || '').toLowerCase());
+    if (j < 0 && i < base.length && !used.has(i)) j = i;
+    const row = j >= 0 ? clone(base[j]) : {};
+    if (j >= 0) used.add(j);
+    f.columns.forEach(c => { if (row[c.key] == null) row[c.key] = ''; });
+    cols.forEach((c, k) => {
+      let v = cells[k] || '';
+      if (c.type === 'select' && v) { const m = c.options.find(o => o && o.toLowerCase() === v.toLowerCase()); if (m) v = m; }
+      row[c.key] = v;
+    });
+    out.push(row);
+  });
+  return out;
+}
+function msToText(items) { return (items || []).filter(m => m.text).map(m => (m.done ? '✓ ' : '') + m.text).join('\n'); }
+function textToMs(text, base) {
+  return String(text).split('\n').filter(l => l.trim()).map(l => {
+    const m = l.match(/^\s*(✓|\[x\])\s*/i), t = m ? l.slice(m[0].length).trim() : l.trim();
+    const old = (base || []).find(x => x.text === t);
+    return { text: t, done: !!m || !!(old && old.done && !m && false) };
+  });
+}
+function parseLooseDate(t) {
+  t = String(t || '').trim(); if (!t) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+  const d = new Date(t); if (isNaN(d)) return '';
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+/* Note keys: m|<meta>, d|<section>|<field>, n|<section> (notes), ms|<phase>, cb|<branch id> (items),
+   x|<id> and xq|<id> (a question of your own and its answer), xe (anything else). */
+function noteFieldOf(p, nk) { const [t, a, b] = nk.split('|'); if (t !== 'd') return null; const s = sectionByKey(a, p); return s ? s.fields.find(f => f.key === b) : null; }
+function noteGet(p, nk) {
+  const [t, a] = nk.split('|');
+  if (t === 'm') return String(p.meta[a] || '');
+  if (t === 'n') return (p.notes || {})[a] || '';
+  if (t === 'ms') return msToText(((p.data.milestones || {}).phases || {})[a]);
+  if (t === 'cb') { const c = p.custom.find(x => x.id === a); return c ? (c.items || []).filter(Boolean).join('\n') : ''; }
+  if (t === 'x' || t === 'xq') { const it = miscOf(p).items.find(x => x.id === a); return it ? (t === 'x' ? it.a : it.q) || '' : ''; }
+  if (t === 'xe') return miscOf(p).end || '';
+  const f = noteFieldOf(p, nk), v = (p.data[a] || {})[f ? f.key : ''];
+  if (!f) return '';
+  if (f.type === 'list') return (Array.isArray(v) ? v : []).join('\n');
+  if (f.type === 'table') return tableToText(f, Array.isArray(v) ? v : []);
+  return typeof v === 'string' ? v : '';
+}
+let noteBase = {};   // rows as they were when a table's note box got focus
+function noteSet(p, nk, text) {
+  const [t, a] = nk.split('|');
+  if (t === 'm') { p.meta[a] = a === 'context' ? text : text.replace(/\s*\n\s*/g, ' '); return; }
+  if (t === 'n') { (p.notes = p.notes || {})[a] = text; return; }
+  if (t === 'ms') { const d = p.data.milestones || (p.data.milestones = {}); d.phases = d.phases || {}; d.phases[a] = textToMs(text, d.phases[a]); return; }
+  if (t === 'cb') { const c = p.custom.find(x => x.id === a); if (c) c.items = text.split('\n').map(x => x.trim()).filter(Boolean); return; }
+  if (t === 'x' || t === 'xq') { const it = miscOf(p).items.find(x => x.id === a); if (it) it[t === 'x' ? 'a' : 'q'] = text; return; }
+  if (t === 'xe') { miscOf(p).end = text; return; }
+  const f = noteFieldOf(p, nk); if (!f) return;
+  const d = p.data[a] || (p.data[a] = {});
+  if (f.type === 'list') d[f.key] = text.split('\n').map(x => x.trim()).filter(Boolean);
+  else if (f.type === 'table') d[f.key] = textToTable(f, text, noteBase[nk] || d[f.key]);
+  else if (f.type === 'text') d[f.key] = text.replace(/\s*\n\s*/g, ' ');
+  else d[f.key] = text;
+}
+function noteAppend(p, nk, text) {
+  if (!String(text || '').trim()) return;
+  const now = noteGet(p, nk);
+  delete noteBase[nk];
+  noteSet(p, nk, now ? now + '\n' + text : text);
+}
+function noteIsOn(p, nk, v) {
+  const [t, a] = nk.split('|');
+  if (t === 'm') return p.meta[a] === v;
+  const f = noteFieldOf(p, nk), cur = (p.data[a] || {})[f ? f.key : ''];
+  return f && f.type === 'checks' ? Array.isArray(cur) && cur.includes(v) : cur === v;
+}
+function noteHtml(p) {
+  const sig = [], seen = new Set(), misc = miscOf(p), blocks = [];
+  const ta = (nk, kind, ph) => `<textarea class="na" data-nk="${esc(nk)}" data-kind="${kind}" rows="1" placeholder="${esc(ph || 'Type here')}">${esc(noteGet(p, nk))}</textarea>`;
+  const miscHtml = it => `<div class="nb nb-own"><input type="text" class="nq-own" data-nk="xq|${it.id}" value="${esc(it.q)}" placeholder="Your question" aria-label="Your question"><textarea class="na" data-nk="x|${it.id}" data-kind="textarea" rows="1" placeholder="Type here">${esc(it.a)}</textarea></div>`;
+  const after = nk => misc.items.filter(it => it.at === nk).map(it => { sig.push('x|' + it.id); seen.add('x|' + it.id); return miscHtml(it) + after('x|' + it.id); }).join('');
+  const block = (nk, label, kind, opts) => {
+    opts = opts || {}; sig.push(nk + ':' + kind); seen.add(nk);
+    if (['text', 'textarea', 'list', 'table', 'ms'].includes(kind)) blocks.push({ nk, label });
+    let body;
+    if (kind === 'date') body = `<input type="date" class="na-date" data-nk="${esc(nk)}" value="${esc(noteGet(p, nk))}" aria-label="${esc(label)}">`;
+    else if (kind === 'pick' || kind === 'checks') body = `<div class="${kind === 'pick' ? 'np' : 'nc'}">${opts.options.filter(Boolean).map(o => `<button type="button" class="${kind === 'pick' ? 'npo' : 'nco'} ${noteIsOn(p, nk, o) ? 'on' : ''}" data-nk="${esc(nk)}" data-v="${esc(o)}">${kind === 'checks' ? '<span class="nco-dot"></span>' : ''}${esc(opts.labels ? opts.labels[o] : o)}</button>`).join('')}</div>`;
+    else body = ta(nk, kind, opts.ph);
+    return `<div class="nb"><div class="nq">${esc(label)}</div>${opts.hint ? `<div class="nh">${esc(opts.hint)}</div>` : ''}${body}</div>` + after(nk);
+  };
+  const section = (title, internal, ask, inner) => `<section class="ns"><h2 class="nsh">${esc(title)}${internal ? '<span class="ntag">FactorLab only</span>' : ''}</h2>${ask && ask.length ? `<p class="nask">${ask.map(esc).join(' &middot; ')}</p>` : ''}${inner}</section>`;
+  let html = section('Account basics', false, null, META_Q.map(([k, l, kind]) => kind === 'mode'
+    ? block('m|' + k, l, 'pick', { options: Object.keys(MODES), labels: Object.fromEntries(Object.entries(MODES).map(([x, m]) => [x, m.label])) })
+    : block('m|' + k, l, kind)).join(''));
+  sig.push('|');
+  navOrder(p).forEach(k => {
+    if (k === 'basics') return;
+    if (k.startsWith('custom:')) {
+      const c = p.custom.find(x => 'custom:' + x.id === k); if (!c) return;
+      html += section(c.title || 'Your branch', false, null, block('cb|' + c.id, 'Items', 'list', { hint: 'One per line' }));
+      return;
+    }
+    const s0 = sectionByKey(k, p); if (!s0) return;
+    const d = p.data[k] || {};
+    let inner = '';
+    if (k === 'milestones') {
+      PHASES.forEach((ph, i) => { inner += block('ms|' + ph.key, ph.label + ' (' + ph.when + ')', 'ms', i ? {} : { hint: 'One per line. Start a line with ✓ when it is done.' }); });
+      ['weekly', 'monthly', 'quarterly', 'workbooks'].forEach(fk => { const f = s0.fields.find(x => x.key === fk); if (f) inner += block('d|' + k + '|' + fk, f.label, f.type === 'list' ? 'list' : 'text', f.type === 'list' ? { hint: 'One per line' } : {}); });
+    } else s0.fields.forEach(f => {
+      if (f.showIf && !f.showIf(d)) return;
+      const nk = 'd|' + k + '|' + f.key;
+      if (f.type === 'select') inner += block(nk, f.label, 'pick', { options: f.options });
+      else if (f.type === 'checks') inner += block(nk, f.label, 'checks', { options: f.options });
+      else if (f.type === 'date') inner += block(nk, f.label, 'date');
+      else if (f.type === 'list') inner += block(nk, f.label, 'list', { hint: 'One per line', ph: f.placeholder });
+      else if (f.type === 'table') inner += block(nk, f.label, 'table', { hint: 'One per line: ' + noteCols(f).map(c => c.label).join(' / ') });
+      else inner += block(nk, f.label, f.type === 'textarea' ? 'textarea' : 'text', { ph: f.placeholder });
+    });
+    inner += block('n|' + k, 'Notes and open questions', 'textarea');
+    html += section(s0.title, s0.branch === 'internal', s0.ask, inner);
+  });
+  const orphans = misc.items.filter(it => !seen.has('x|' + it.id));
+  if (orphans.length) html += section('Other notes', false, null, orphans.map(it => { sig.push('x|' + it.id); seen.add('x|' + it.id); return miscHtml(it) + after('x|' + it.id); }).join(''));
+  html += section('Anything else', false, null, block('xe', 'Anything that doesn’t fit a question yet', 'textarea'));
+  return { html, sig: sig.join(','), blocks };
+}
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+let noteSig = '', noteBlocks = [];
+function renderNote() {
+  const root = document.getElementById('noteRoot'), p = cur();
+  const a = document.activeElement, fk = a && a.dataset && a.dataset.nk, sel = fk && a.selectionStart != null ? [a.selectionStart, a.selectionEnd] : null;
+  if (!p) { root.innerHTML = '<p class="note-hint" style="margin-top:40px">This plan isn’t in this browser any more.</p>'; return; }
+  const built = noteHtml(p);
+  noteSig = built.sig; noteBlocks = built.blocks;
+  root.innerHTML = `<div class="note-top"><div><div class="note-eyebrow">Note</div><div class="note-acct">${esc(p.meta.account || 'Untitled plan')}</div></div><span class="note-saved" id="noteSaved">Saved in this browser</span><button class="btn small" id="noteDone">Done</button></div>
+    <p class="note-hint">Type under any question. It all lands in the plan as you go. End a line with ? and press Enter to add a question of your own.</p>${built.html}`;
+  root.querySelectorAll('textarea.na').forEach(autoGrow);
+  document.title = (p.meta.account || 'Plan') + ' note';
+  if (fk) { const el = root.querySelector(`[data-nk="${CSS.escape(fk)}"]`); if (el) { el.focus(); if (sel && el.setSelectionRange) try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
+}
+/* Something changed in another window: update what's showing without moving your cursor. */
+function noteRefresh() {
+  const p = cur(); if (!p || noteHtml(p).sig !== noteSig) { renderNote(); return; }
+  const acct = document.querySelector('.note-acct'); if (acct) acct.textContent = p.meta.account || 'Untitled plan';
+  document.querySelectorAll('#noteRoot [data-nk]').forEach(el => {
+    const nk = el.dataset.nk;
+    if (el.classList.contains('npo') || el.classList.contains('nco')) { el.classList.toggle('on', noteIsOn(p, nk, el.dataset.v)); return; }
+    if (el === document.activeElement) return;
+    const v = noteGet(p, nk); if (el.value !== v) { el.value = v; if (el.tagName === 'TEXTAREA') autoGrow(el); }
+  });
+}
+function noteFocus(nk, atEnd) {
+  const el = document.querySelector(`#noteRoot [data-nk="${CSS.escape(nk)}"]`);
+  if (el) { el.focus(); if (atEnd && el.setSelectionRange) { const n = el.value.length; el.setSelectionRange(n, n); } el.scrollIntoView({ block: 'nearest' }); }
+}
+/* "Who signs the permits?" + Enter: the line becomes a question of its own. */
+function noteSplit(el) {
+  const v = el.value, pos = el.selectionStart;
+  const ls = v.lastIndexOf('\n', pos - 1) + 1; let le = v.indexOf('\n', pos); if (le < 0) le = v.length;
+  const line = v.slice(ls, le).trim();
+  if (!line.endsWith('?') || pos !== le || line.length < 2) return false;
+  const p = cur(), nk = el.dataset.nk, before = v.slice(0, ls).replace(/\n+$/, ''), rest = v.slice(le + 1);
+  noteSet(p, nk, before);
+  const want = line.replace(/[?:\s]+$/, '').toLowerCase();
+  const hit = noteBlocks.find(b => b.nk !== nk && b.label.toLowerCase().replace(/[?:\s]+$/, '') === want);
+  let go;
+  if (hit) { noteAppend(p, hit.nk, rest); go = hit.nk; }
+  else {
+    const m = miscOf(p), id = uid().slice(1);
+    const idx = nk.startsWith('x|') ? m.items.findIndex(x => x.id === nk.slice(2)) + 1 : m.items.length;
+    m.items.splice(idx, 0, { id, q: line, a: rest, at: nk });
+    go = 'x|' + id;
+  }
+  saveSoon(); renderNote(); noteFocus(go, true);
+  return true;
+}
+function noteBoxes() { return Array.from(document.querySelectorAll('#noteRoot textarea.na, #noteRoot input.nq-own, #noteRoot input.na-date')); }
+function noteMove(el, dir) { const all = noteBoxes(), i = all.indexOf(el), n = all[i + dir]; if (n) { n.focus(); if (n.setSelectionRange) { const k = dir > 0 ? 0 : n.value.length; try { n.setSelectionRange(k, k); } catch (e) {} } return true; } return false; }
+
+function initNote() {
+  const m = location.hash.match(/^#note=(.+)$/), id = m ? decodeURIComponent(m[1]) : '';
+  if (plans[id]) currentId = id;
+  document.body.classList.add('note-mode');
+  const root = document.getElementById('noteRoot'); root.hidden = false;
+  renderNote();
+  root.addEventListener('input', e => {
+    const el = e.target, nk = el.dataset && el.dataset.nk, p = cur(); if (!nk || !p || el.tagName === 'BUTTON') return;
+    noteSet(p, nk, el.value); if (el.tagName === 'TEXTAREA') autoGrow(el);
+    if (nk === 'm|account') { const a = document.querySelector('.note-acct'); if (a) a.textContent = el.value || 'Untitled plan'; }
+    saveSoon();
+  });
+  root.addEventListener('change', e => { const el = e.target; if (el.classList.contains('na-date')) { noteSet(cur(), el.dataset.nk, el.value); saveSoon(); } });
+  root.addEventListener('focusin', e => { const nk = e.target.dataset && e.target.dataset.nk; if (nk && nk.startsWith('d|')) { const f = noteFieldOf(cur(), nk); if (f && f.type === 'table') noteBase[nk] = clone((cur().data[nk.split('|')[1]] || {})[f.key] || []); } });
+  root.addEventListener('focusout', e => {
+    const nk = e.target.dataset && e.target.dataset.nk; if (!nk) return;
+    delete noteBase[nk];
+    setTimeout(() => {
+      const p = cur(); if (!p) return;
+      if (nk.startsWith('x|') || nk.startsWith('xq|')) {   // an empty question of your own goes away
+        const id = nk.split('|')[1], it = miscOf(p).items.find(x => x.id === id), a = document.activeElement;
+        if (it && !(it.q || '').trim() && !(it.a || '').trim() && !(a && a.dataset && (a.dataset.nk === 'x|' + id || a.dataset.nk === 'xq|' + id))) {
+          miscOf(p).items.forEach(x => { if (x.at === 'x|' + id) x.at = it.at; });
+          miscOf(p).items = miscOf(p).items.filter(x => x.id !== id); saveSoon(); renderNote(); return;
+        }
+      }
+      if (document.activeElement !== e.target) { const v = noteGet(p, nk); if (e.target.value !== undefined && e.target.value !== v && e.target.tagName === 'TEXTAREA') { e.target.value = v; autoGrow(e.target); } }
+    }, 0);
+  });
+  root.addEventListener('keydown', e => {
+    const el = e.target; if (!el.dataset || !el.dataset.nk) return;
+    if (e.key === 'Enter' && !e.shiftKey) {
+      if (el.tagName === 'TEXTAREA' && noteSplit(el)) { e.preventDefault(); return; }
+      if (el.tagName === 'INPUT' || el.dataset.kind === 'text') { e.preventDefault(); noteMove(el, 1); return; }
+    }
+    if (e.key === 'ArrowDown' && el.selectionStart === el.value.length && noteMove(el, 1)) e.preventDefault();
+    if (e.key === 'ArrowUp' && el.selectionStart === 0 && el.selectionEnd === 0 && noteMove(el, -1)) e.preventDefault();
+  });
+  root.addEventListener('click', e => {
+    const b = e.target.closest('.npo, .nco'), p = cur();
+    if (e.target.id === 'noteDone') { window.close(); setTimeout(() => { location.href = location.href.split('#')[0]; }, 150); return; }
+    if (!b || !p) return;
+    const nk = b.dataset.nk, v = b.dataset.v, [t, a] = nk.split('|');
+    if (t === 'm') p.meta[a] = v;
+    else { const f = noteFieldOf(p, nk), d = p.data[a] || (p.data[a] = {});
+      if (f.type === 'checks') { const arr = Array.isArray(d[f.key]) ? d[f.key] : (d[f.key] = []); const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
+      else d[f.key] = d[f.key] === v ? '' : v; }
+    saveSoon(); noteRefresh();
+  });
+}
+function openNote() {
+  const p = cur(); if (!p) return;
+  const url = location.href.split('#')[0] + '#note=' + encodeURIComponent(p.id);
+  if (window.innerWidth < 760) { window.open(url, '_blank'); return; }
+  const h = Math.min(1000, screen.availHeight - 60), w = window.open(url, 'spbNote', 'width=660,height=' + h + ',left=' + Math.max(0, screen.availWidth - 700) + ',top=30');
+  if (!w) alert('Your browser blocked the note window. Allow pop-ups for this page, then click Note again.');
+  else w.focus();
+}
+
+/* ---------- Notes to sort: questions of your own from the note, waiting for a home ---------- */
+function sortTargets(p) {
+  const out = [];
+  navOrder(p).forEach(k => {
+    if (k === 'basics') return;
+    if (k.startsWith('custom:')) { const c = p.custom.find(x => 'custom:' + x.id === k); if (c) out.push([c.title || 'Your branch', [['cb|' + c.id, 'Items']]]); return; }
+    const s0 = sectionByKey(k, p); if (!s0) return;
+    const opts = [];
+    if (k === 'milestones') PHASES.forEach(ph => opts.push(['ms|' + ph.key, 'Milestones: ' + ph.label]));
+    s0.fields.forEach(f => { if (f.type !== 'milestones') opts.push(['d|' + k + '|' + f.key, f.label]); });
+    opts.push(['n|' + k, 'Notes and open questions']);
+    out.push([s0.title, opts]);
+  });
+  out.unshift(['Account basics', [['m|context', 'What you know so far']]]);
+  return out;
+}
+function sortApply(p, nk, q, a) {
+  const f = noteFieldOf(p, nk), text = nk.startsWith('n|') || nk === 'm|context' ? [q, a].filter(x => (x || '').trim()).join('\n') : ((a || '').trim() ? a : q);
+  if (f && f.type === 'checks') {
+    const lines = String(text).split(/\n|,/).map(x => x.trim().toLowerCase()).filter(Boolean);
+    const hits = f.options.filter(o => lines.some(l => o.toLowerCase().startsWith(l) || l.startsWith(o.toLowerCase())));
+    if (!hits.length) return false;
+    const d = p.data[nk.split('|')[1]]; d[f.key] = Array.from(new Set((Array.isArray(d[f.key]) ? d[f.key] : []).concat(hits))); return true;
+  }
+  if (f && f.type === 'select') { const t = String(text).trim().toLowerCase(), o = f.options.find(x => x && x.toLowerCase() === t) || f.options.find(x => x && t && x.toLowerCase().startsWith(t)); if (!o) return false; (p.data[nk.split('|')[1]] || (p.data[nk.split('|')[1]] = {}))[f.key] = o; return true; }
+  if (f && f.type === 'date') { const v = parseLooseDate(text); if (!v) return false; (p.data[nk.split('|')[1]] || (p.data[nk.split('|')[1]] = {}))[f.key] = v; return true; }
+  noteAppend(p, nk, text); return true;
+}
+function sortHtml(p) {
+  const m = miscOf(p), items = m.items.filter(it => (it.q || '').trim() || (it.a || '').trim());
+  const sel = id => `<select data-sort-to="${id}" aria-label="Move to"><option value="">Move to...</option>${sortTargets(p).map(([g, opts]) => `<optgroup label="${esc(g)}">${opts.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('')}</optgroup>`).join('')}</select>`;
+  const card = (id, q, a) => `<div class="sort-item"><div class="sort-q">${esc(q || 'A note')}</div>${(a || '').trim() ? `<div class="sort-a">${esc(a)}</div>` : ''}
+    <div class="sort-act">${sel(id)}<button class="btn small primary" data-action="sort-move" data-id="${id}">Move</button><button class="btn small ghost" data-action="sort-delete" data-id="${id}">Delete</button></div></div>`;
+  return `<div class="sec-branch">From your note</div><div class="sec-head"><h2>Notes to sort</h2></div>
+    <p class="sec-intro">Questions and answers from the note that don't belong to a step yet. Move each one where it fits. Until then they stay out of the customer view and the PDFs.</p>
+    ${items.map(it => card(it.id, it.q, it.a)).join('')}${(m.end || '').trim() ? card('end', 'Anything else', m.end) : ''}
+    ${items.length || (m.end || '').trim() ? '' : '<p class="empty-note">Nothing to sort.</p>'}
+    <div class="sec-foot"><span></span><button class="btn primary" data-goto="basics">Back to the plan</button></div>`;
+}
+
 /* Floating "See the map" button on smaller screens, where the map sits below the form. */
 (function () {
   const fab = document.getElementById('mapFab'), side = document.getElementById('side');
@@ -2869,6 +3276,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') setTimeout(u
   update();
 })();
 
+if (NOTE_MODE) initNote();
 </script>
 </body>
 </html>
