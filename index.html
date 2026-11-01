@@ -2147,7 +2147,7 @@ function docPage(p, customer, title, body) {
 }
 function docWrap(p, customer, pages) {
   const m = p.meta, logo = docLogo(), n = pages.length;
-  const foot = (customer ? 'Prepared by FactorLab' : 'FactorLab internal') + (m.csm ? ' · ' + esc(m.csm) : '') + ' · Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)));
+  const foot = customer ? '' : 'FactorLab internal' + (m.csm ? ' · ' + esc(m.csm) : '') + ' · Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)));   // the customer copy carries just page numbers
   return `<div class="doc"><div class="doc-pages">${pages.map((pg, i) => `<section class="doc-page">
     <header class="doc-head"><div><div class="doc-eyebrow">Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div>${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</header>
     ${pg.title ? `<h2 class="doc-title">${esc(pg.title)}</h2>` : ''}
