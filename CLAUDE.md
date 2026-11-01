@@ -86,6 +86,8 @@ Field types:
 
 `showIf: d => d.first === 'Other'` hides a field until it applies.
 
+**Every multiple choice has "Something else".** Pick-one lists, tick boxes, pick-one table columns and "What the account needs this year" all add a "Something else" choice that opens a box to type in, in the main view and the Note. The typed text is saved as the answer itself (`select`: the value; `checks`: an extra item in the array; table cell: the cell; mode: `meta.mode = 'other'` plus `meta.modeOther`), so maps, ready checks and PDFs show it like any other answer. Use `modeOf(meta)`, never `MODES[meta.mode]` directly. A list that already has its own `'Other'` option with a follow-up box (First workflow) keeps it, shown as "Something else". Don't add "Something else" as a literal option in `options`; the renderer adds it. Plan size and the step builder's own controls are settings, not questions, and don't get it.
+
 A section shows in the plan if it is `core`, the CSM added it (`meta.sections`), or it already has something written in it. Written work never disappears. "Remove from this plan" only appears on an empty add-on section.
 
 Sections marked `branch: 'internal'` are FactorLab-only. They show with a dashed border and are hidden when "Customer view" is on.

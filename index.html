@@ -375,8 +375,13 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 @media screen and (max-width: 760px) {
   .topbar { flex-wrap: wrap; row-gap: 8px; padding: 10px 14px; }
   .topbar .spacer { display: none; }
-  .brand { order: 0; flex: 1; }
+  .brand { order: 0; flex: 1 1 0; min-width: 0; margin-right: 0; }   /* the logo gives way so Note, Timer and More always share its row */
+  .brand-logo { width: 100%; max-width: 150px; height: auto; }
+  .brand-sub { max-width: 100%; overflow: hidden; }
   #moreMenu { order: 1; }
+  #noteBtn, #timerBtn, #moreBtn { padding: 6px 10px; }
+  #timerBtn { min-width: 0; }
+  .menu-list { max-width: calc(100vw - 28px); }
   .plan-picker { order: 2; flex: 1 1 100%; max-width: none; }
   #presentBtn { order: 3; flex: 1; }
   #pdfMenu { order: 4; flex: 1; }
@@ -386,6 +391,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   #focusBtn, #shareBtn, #teamBtn { display: none; }
   #teamMenu { order: 1; }
   #teamMenu .team-panel { position: fixed; left: 14px; right: 14px; top: 64px; width: auto; }
+  .topbar { column-gap: 8px; }
   #timerBtn, #noteBtn { order: 1; }
   .sec-foot .btn { width: 100%; white-space: normal; }
   .welcome { margin: 8px auto; padding: 20px 18px; }
@@ -523,6 +529,11 @@ body.note-mode .topbar, body.note-mode .app, body.note-mode .banner, body.note-m
 .nco.on .nco-dot { background: var(--amber); border-color: var(--amber); }
 .nco.on .nco-dot::after { content: ''; position: absolute; left: 6px; top: 2.5px; width: 4px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 @media (max-width: 760px) { .note-root { padding: 0 16px 120px; } .note-acct { font-size: 24px; } }
+/* "Something else" boxes */
+.other-box { margin-top: 8px; }
+table.grid td .other-box { margin-top: 4px; }
+.note-root .nc + input.na-other { margin-left: 30px; width: calc(100% - 30px); }
+.note-root input.na-other { display: block; width: 100%; margin-top: 6px; padding: 3px 0; border: 0; border-bottom: 1px dashed var(--line); border-radius: 0; background: none; font: inherit; font-size: 17px; color: var(--ink); }
 /* Notes to sort, in the main view */
 .sort-item { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--amber); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
 .sort-q { font-weight: 700; }
@@ -544,6 +555,7 @@ body.note-mode .topbar, body.note-mode .app, body.note-mode .banner, body.note-m
 .map-root b { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 24px; text-transform: uppercase; letter-spacing: .02em; }
 .doc-card-head b { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: .03em; }
 @media (max-width: 760px) {
+  .brand-sub { font-size: clamp(9px, 2.9vw, 12px); letter-spacing: .08em; }
   .sec-head h2 { font-size: 28px; }
   .start-h, .welcome h1 { font-size: 26px; }
 }
@@ -715,7 +727,7 @@ const SECTIONS = [
     ],
     fields: [
       { key: 'first', label: 'First workflow', type: 'select', options: ['', 'Daily planning / pre-task plans', 'Observations', 'Inspections', 'Permits', 'Audits', 'Other'] },
-      { key: 'firstOther', label: 'If other, which one', type: 'text', showIf: d => d.first === 'Other' },
+      { key: 'firstOther', label: 'Which one', type: 'text', showIf: d => d.first === 'Other' },
       { key: 'sites', label: 'First sites, projects or regions', type: 'list' },
       { key: 'next', label: 'What moves next', type: 'list', placeholder: 'e.g. permits, then inspections' },
       { key: 'systems', label: 'Systems they use today', type: 'list', placeholder: 'e.g. Procore, paper, Microsoft Forms' },
@@ -1252,6 +1264,13 @@ const SECTIONS = [
 /* Starting points. Guided keeps today's setup. The others store their steps on the plan (meta.flow). */
 const FLINTCO_STEPS = ['fcObjective', 'fcSimplify', 'fcValue', 'fcConverge', 'fcStandards', 'fcTrades', 'fcIncidents', 'fcRhythm', 'fcGovern', 'fcMeasures', 'fcYearEnd', 'fcPunch', 'fcReady'];
 const GUIDED_STEPS = () => SECTIONS.filter(s => s.core).map(s => s.key);
+/* Every multiple choice has "Something else", which opens a box to type in. A typed answer is saved
+   as the answer itself, so the map, ready check and PDFs show it like any other choice. */
+const OTHER = 'Something else';
+let otherOpen = {};   // boxes opened with "Something else" before anything is typed (this window only)
+function optLabel(o) { return o === 'Other' ? OTHER : o; }
+function hasOwnOther(opts) { return (opts || []).includes('Other'); }   // older lists with their own "Other" and follow-up box
+function modeOf(m) { return MODES[m.mode] || { label: m.modeOther || OTHER, lead: '' }; }
 const ANSWER_TYPES = { text: 'Short answer', textarea: 'Long answer', list: 'List', select: 'Pick one', checks: 'Tick boxes', date: 'Date', table: 'Table' };
 
 /* Ready check: what "ready to share" means. */
@@ -1602,7 +1621,7 @@ function welcomeHtml() {
     <h1>Start a success plan</h1>
     <p>Name the account, then pick how you want to build the plan. The map builds itself as you go.</p>
     <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"></div>
-    <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}</select></div>
+    <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"></div>
     <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
   </div>`;
 }
@@ -1837,7 +1856,7 @@ function finishBuilder() {
   if (!builder.forPlan) {
     const f = cleanFlow(builder.draft, null), nw = pendingNew || {};
     if (!f.steps.length) return;
-    fadeSwap(() => { builder = null; pendingNew = null; newPlan({ account: nw.account || '', mode: nw.mode || 'launch', template: 'custom', flow: f }); renderAll(); });
+    fadeSwap(() => { builder = null; pendingNew = null; newPlan({ account: nw.account || '', mode: nw.mode || 'launch', modeOther: nw.mode === 'other' ? nw.modeOther || '' : '', template: 'custom', flow: f }); renderAll(); });
     return;
   }
   const p = plans[builder.forPlan], f = cleanFlow(builder.draft, p);
@@ -1851,18 +1870,22 @@ document.addEventListener('input', builderInput);
 document.addEventListener('change', builderInput);
 document.addEventListener('click', builderClick);
 
+function modeFieldHtml(m) {
+  return `<div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}<option value="other" ${m.mode === 'other' ? 'selected' : ''}>${OTHER}</option></select>
+    ${m.mode === 'other' ? `<input type="text" class="other-box" data-meta="modeOther" value="${esc(m.modeOther || '')}" placeholder="Type it in" aria-label="What the account needs: something else">` : ''}</div>`;
+}
 function basicsHtml(p) {
   const m = p.meta;
   return `<div class="sec-branch">Start here</div>
   <div class="sec-head"><h2>Account basics</h2></div>
   <p class="sec-intro">Who this plan is for and what the account needs this year. Drop in anything you already know; you can shape it into the plan later.</p>
-  <div class="hint"><b>${esc(MODES[m.mode].label)}:</b> ${esc(MODES[m.mode].lead)}</div>
+  ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}</div>` : ''}
   <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
   ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span><button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button></div>
-  <div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}</select></div>`
+  ${modeFieldHtml(m)}`
   : `<div class="row2">
     <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} Changing it adds that size's usual sections; it never removes anything.</div></div>
-    <div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}</select></div>
+    ${modeFieldHtml(m)}
   </div>`}
   <div class="row2">
     <div class="field"><label>CSM</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
@@ -1916,9 +1939,18 @@ function fieldHtml(s, f, d) {
     case 'text': return `<div class="field">${label}<input type="text" ${attr} value="${esc(v)}" placeholder="${esc(f.placeholder || '')}"></div>`;
     case 'textarea': return `<div class="field">${label}<textarea ${attr} placeholder="${esc(f.placeholder || '')}">${esc(v)}</textarea></div>`;
     case 'date': return `<div class="field">${label}<input type="date" ${attr} value="${esc(v)}" style="max-width:220px"></div>`;
-    case 'select': return `<div class="field">${label}<select ${attr}>${f.options.map(o => `<option value="${esc(o)}" ${o === (v || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select></div>`;
+    case 'select': {
+      if (hasOwnOther(f.options)) return `<div class="field">${label}<select ${attr}>${f.options.map(o => `<option value="${esc(o)}" ${o === (v || '') ? 'selected' : ''}>${esc(optLabel(o) || 'Choose...')}</option>`).join('')}</select></div>`;
+      const k = s.key + '|' + f.key, custom = !!v && !f.options.includes(v), other = custom || otherOpen[k];
+      return `<div class="field">${label}<select ${attr} data-other-sel="1">${f.options.map(o => `<option value="${esc(o)}" ${!other && o === (v || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}<option value="__other" ${other ? 'selected' : ''}>${OTHER}</option></select>
+        ${other ? `<input type="text" class="other-box" ${attr} data-other-text="select" value="${esc(custom ? v : '')}" placeholder="Type it in" aria-label="${esc(f.label)}: something else">` : ''}</div>`;
+    }
     case 'list': return `<div class="field"><div class="field-label">${esc(f.label)}</div>${listHtml(Array.isArray(v) ? v : [], attr, f.placeholder || 'Add an item')}</div>`;
-    case 'checks': return `<div class="field"><div class="field-label">${esc(f.label)}</div><div class="checks">${f.options.map(o => { const on = Array.isArray(v) && v.includes(o); return `<label class="check ${on ? 'on' : ''}"><input type="checkbox" ${attr} data-opt="${esc(o)}" ${on ? 'checked' : ''}>${esc(o)}</label>`; }).join('')}</div></div>`;
+    case 'checks': {
+      const arr = Array.isArray(v) ? v : [], extra = arr.filter(x => !f.options.includes(x)), other = extra.length > 0 || otherOpen[s.key + '|' + f.key];
+      return `<div class="field"><div class="field-label">${esc(f.label)}</div><div class="checks">${f.options.map(o => { const on = arr.includes(o); return `<label class="check ${on ? 'on' : ''}"><input type="checkbox" ${attr} data-opt="${esc(o)}" ${on ? 'checked' : ''}>${esc(o)}</label>`; }).join('')}<label class="check ${other ? 'on' : ''}"><input type="checkbox" ${attr} data-other-chk="1" ${other ? 'checked' : ''}>${OTHER}</label></div>
+        ${other ? `<input type="text" class="other-box" ${attr} data-other-text="checks" value="${esc(extra.join(', '))}" placeholder="Type it in" aria-label="${esc(f.label)}: something else">` : ''}</div>`;
+    }
     case 'table': return tableHtml(s, f, Array.isArray(v) ? v : []);
     default: return '';
   }
@@ -1935,7 +1967,8 @@ function tableHtml(s, f, rows, opts) {
   const cols = opts.cols ? f.columns.filter(c => opts.cols.includes(c.key)) : f.columns;
   return `<div class="field">${opts.noLabel ? '' : `<div class="field-label">${esc(f.label)}</div>`}<div class="table-wrap"><table class="grid"><thead><tr>${cols.map(c => `<th ${c.width && !opts.cols ? `style="width:${c.width}"` : ''}>${esc(c.label)}</th>`).join('')}${opts.fixed ? '' : '<th></th>'}</tr></thead><tbody>
     ${rows.map((r, i) => `<tr>${cols.map((c, ci) => `<td data-label="${esc(c.label)}" class="${c.multi || ci === 0 ? 'full' : ''}">${c.type === 'select'
-      ? `<select ${attr} data-row="${i}" data-col="${c.key}">${c.options.concat(r[c.key] && !c.options.includes(r[c.key]) ? [r[c.key]] : []).map(o => `<option value="${esc(o)}" ${o === (r[c.key] || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}</select>`
+      ? (() => { const cv = r[c.key] || '', custom = !!cv && !c.options.includes(cv), other = custom || otherOpen[s.key + '|' + f.key + '|' + i + '|' + c.key];
+          return `<select ${attr} data-row="${i}" data-col="${c.key}" data-other-sel="1">${c.options.map(o => `<option value="${esc(o)}" ${!other && o === cv ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}<option value="__other" ${other ? 'selected' : ''}>${OTHER}</option></select>${other ? `<input type="text" class="other-box" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(custom ? cv : '')}" placeholder="Type it in" aria-label="${esc(c.label)}: something else">` : ''}`; })()
       : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}${opts.fixed ? '' : `<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td>`}</tr>`).join('')}
     ${rows.length ? '' : `<tr><td colspan="${cols.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
     </tbody></table></div>${opts.fixed ? '' : `<button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button>`}</div>`;
@@ -2068,7 +2101,7 @@ function mapHtml(p, opts) {
   }).join('');
   if (customer && !branchesHtml) return '';
   const m = p.meta;
-  const root = `<div class="map-root"><b>${esc(m.account || 'Untitled plan')}</b><span>${customer ? 'Success plan' : (m.flow ? esc(planLabel(p)) : esc(TIERS[m.tier].label) + ' plan') + ' · ' + esc(MODES[m.mode].label)}</span></div>`;
+  const root = `<div class="map-root"><b>${esc(m.account || 'Untitled plan')}</b><span>${customer ? 'Success plan' : (m.flow ? esc(planLabel(p)) : esc(TIERS[m.tier].label) + ' plan') + ' · ' + esc(modeOf(m).label)}</span></div>`;
   if (wide) return `<div class="map-wide">${root}<div class="map-link"></div><div class="map-branches">${branchesHtml}</div></div>`;
   return `${root}<div class="map-branches">${branchesHtml}</div><div style="margin:12px 0 0 34px"><button class="leaf ghost" data-goto="addmore">+ Build out this plan</button></div>`;
 }
@@ -2335,7 +2368,7 @@ function handleInput(e) {
     if (k === 'verified') t.closest('.check').classList.toggle('on', t.checked);
     saveSoon();
     if (k === 'tier') addSections(p, presetSections(t.value));
-    if (k === 'tier' || k === 'mode') { saveSoon(); renderAll(); return; }
+    if (k === 'tier' || k === 'mode') { saveSoon(); renderAll(); if (k === 'mode' && t.value === 'other') { const b = document.querySelector('#work [data-meta=modeOther]'); if (b) b.focus(); } return; }
     if (k === 'account') renderPicker();
     sideSoon(); return;
   }
@@ -2358,6 +2391,29 @@ function handleInput(e) {
     if (t.dataset.add) return;
     const d = p.data[t.dataset.sec] || (p.data[t.dataset.sec] = {});
     const f = t.dataset.field;
+    if (t.dataset.otherSel) {   // a pick-one list, with "Something else"
+      const row = t.dataset.row, k = t.dataset.sec + '|' + f + (row != null ? '|' + row + '|' + t.dataset.col : '');
+      const setV = v => { if (row != null) d[f][+row][t.dataset.col] = v; else d[f] = v; };
+      if (t.value === '__other') { otherOpen[k] = true; setV(''); } else { delete otherOpen[k]; setV(t.value); }
+      saveSoon(); sideSoon();
+      if (e.type === 'change') {
+        renderWork();
+        if (t.value === '__other') { const sel = `#work .other-box[data-sec="${t.dataset.sec}"][data-field="${f}"]` + (row != null ? `[data-row="${row}"][data-col="${t.dataset.col}"]` : ''); const box = document.querySelector(sel); if (box) box.focus(); }
+      }
+      return;
+    }
+    if (t.dataset.otherChk) {   // tick boxes: "Something else"
+      const k = t.dataset.sec + '|' + f, sec = sectionByKey(t.dataset.sec), fd = sec && sec.fields.find(x => x.key === f);
+      if (t.checked) otherOpen[k] = true; else { delete otherOpen[k]; d[f] = (Array.isArray(d[f]) ? d[f] : []).filter(x => fd && fd.options.includes(x)); }
+      saveSoon(); sideSoon();
+      if (e.type === 'change') { renderWork(); if (t.checked) { const box = document.querySelector(`#work .other-box[data-sec="${t.dataset.sec}"][data-field="${f}"]`); if (box) box.focus(); } }
+      return;
+    }
+    if (t.dataset.otherText === 'checks') {
+      const sec = sectionByKey(t.dataset.sec), fd = sec && sec.fields.find(x => x.key === f), txt = t.value.trim();
+      d[f] = (Array.isArray(d[f]) ? d[f] : []).filter(x => fd && fd.options.includes(x)).concat(txt ? [txt] : []);
+      saveSoon(); sideSoon(); return;
+    }
     if (t.dataset.opt) {
       const arr = d[f] || (d[f] = []);
       const i = arr.indexOf(t.dataset.opt);
@@ -2406,7 +2462,7 @@ function handleClick(e) {
   const p = cur();
   const act = a.dataset.action;
   if (act === 'create') {
-    const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value };
+    const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '' };
     fadeSwap(() => { pendingNew = nw; renderAll(); }); return;
   }
   if (act === 'repick') { fadeSwap(() => { repick = true; renderAll(); }); return; }
@@ -2415,13 +2471,13 @@ function handleClick(e) {
   if (act === 'start-back') {
     fadeSwap(() => {
       const nw = pendingNew; pendingNew = null; renderAll();
-      if (nw) { document.getElementById('w-account').value = nw.account; document.getElementById('w-mode').value = nw.mode; }
+      if (nw) { document.getElementById('w-account').value = nw.account; document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; }
     }); return;
   }
   if (act === 'start') {
     const t = a.dataset.t, nw = pendingNew || { account: '', mode: 'launch' };
     if (t === 'custom') { fadeSwap(() => { builder = { forPlan: null, draft: seedFlow('guided'), open: null, msg: '' }; renderAll(); }); return; }
-    fadeSwap(() => { pendingNew = null; newPlan(Object.assign({ account: nw.account, mode: nw.mode, template: t }, t === 'flintco' ? { flow: seedFlow('flintco') } : {})); renderAll(); });
+    fadeSwap(() => { pendingNew = null; newPlan(Object.assign({ account: nw.account, mode: nw.mode, modeOther: nw.mode === 'other' ? nw.modeOther : '', template: t }, t === 'flintco' ? { flow: seedFlow('flintco') } : {})); renderAll(); });
     return;
   }
   if (act === 'present') { openPresent(); return; }
@@ -2593,6 +2649,7 @@ document.getElementById('printBtn').addEventListener('click', printPlan);
 window.addEventListener('afterprint', () => { document.title = APP_TITLE; });
 document.querySelector('.side-tabs').addEventListener('click', e => { const t = e.target.closest('.side-tab'); if (t) { sideTab = t.dataset.tab; renderSide(); } });
 document.addEventListener('change', e => {
+  if (e.target.id === 'w-mode') { const b = document.getElementById('w-modeOther'); b.style.display = e.target.value === 'other' ? '' : 'none'; if (e.target.value === 'other') b.focus(); return; }
   if (e.target.id !== 'mobileJump') return;
   if (e.target.value === '__branch') { const a = document.querySelector('[data-action=add-branch]'); if (a) a.click(); return; }
   go(e.target.value);
@@ -3013,7 +3070,16 @@ function parseLooseDate(t) {
 /* Note keys: m|<meta>, d|<section>|<field>, n|<section> (notes), ms|<phase>, cb|<branch id> (items),
    x|<id> and xq|<id> (a question of your own and its answer), xe (anything else). */
 function noteFieldOf(p, nk) { const [t, a, b] = nk.split('|'); if (t !== 'd') return null; const s = sectionByKey(a, p); return s ? s.fields.find(f => f.key === b) : null; }
+function noteOtherState(p, nk) {   // { opts, custom text, on }
+  const [t, a] = nk.split('|');
+  if (t === 'm') { const on = p.meta.mode === 'other'; return { opts: Object.keys(MODES), text: on ? p.meta.modeOther || '' : '', on: on || !!otherOpen[nk] }; }
+  const f = noteFieldOf(p, nk), v = (p.data[a] || {})[f ? f.key : ''];
+  if (!f) return { opts: [], text: '', on: false };
+  if (f.type === 'checks') { const extra = (Array.isArray(v) ? v : []).filter(x => !f.options.includes(x)); return { opts: f.options, text: extra.join(', '), on: extra.length > 0 || !!otherOpen[nk] }; }
+  const custom = !!v && !f.options.includes(v); return { opts: f.options, text: custom ? v : '', on: custom || !!otherOpen[nk] };
+}
 function noteGet(p, nk) {
+  if (nk.startsWith('o|')) return noteOtherState(p, nk.slice(2)).text;
   const [t, a] = nk.split('|');
   if (t === 'm') return String(p.meta[a] || '');
   if (t === 'n') return (p.notes || {})[a] || '';
@@ -3029,6 +3095,14 @@ function noteGet(p, nk) {
 }
 let noteBase = {};   // rows as they were when a table's note box got focus
 function noteSet(p, nk, text) {
+  if (nk.startsWith('o|')) {
+    const q = nk.slice(2), [qt, qa] = q.split('|'), txt = text.trim();
+    if (qt === 'm') { p.meta.mode = 'other'; p.meta.modeOther = text; return; }
+    const f = noteFieldOf(p, q), d = p.data[qa] || (p.data[qa] = {}); if (!f) return;
+    if (f.type === 'checks') d[f.key] = (Array.isArray(d[f.key]) ? d[f.key] : []).filter(x => f.options.includes(x)).concat(txt ? [txt] : []);
+    else d[f.key] = text;
+    return;
+  }
   const [t, a] = nk.split('|');
   if (t === 'm') { p.meta[a] = a === 'context' ? text : text.replace(/\s*\n\s*/g, ' '); return; }
   if (t === 'n') { (p.notes = p.notes || {})[a] = text; return; }
@@ -3051,6 +3125,7 @@ function noteAppend(p, nk, text) {
 }
 function noteIsOn(p, nk, v) {
   const [t, a] = nk.split('|');
+  if (v === '__other') return noteOtherState(p, nk).on;
   if (t === 'm') return p.meta[a] === v;
   const f = noteFieldOf(p, nk), cur = (p.data[a] || {})[f ? f.key : ''];
   return f && f.type === 'checks' ? Array.isArray(cur) && cur.includes(v) : cur === v;
@@ -3065,7 +3140,12 @@ function noteHtml(p) {
     if (['text', 'textarea', 'list', 'table', 'ms'].includes(kind)) blocks.push({ nk, label });
     let body;
     if (kind === 'date') body = `<input type="date" class="na-date" data-nk="${esc(nk)}" value="${esc(noteGet(p, nk))}" aria-label="${esc(label)}">`;
-    else if (kind === 'pick' || kind === 'checks') body = `<div class="${kind === 'pick' ? 'np' : 'nc'}">${opts.options.filter(Boolean).map(o => `<button type="button" class="${kind === 'pick' ? 'npo' : 'nco'} ${noteIsOn(p, nk, o) ? 'on' : ''}" data-nk="${esc(nk)}" data-v="${esc(o)}">${kind === 'checks' ? '<span class="nco-dot"></span>' : ''}${esc(opts.labels ? opts.labels[o] : o)}</button>`).join('')}</div>`;
+    else if (kind === 'pick' || kind === 'checks') {
+      const own = hasOwnOther(opts.options), oth = !own && noteOtherState(p, nk);
+      if (oth && oth.on) sig.push('o|' + nk);
+      body = `<div class="${kind === 'pick' ? 'np' : 'nc'}">${opts.options.filter(Boolean).concat(own ? [] : ['__other']).map(o => `<button type="button" class="${kind === 'pick' ? 'npo' : 'nco'} ${noteIsOn(p, nk, o) ? 'on' : ''}" data-nk="${esc(nk)}" data-v="${esc(o)}">${kind === 'checks' ? '<span class="nco-dot"></span>' : ''}${esc(o === '__other' ? OTHER : opts.labels ? opts.labels[o] : optLabel(o))}</button>`).join('')}</div>`
+        + (oth && oth.on ? `<input type="text" class="na-other" data-nk="o|${esc(nk)}" value="${esc(oth.text)}" placeholder="Type it in" aria-label="${esc(label)}: something else">` : '');
+    }
     else body = ta(nk, kind, opts.ph);
     return `<div class="nb"><div class="nq">${esc(label)}</div>${opts.hint ? `<div class="nh">${esc(opts.hint)}</div>` : ''}${body}</div>` + after(nk);
   };
@@ -3155,7 +3235,7 @@ function noteSplit(el) {
   saveSoon(); renderNote(); noteFocus(go, true);
   return true;
 }
-function noteBoxes() { return Array.from(document.querySelectorAll('#noteRoot textarea.na, #noteRoot input.nq-own, #noteRoot input.na-date')); }
+function noteBoxes() { return Array.from(document.querySelectorAll('#noteRoot textarea.na, #noteRoot input.nq-own, #noteRoot input.na-date, #noteRoot input.na-other')); }
 function noteMove(el, dir) { const all = noteBoxes(), i = all.indexOf(el), n = all[i + dir]; if (n) { n.focus(); if (n.setSelectionRange) { const k = dir > 0 ? 0 : n.value.length; try { n.setSelectionRange(k, k); } catch (e) {} } return true; } return false; }
 
 function initNote() {
@@ -3201,10 +3281,16 @@ function initNote() {
     if (e.target.id === 'noteDone') { window.close(); setTimeout(() => { location.href = location.href.split('#')[0]; }, 150); return; }
     if (!b || !p) return;
     const nk = b.dataset.nk, v = b.dataset.v, [t, a] = nk.split('|');
-    if (t === 'm') p.meta[a] = v;
+    if (v === '__other') {
+      const st = noteOtherState(p, nk);
+      if (st.on) { delete otherOpen[nk]; if (t === 'm') { if (p.meta.mode === 'other') p.meta.mode = 'launch'; p.meta.modeOther = ''; } else noteSet(p, 'o|' + nk, ''); }
+      else { otherOpen[nk] = true; if (t !== 'm') { const f = noteFieldOf(p, nk); if (f && f.type === 'select') (p.data[a] || (p.data[a] = {}))[f.key] = ''; } }
+      saveSoon(); renderNote(); if (!st.on) noteFocus('o|' + nk); return;
+    }
+    if (t === 'm') { p.meta[a] = v; delete otherOpen[nk]; }
     else { const f = noteFieldOf(p, nk), d = p.data[a] || (p.data[a] = {});
       if (f.type === 'checks') { const arr = Array.isArray(d[f.key]) ? d[f.key] : (d[f.key] = []); const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
-      else d[f.key] = d[f.key] === v ? '' : v; }
+      else { d[f.key] = d[f.key] === v ? '' : v; delete otherOpen[nk]; } }
     saveSoon(); noteRefresh();
   });
 }
@@ -3238,10 +3324,10 @@ function sortApply(p, nk, q, a) {
   if (f && f.type === 'checks') {
     const lines = String(text).split(/\n|,/).map(x => x.trim().toLowerCase()).filter(Boolean);
     const hits = f.options.filter(o => lines.some(l => o.toLowerCase().startsWith(l) || l.startsWith(o.toLowerCase())));
-    if (!hits.length) return false;
-    const d = p.data[nk.split('|')[1]]; d[f.key] = Array.from(new Set((Array.isArray(d[f.key]) ? d[f.key] : []).concat(hits))); return true;
+    const d = p.data[nk.split('|')[1]] || (p.data[nk.split('|')[1]] = {});
+    d[f.key] = Array.from(new Set((Array.isArray(d[f.key]) ? d[f.key] : []).concat(hits.length ? hits : [String(text).trim()]))); return true;
   }
-  if (f && f.type === 'select') { const t = String(text).trim().toLowerCase(), o = f.options.find(x => x && x.toLowerCase() === t) || f.options.find(x => x && t && x.toLowerCase().startsWith(t)); if (!o) return false; (p.data[nk.split('|')[1]] || (p.data[nk.split('|')[1]] = {}))[f.key] = o; return true; }
+  if (f && f.type === 'select') { const t = String(text).trim().toLowerCase(), o = f.options.find(x => x && x.toLowerCase() === t) || f.options.find(x => x && t && x.toLowerCase().startsWith(t)); (p.data[nk.split('|')[1]] || (p.data[nk.split('|')[1]] = {}))[f.key] = o || String(text).trim(); return true; }
   if (f && f.type === 'date') { const v = parseLooseDate(text); if (!v) return false; (p.data[nk.split('|')[1]] || (p.data[nk.split('|')[1]] = {}))[f.key] = v; return true; }
   noteAppend(p, nk, text); return true;
 }
