@@ -503,7 +503,15 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 body.note-mode { background: var(--surface); }
 body.note-mode .topbar, body.note-mode .app, body.note-mode .banner, body.note-mode .fab, body.note-mode .back-fab, body.note-mode #present { display: none !important; }
 .note-root { max-width: 720px; margin: 0 auto; padding: 0 26px 140px; }
-.note-top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 16px 0 12px; background: var(--surface); border-bottom: 1px solid var(--soft); box-shadow: 0 8px 12px -12px rgba(20,30,50,.18); }
+.note-top { position: sticky; top: 0; z-index: 5; padding: 16px 0 10px; background: var(--surface); border-bottom: 1px solid var(--soft); box-shadow: 0 8px 12px -12px rgba(20,30,50,.18); }
+.note-head { display: flex; align-items: center; gap: 12px; }
+/* Section carousel: swipe sideways, tap to jump */
+.note-jump { display: flex; gap: 6px; margin: 12px -26px 0; padding: 0 26px 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-padding: 0 26px; }
+.note-jump::-webkit-scrollbar { display: none; }
+.nj { flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px 4px; background: var(--surface); color: var(--muted); font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 14.5px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.nj:hover { color: var(--ink); border-color: var(--muted); }
+.nj.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.ns { scroll-margin-top: var(--nt, 130px); }
 .note-eyebrow { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
 .note-acct { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 28px; line-height: 1; text-transform: uppercase; letter-spacing: .01em; color: var(--navy); }
 .note-saved { margin-left: auto; font-size: 12px; color: var(--faint); }
@@ -530,7 +538,7 @@ body.note-mode .topbar, body.note-mode .app, body.note-mode .banner, body.note-m
 .nco.on { color: var(--ink); }
 .nco.on .nco-dot { background: var(--amber); border-color: var(--amber); }
 .nco.on .nco-dot::after { content: ''; position: absolute; left: 6px; top: 2.5px; width: 4px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
-@media (max-width: 760px) { .note-root { padding: 0 16px 120px; } .note-acct { font-size: 24px; } }
+@media (max-width: 760px) { .note-root { padding: 0 16px 120px; } .note-acct { font-size: 24px; } .note-jump { margin: 10px -16px 0; padding: 0 16px 2px; scroll-padding: 0 16px; } }
 /* "Something else" boxes */
 .other-box { margin-top: 8px; }
 table.grid td .other-box { margin-top: 4px; }
@@ -3181,7 +3189,7 @@ function noteHtml(p) {
     else body = ta(nk, kind, opts.ph);
     return `<div class="nb"><div class="nq">${esc(label)}</div>${opts.hint ? `<div class="nh">${esc(opts.hint)}</div>` : ''}${body}</div>` + after(nk);
   };
-  const section = (title, internal, ask, inner) => `<section class="ns"><h2 class="nsh">${esc(title)}${internal ? '<span class="ntag">FactorLab only</span>' : ''}</h2>${ask && ask.length ? `<p class="nask">${ask.map(esc).join(' &middot; ')}</p>` : ''}${inner}</section>`;
+  const section = (title, internal, ask, inner) => `<section class="ns" data-title="${esc(title)}"><h2 class="nsh">${esc(title)}${internal ? '<span class="ntag">FactorLab only</span>' : ''}</h2>${ask && ask.length ? `<p class="nask">${ask.map(esc).join(' &middot; ')}</p>` : ''}${inner}</section>`;
   let html = section('Account basics', false, null, META_Q.map(([k, l, kind]) => kind === 'mode'
     ? block('m|' + k, l, 'pick', { options: Object.keys(MODES), labels: Object.fromEntries(Object.entries(MODES).map(([x, m]) => [x, m.label])) })
     : block('m|' + k, l, kind)).join(''));
@@ -3225,9 +3233,15 @@ function renderNote() {
   if (!p) { root.innerHTML = '<p class="note-hint" style="margin-top:40px">This plan isn’t in this browser any more.</p>'; return; }
   const built = noteHtml(p);
   noteSig = built.sig; noteBlocks = built.blocks;
-  root.innerHTML = `<div class="note-top"><div><div class="note-eyebrow">Note</div><div class="note-acct">${esc(p.meta.account || 'Untitled plan')}</div></div><span class="note-saved" id="noteSaved">Saved in this browser</span><button class="btn small" id="noteDone">Done</button></div>
+  const keepLeft = (document.querySelector('.note-jump') || {}).scrollLeft || 0;
+  const titles = (built.html.match(/<section class="ns" data-title="[^"]*"/g) || []).map(x => x.replace(/^.*data-title="|"$/g, ''));
+  root.innerHTML = `<div class="note-top"><div class="note-head"><div><div class="note-eyebrow">Note</div><div class="note-acct">${esc(p.meta.account || 'Untitled plan')}</div></div><span class="note-saved" id="noteSaved">Saved in this browser</span><button class="btn small" id="noteDone">Done</button></div>
+    <nav class="note-jump" aria-label="Jump to a section">${titles.map((t, i) => `<button type="button" class="nj" data-nj="${i}">${t}</button>`).join('')}</nav></div>
     <p class="note-hint">Type under any question. It all lands in the plan as you go. End a line with ? and press Enter to add a question of your own.</p>${built.html}`;
   root.querySelectorAll('textarea.na').forEach(autoGrow);
+  root.querySelectorAll('.ns').forEach((sec, i) => { sec.id = 'ns-' + i; });
+  const jump = root.querySelector('.note-jump'); if (jump) jump.scrollLeft = keepLeft;
+  noteSpy(true);
   document.title = (p.meta.account || 'Plan') + ' note';
   if (fk) { const el = root.querySelector(`[data-nk="${CSS.escape(fk)}"]`); if (el) { el.focus(); if (sel && el.setSelectionRange) try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
 }
@@ -3241,6 +3255,33 @@ function noteRefresh() {
     if (el === document.activeElement) return;
     const v = noteGet(p, nk); if (el.value !== v) { el.value = v; if (el.tagName === 'TEXTAREA') autoGrow(el); }
   });
+}
+/* The section carousel: highlight the section you're in, and keep its name in view. */
+let noteSpyOn = -1, noteSpyHold = null;
+function noteJumpTo(i) {
+  const top = document.querySelector('.note-top'), sec = document.getElementById('ns-' + i); if (!top || !sec) return;
+  const y = window.scrollY + sec.getBoundingClientRect().top - top.offsetHeight - 8;
+  clearTimeout(noteSpyHold); noteSpyHold = setTimeout(() => { noteSpyHold = null; noteSpy(true); }, 900);   // keep the tapped name lit while the page moves
+  noteSpyOn = i; markJump(i, false);
+  window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+}
+function markJump(on, instant) {
+  const jump = document.querySelector('.note-jump'); if (!jump) return;
+  jump.querySelectorAll('.nj').forEach((b, i) => { b.classList.toggle('on', i === on); if (i === on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+  const b = jump.querySelector('.nj.on');
+  if (b) jump.scrollTo({ left: Math.max(0, b.offsetLeft - (jump.clientWidth - b.offsetWidth) / 2), behavior: instant ? 'auto' : 'smooth' });
+}
+function noteSpy(force) {
+  if (noteSpyHold && !force) return;
+  const top = document.querySelector('.note-top'); if (!top) return;
+  const h = top.offsetHeight; document.documentElement.style.setProperty('--nt', (h + 8) + 'px');
+  let on = 0;
+  const secs = document.querySelectorAll('#noteRoot .ns');
+  secs.forEach((sec, i) => { if (sec.getBoundingClientRect().top - h <= 40) on = i; });
+  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) on = secs.length - 1;   // at the very bottom, the last section is the one you're in
+  if (on === noteSpyOn && !force) return;
+  noteSpyOn = on;
+  markJump(on, !!force);
 }
 function noteFocus(nk, atEnd) {
   const el = document.querySelector(`#noteRoot [data-nk="${CSS.escape(nk)}"]`);
@@ -3282,6 +3323,8 @@ function initNote() {
     if (nk === 'm|account') { const a = document.querySelector('.note-acct'); if (a) a.textContent = el.value || 'Untitled plan'; }
     saveSoon();
   });
+  window.addEventListener('scroll', () => noteSpy(), { passive: true });
+  window.addEventListener('resize', () => noteSpy(true));
   root.addEventListener('change', e => { const el = e.target; if (el.classList.contains('na-date')) { noteSet(cur(), el.dataset.nk, el.value); saveSoon(); } });
   root.addEventListener('focusin', e => { const nk = e.target.dataset && e.target.dataset.nk; if (nk && nk.startsWith('d|')) { const f = noteFieldOf(cur(), nk); if (f && f.type === 'table') noteBase[nk] = clone((cur().data[nk.split('|')[1]] || {})[f.key] || []); } });
   root.addEventListener('focusout', e => {
@@ -3310,6 +3353,8 @@ function initNote() {
   });
   root.addEventListener('click', e => {
     const b = e.target.closest('.npo, .nco'), p = cur();
+    const nj = e.target.closest('.nj');
+    if (nj) { noteJumpTo(+nj.dataset.nj); return; }
     if (e.target.id === 'noteDone') { window.close(); setTimeout(() => { location.href = location.href.split('#')[0]; }, 150); return; }
     if (!b || !p) return;
     const nk = b.dataset.nk, v = b.dataset.v, [t, a] = nk.split('|');
