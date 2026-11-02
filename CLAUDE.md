@@ -135,7 +135,7 @@ plan = {
 3. Confirm the map, timeline, ready check and step bar update, a reload keeps the plan, and "View plan" plus "Customer view" look right. Open the Customer window, type in the main window, and confirm it updates and never shows FactorLab-only content.
 4. Export the plan, delete it, import the file, and confirm it comes back.
 5. Check the browser console for errors.
-6. Narrow the window to phone width and make sure nothing breaks.
+6. Check every window width, not just phone and full screen: drag from about 320 px to 1920 px (or loop widths in Playwright) and confirm nothing runs off the right edge, the top bar's buttons stay reachable (they take a second row under about 1100 px), and the pinned side menu never covers the map (between 761 and 1180 px the map sits under the form in the right-hand column).
 
 ## Publishing
 

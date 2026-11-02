@@ -70,19 +70,22 @@ a { color: var(--navy); }
 
 /* ---------- Layout ---------- */
 .app { display: grid; grid-template-columns: 240px minmax(0, 1fr) 440px; min-height: calc(100vh - var(--topbar)); }
-.nav { border-right: 1px solid var(--line); background: var(--surface); padding: 14px 10px 40px; position: sticky; top: var(--tb, var(--topbar)); height: calc(100vh - var(--tb, var(--topbar))); overflow-y: auto; }
+.nav { border-right: 1px solid var(--line); background: var(--surface); padding: 14px 10px 76px; position: sticky; top: var(--tb, var(--topbar)); height: calc(100vh - var(--tb, var(--topbar))); overflow-y: auto; }
 .work { padding: 22px 28px 80px; min-width: 0; }
 .side { border-left: 1px solid var(--line); background: var(--surface); position: sticky; top: var(--tb, var(--topbar)); height: calc(100vh - var(--tb, var(--topbar))); overflow-y: auto; }
 @media (max-width: 1180px) {
+  /* Mid widths: the menu runs down the left the whole way, and the map sits under the form on the right,
+     so the pinned menu never slides over the map. */
   .app { grid-template-columns: 210px minmax(0, 1fr); }
-  .side { grid-column: 1 / -1; position: static; height: auto; border-left: 0; border-top: 1px solid var(--line); }
+  .nav { grid-row: 1 / span 2; }
+  .side { grid-column: 2; position: static; height: auto; border-left: 0; border-top: 1px solid var(--line); }
 }
 .mobile-jump { display: none; }
 @media (max-width: 760px) {
   .app { grid-template-columns: 1fr; }
   .nav { display: none; }
   .mobile-jump { display: block; margin-bottom: 16px; }
-  .side { position: static; scroll-margin-top: var(--tb, 0px); }
+  .side { grid-column: 1; position: static; scroll-margin-top: var(--tb, 0px); }
   #work { scroll-margin-top: var(--tb, 0px); }
   .work { padding: 18px 16px 84px; }
 }
@@ -355,6 +358,17 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 .back-fab span { margin-right: 4px; font-weight: 700; }
 .back-fab:hover { background: var(--navy-soft); }
 .fab-arrow { display: inline-block; margin-left: 7px; font-weight: 700; }
+/* Top bar at in-between widths: fewer words first, then the buttons take a second row instead of
+   running off the edge. Team code stays in More. */
+@media screen and (min-width: 761px) and (max-width: 1360px) {
+  .saved, #teamMenu { display: none; }
+  .topbar .btn { padding: 6px 10px; }
+}
+@media screen and (min-width: 761px) and (max-width: 1100px) {
+  .topbar { flex-wrap: wrap; row-gap: 0; }
+  .topbar .spacer { flex: 1 0 100%; height: 8px; }
+  .plan-picker { flex: 1 1 200px; max-width: 420px; }
+}
 @media screen and (max-width: 1180px) {
   .saved { display: none; }
   .plan-picker { min-width: 0; flex: 1 1 160px; }
