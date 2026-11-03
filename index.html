@@ -186,6 +186,8 @@ body.focus .nav, body.focus .side, body.focus .fab { display: none !important; }
 body.focus .app { grid-template-columns: minmax(0, 1fr); }
 body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .btn.on { background: var(--navy-soft); border-color: #8fa8c9; color: var(--navy); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg .btn { padding: 7px 14px; font-size: 13.5px; }
 #timerBtn { font-variant-numeric: tabular-nums; min-width: 64px; }
 .team-panel { width: 300px; padding: 14px; }
 .team-panel p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
@@ -496,6 +498,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 .doc-punch td:nth-child(2) { width: 22%; }
 .doc-punch td:nth-child(3) { width: 40%; }
 .doc-done { color: var(--green); font-weight: 600; }
+.doc-grid td, .doc-grid th { font-size: 12px; padding: 6px 7px; }
 .doc-context { font-size: 13px; white-space: pre-wrap; margin: 0; display: -webkit-box; -webkit-line-clamp: 9; -webkit-box-orient: vertical; overflow: hidden; }
 .doc-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
 .doc-ftitle { font-weight: 700; font-size: 13px; color: var(--navy); margin: 0 0 6px; padding-top: 4px; }
@@ -608,6 +611,7 @@ table.grid td .other-box { margin-top: 4px; }
 .fill-flag.add { color: var(--navy); background: var(--navy-soft); }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--ink); color: var(--surface); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 60; max-width: calc(100vw - 32px); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media print { .toast { display: none !important; } }
 [data-theme="dark"] .fill-item.on { border-color: #4d6f9c; }
 [data-theme="dark"] .start-tag { color: #f0a868; }
 @media (max-width: 760px) { .fill-step-card { padding: 12px; gap: 10px; } .fill-bar-act { margin-left: 0; } }
@@ -927,6 +931,81 @@ const SECTIONS = [
     ]
   },
 
+  {
+    key: 'rolloutProjects', rollout: true, when: 'For a full rollout: every project, its leads, and when it launches.', branch: 'what', title: 'Projects and launch order', short: 'the projects',
+    tiers: [],
+    intro: 'Every project in the rollout, who leads it, and when it launches. A project launches when its plan, setup and training are done and they say go.',
+    ask: [
+      'Which projects go first, and why those?',
+      'Who leads operations and safety on each one?',
+      'How many crews does each project have at its peak, and what languages do they speak?'
+    ],
+    fields: [
+      { key: 'rows', label: 'Projects', type: 'table',
+        columns: [
+          { key: 'project', label: 'Project', width: '20%' },
+          { key: 'region', label: 'Region' },
+          { key: 'ops', label: 'Operations lead' },
+          { key: 'safety', label: 'Safety lead' },
+          { key: 'crews', label: 'Crews and languages' },
+          { key: 'launch', label: 'Launch date' },
+          { key: 'status', label: 'Status', type: 'select', options: ['', 'Planning', 'Ready to launch', 'Launched', 'On hold'] }
+        ],
+        noteCols: ['project', 'region', 'launch', 'status'],
+        defaultRows: () => [], addLabel: 'Add a project' },
+      { key: 'gate', label: 'Before a project launches', type: 'checks', options: ['Project plan agreed', 'Setup and access tested', 'Leaders and crews trained', 'They approve the launch'] },
+      { key: 'approver', label: 'Who approves each launch on their side', type: 'text' }
+    ],
+    leaves: d => {
+      const rows = (d.rows || []).filter(r => r.project);
+      if (!rows.length) return [];
+      const launched = rows.filter(r => r.status === 'Launched').length, ready = rows.filter(r => r.status === 'Ready to launch').length;
+      const next = rows.filter(r => r.launch && r.status !== 'Launched').sort((a, b) => String(a.launch).localeCompare(String(b.launch)))[0];
+      return [rows.length + ' project' + (rows.length > 1 ? 's' : '') + (launched ? ', ' + launched + ' launched' : '') + (ready ? ', ' + ready + ' ready' : ''), next && 'Next launch: ' + next.project + ' (' + next.launch + ')'];
+    }
+  },
+  {
+    key: 'rolloutSetup', rollout: true, when: 'For a full rollout: the technical setup and who sees what.', branch: 'what', title: 'Setup and access', short: 'setup and access',
+    tiers: [],
+    intro: 'The setup that has to be right before people log in: how the company is laid out, who sees what, how people sign in, and what connects to what. Mark each one needed or not, and give it an owner on both sides.',
+    ask: [
+      'How do people sign in to your other systems today?',
+      'Where do your projects, people and trade partners live today?',
+      'Who should never see what? Think incident reports and other trades.',
+      'Who on your side tests a change before the field sees it?'
+    ],
+    fields: [
+      { key: 'rows', label: 'Setup', type: 'table',
+        columns: [
+          { key: 'item', label: 'Item', width: '22%' },
+          { key: 'need', label: 'Needed?', type: 'select', options: ['', 'Yes', 'To decide', 'Not needed'] },
+          { key: 'customer', label: 'Their owner' },
+          { key: 'factorlab', label: 'FactorLab owner' },
+          { key: 'done', label: 'Done looks like', multi: true, width: '26%' },
+          { key: 'status', label: 'Status', type: 'select', options: ['', 'Not started', 'In progress', 'Tested', 'Done'] }
+        ],
+        noteCols: ['item', 'need', 'customer', 'factorlab', 'status'],
+        defaultRows: () => [
+          ['Company layout', 'Regions, business units and projects set up the way they run the work.'],
+          ['Who sees what', 'Each role (executive, middle manager, project team, foreman, trade partner, admin) sees and does the right things, checked with a test login.'],
+          ['Sign-in', 'People sign in the way they already do (single sign-on if they use it), tested before training.'],
+          ['Adding and removing people', 'New people get access and leavers lose it without anyone remembering to.'],
+          ['Connections to their systems', 'Projects, people and trade partners come in from where they already live.'],
+          ['Forms', 'Their forms built and tried by a field leader before launch.'],
+          ['Phones and tablets', 'The app is on the devices crews use, including personal phones if they allow it.'],
+          ['Go-live check', 'A last run-through with their admin the week before the first launch.']
+        ].map(r => ({ item: r[0], done: r[1] })),
+        addLabel: 'Add a setup item' },
+      { key: 'admin', label: 'Their admin for day-to-day changes', type: 'text' }
+    ],
+    leaves: d => {
+      const rows = (d.rows || []).filter(r => r.item && r.need !== 'Not needed');
+      if (!rows.some(r => r.need || r.customer || r.factorlab || r.status)) return [];
+      const done = rows.filter(r => r.status === 'Done' || r.status === 'Tested').length, next = rows.find(r => r.status !== 'Done' && r.status !== 'Tested');
+      return [done + ' of ' + rows.length + ' setup items ready', next && 'Next: ' + next.item, d.admin && 'Their admin: ' + d.admin];
+    }
+  },
+
   /* ---------------- WHO ---------------- */
   {
     key: 'owners', core: true, branch: 'who', title: 'Owners on both sides', short: 'owners', model: true,
@@ -959,6 +1038,25 @@ const SECTIONS = [
     leaves: d => (d.rows || []).filter(r => r.customer).map(r => r.role + ': ' + r.customer)
   },
   {
+    key: 'align', rollout: true, when: 'When safety and operations need to agree what a good conversation looks like before anything rolls out.', branch: 'who', title: 'Leader alignment', short: 'leader alignment',
+    tiers: [],
+    intro: 'Its own meeting, before training: safety and operations leaders agree what a good planning conversation looks like, with real examples, and why the field is being asked to do this now.',
+    ask: [
+      'If you watched a great morning plan on one of your jobs, what would you hear?',
+      'Do safety and operations describe a good plan the same way?',
+      'What would make a foreman want to do this, not just be told to?'
+    ],
+    hint: "Lead with what it does for them: this is a leadership tool. Better planners and better leaders, and the safety follows from better planning.",
+    fields: [
+      { key: 'who', label: "Who's in the room", type: 'list', placeholder: 'e.g. VP of operations, regional safety directors' },
+      { key: 'good', label: 'A good conversation, in their words', type: 'textarea' },
+      { key: 'examples', label: "Examples we'll use", type: 'list', placeholder: 'e.g. a strong morning plan from one of their jobs' },
+      { key: 'why', label: 'Why this, why now: the message to the field', type: 'textarea' },
+      { key: 'date', label: 'Agreed on', type: 'date' }
+    ],
+    leaves: d => [d.good && 'Good looks like: ' + d.good, d.why && 'Why now: ' + d.why, d.date && 'Agreed ' + fmtDate(d.date), (d.examples || []).length && d.examples.length + ' example' + (d.examples.length > 1 ? 's' : '') + ' picked']
+  },
+  {
     key: 'recognition', core: true, branch: 'who', title: 'Recognition plan', short: 'recognition',
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'Recognition is what makes participation stick. Commit to it in the first 30 days.',
@@ -987,6 +1085,43 @@ const SECTIONS = [
       { key: 'support', label: 'What they get', type: 'list', placeholder: 'e.g. coaching, benchmarking, recognition, early access' }
     ],
     leaves: d => (d.partners || []).map(x => 'Trade: ' + x)
+  },
+
+  {
+    key: 'rolloutTraining', rollout: true, when: 'For a full rollout: who gets trained, what we ask of each group, and why it matters to them.', branch: 'who', title: 'Training by audience', short: 'training',
+    tiers: [],
+    intro: "Every level hears the same three things in its own words: what we're asking their people to do, what we're asking of them, and how they can help. And why it's good for them, not just how the app works.",
+    hint: 'Past rollouts used one session for the executive team, a few for middle managers and many short ones for the field at different times of day. Regional safety and operations leaders do best together.',
+    ask: [
+      'Who would the field listen to most about why this matters?',
+      'What does each group get out of it personally?',
+      'Which times of day can crews actually make a session?'
+    ],
+    fields: [
+      { key: 'rows', label: 'Audiences', type: 'table',
+        columns: [
+          { key: 'audience', label: 'Audience', width: '17%' },
+          { key: 'ask', label: 'What we ask of them', multi: true, width: '25%' },
+          { key: 'value', label: "Why it's good for them", multi: true, width: '25%' },
+          { key: 'sessions', label: 'Sessions' },
+          { key: 'trainer', label: 'Who trains' },
+          { key: 'date', label: 'When' }
+        ],
+        noteCols: ['audience', 'sessions', 'trainer', 'date'],
+        defaultRows: () => [
+          ['Executive team', 'Sponsor it, say why it matters, and back the people asked to do it.'],
+          ['Regional safety and operations leaders', 'Review the work, coach their project teams and recognize good planning.'],
+          ['Project leadership', 'Make sure crews plan well, give feedback, and act on what they see.'],
+          ['Foremen and crew leads', 'Run a good planning conversation with their crew and record it.'],
+          ['Trade partners', 'Plan the same way on our jobs.']
+        ].map(r => ({ audience: r[0], ask: r[1] })),
+        addLabel: 'Add an audience' },
+      { key: 'videos', label: 'Leader why videos', type: 'list', placeholder: 'e.g. 30 seconds from the VP of operations: why we are doing this' }
+    ],
+    leaves: d => {
+      const rows = (d.rows || []).filter(r => r.audience && (r.sessions || r.trainer || r.date || r.value));
+      return rows.map(r => r.audience + (r.sessions ? ': ' + r.sessions + ' session' + (r.sessions == 1 ? '' : 's') : '') + (r.date ? ', ' + r.date : '')).concat((d.videos || []).map(x => 'Why video: ' + x));
+    }
   },
 
   /* ---------------- HOW WE KNOW ---------------- */
@@ -1018,6 +1153,62 @@ const SECTIONS = [
     }
   },
   {
+    key: 'rolloutSteps', rollout: true, when: 'For a full rollout: every step from the handoff to running on their own, and who owns each one.', branch: 'know', title: 'Rollout steps', short: 'the rollout steps',
+    tiers: [],
+    intro: 'The steps of the rollout, sorted into people, process and technology, with who owns each one. A starting list: change it to fit the account, give each step a date, and mark it done as you go.',
+    ask: [
+      'Which of these could we settle on this call?',
+      'Who on your side would own each one?',
+      'Is anything here already done?'
+    ],
+    fields: [
+      { key: 'rows', label: 'Steps', type: 'table',
+        columns: [
+          { key: 'item', label: 'Step', width: '27%', multi: true },
+          { key: 'phase', label: 'Stage', width: '15%', type: 'select', options: ['', 'Handoff', 'Kickoff', 'Leader alignment', 'Setup', 'Training', 'Launch', 'Coaching', 'Running on their own'] },
+          { key: 'bucket', label: 'Area', width: '14%', type: 'select', options: ['', 'People', 'Process', 'Technology'] },
+          { key: 'owner', label: 'Who owns it', width: '17%', type: 'select', options: [''].concat(['FactorLab', 'Customer', 'Together', 'FactorLab, then customer']) },
+          { key: 'by', label: 'By when' },
+          { key: 'status', label: 'Status', type: 'select', options: ['', 'Not started', 'In progress', 'Done', 'Not needed'] }
+        ],
+        noteCols: ['item', 'phase', 'owner', 'by', 'status'],
+        defaultRows: () => [
+          ['Why they bought and what was promised, written down', 'Handoff', 'Process', 'FactorLab'],
+          ['Who signed, who sponsors it and who runs it day to day', 'Handoff', 'People', 'FactorLab'],
+          ['Goal and 30-day test agreed in their words', 'Kickoff', 'Process', 'Together'],
+          ['Executive and operations sponsors named', 'Kickoff', 'People', 'Customer'],
+          ['Projects and launch order agreed', 'Kickoff', 'Process', 'Together'],
+          ['How changes will reach people (communication plan)', 'Kickoff', 'Process', 'Together'],
+          ['Safety and operations agree what a good conversation looks like', 'Leader alignment', 'People', 'Together'],
+          ['Message to the field approved: why this, why now', 'Leader alignment', 'Process', 'Customer'],
+          ['Leader why video recorded', 'Leader alignment', 'People', 'Customer'],
+          ['Company layout, projects and trade partners set up', 'Setup', 'Technology', 'FactorLab'],
+          ['Who sees what, checked with a test login', 'Setup', 'Technology', 'Together'],
+          ['Sign-in and adding people decided and tested', 'Setup', 'Technology', 'Together'],
+          ['Forms built and tried by a field leader', 'Setup', 'Technology', 'FactorLab'],
+          ['Executive session', 'Training', 'People', 'FactorLab'],
+          ['Regional safety and operations leaders, together', 'Training', 'People', 'FactorLab'],
+          ['Project leadership: their part in better planning', 'Training', 'People', 'FactorLab'],
+          ['Foremen and crews, at times that fit their day', 'Training', 'People', 'Together'],
+          ["First crews' conversations recorded", 'Launch', 'People', 'Customer'],
+          ['Baseline set from the first examples', 'Launch', 'Process', 'Together'],
+          ['Launch approved, project by project', 'Launch', 'Process', 'Customer'],
+          ['Leaders comment on and recognize good plans', 'Coaching', 'People', 'Customer'],
+          ['Pick three things to improve', 'Coaching', 'Process', 'Customer'],
+          ['Measure whether the changes are working', 'Coaching', 'Process', 'FactorLab'],
+          ['New crews and projects start the same way', 'Running on their own', 'Process', 'Customer'],
+          ['Day-to-day ownership handed over', 'Running on their own', 'People', 'FactorLab, then customer']
+        ].map(r => ({ item: r[0], phase: r[1], bucket: r[2], owner: r[3] })),
+        addLabel: 'Add a step' }
+    ],
+    leaves: d => {
+      const rows = (d.rows || []).filter(r => r.item && r.status !== 'Not needed');
+      if (!rows.some(r => r.by || r.status)) return [];
+      const done = rows.filter(r => r.status === 'Done').length, next = rows.find(r => r.status !== 'Done');
+      return [done + ' of ' + rows.length + ' rollout steps done', next && 'Next: ' + next.item];
+    }
+  },
+  {
     key: 'loop', when: "When the field needs to see that what they raise leads somewhere.", branch: 'know', title: 'Closing the loop', short: 'the loop', model: true,
     tiers: ['growth', 'enterprise'],
     intro: 'How the field will hear back: what was raised, what leaders did, what changed. This is what keeps people contributing.',
@@ -1027,6 +1218,30 @@ const SECTIONS = [
       { key: 'channel', label: 'Channel and timing', type: 'text', placeholder: 'e.g. monthly note from the safety director' }
     ],
     leaves: d => [d.how]
+  },
+  {
+    key: 'comms', rollout: true, when: 'When changes need to reach the field on purpose, not just show up on their phones.', branch: 'know', title: 'Communication plan', short: 'the communication plan',
+    tiers: [],
+    intro: 'How people hear about what is coming before it shows up on their phone: who tells them, how, and when. Bigger changes get more notice.',
+    ask: [
+      'How does the field usually hear about a new form or a new rule?',
+      'Who do crews actually listen to?',
+      'What happened the last time something new showed up without warning?'
+    ],
+    fields: [
+      { key: 'rows', label: 'Messages', type: 'table',
+        columns: [
+          { key: 'what', label: "What's changing", width: '26%', multi: true },
+          { key: 'who', label: 'Who hears it' },
+          { key: 'from', label: 'From whom' },
+          { key: 'how', label: 'How' },
+          { key: 'when', label: 'When' }
+        ],
+        defaultRows: () => ['Why we are doing this', 'Launch date and what to expect', 'A new form or a change to one', 'Results and recognition'].map(w => ({ what: w })),
+        addLabel: 'Add a message' },
+      { key: 'rule', label: 'Rule for any new change', type: 'text', placeholder: 'e.g. nothing new goes live without a heads-up from their safety lead a week ahead' }
+    ],
+    leaves: d => [...(d.rows || []).filter(r => r.what && (r.who || r.from || r.how || r.when)).map(r => r.what + (r.from ? ', from ' + r.from : '') + (r.how ? ' by ' + r.how : '') + (r.when ? ', ' + r.when : '')), d.rule && 'Rule: ' + d.rule]
   },
   {
     key: 'experiments', when: "When you want to test what's working, one small test a quarter.", branch: 'know', title: 'Experiments', short: 'an experiment',
@@ -1093,6 +1308,24 @@ const SECTIONS = [
       }
     ],
     leaves: d => (d.rows || []).filter(r => r.risk).map(r => (r.mode || 'Untagged') + ': ' + r.risk)
+  },
+  {
+    key: 'handoff', when: 'When the account comes over from sales, so nothing they were told gets lost.', branch: 'internal', title: 'Handoff from sales', short: 'the handoff',
+    tiers: [],
+    intro: 'Internal only. What we need to know before taking the account: why they bought, what they were told, and who was in the deal.',
+    ask: [
+      'Why did they buy now, and what were they using before?',
+      'What did we promise, out loud or in writing?',
+      'Who championed the deal, and who was skeptical?'
+    ],
+    fields: [
+      { key: 'why', label: 'Why they bought', type: 'textarea' },
+      { key: 'promised', label: 'What we promised', type: 'list' },
+      { key: 'people', label: 'Who was in the deal, and where they stand', type: 'list', placeholder: 'e.g. VP of operations: champion' },
+      { key: 'from', label: 'Handed over by', type: 'text' },
+      { key: 'gaps', label: 'What we still need to find out', type: 'list' }
+    ],
+    leaves: d => [d.why && 'Bought because: ' + d.why, ...(d.promised || []).map(x => 'Promised: ' + x), d.from && 'From ' + d.from]
   },
   {
     key: 'setup', when: "When the account has setup quirks a teammate covering for you would need to know.", branch: 'internal', title: 'Setup notes', short: 'setup notes',
@@ -1453,6 +1686,12 @@ function readyChecks(plan) {
     { id: 'measured', label: "Every target is something we'll measure together, from a baseline", ok: !promises.length, tip: promises.length ? 'Check the wording of "' + trunc(promises[0][0], 50) + '": lead with the baseline, then what we\'ll measure.' : '', sec: promises.length ? promises[0][1] : 'basics' },
     { id: 'starting', label: 'The pre-filled milestones and rhythm are made theirs', ok: !left.length, tip: left.length ? 'Still starting text: ' + left.join(', ') + '. Edit it, or click Keep it.' : '', sec: 'milestones' },
     { id: 'recognition', label: 'The recognition plan is written', ok: !!d('recognition').forWhat, sec: 'recognition' },
+    { id: 'projects', label: 'Every project has a launch date and both leads', ok: (d('rolloutProjects').rows || []).some(r => r.project) && (d('rolloutProjects').rows || []).filter(r => r.project).every(r => r.launch && r.ops && r.safety), sec: 'rolloutProjects' },
+    { id: 'align', label: 'Safety and operations agreed what a good conversation looks like', ok: !!(d('align').good && d('align').date), sec: 'align' },
+    { id: 'training', label: 'Every audience has a trainer and a date', ok: (d('rolloutTraining').rows || []).filter(r => r.audience).every(r => r.trainer && r.date), sec: 'rolloutTraining' },
+    { id: 'setup', label: 'Each setup item is marked needed or not, and every needed one has an owner on both sides', ok: (d('rolloutSetup').rows || []).filter(r => r.item).every(r => r.need && (r.need !== 'Yes' || (r.customer && r.factorlab))), sec: 'rolloutSetup' },
+    { id: 'steps', label: 'Every rollout step has a date', ok: (d('rolloutSteps').rows || []).filter(r => r.item && r.status !== 'Not needed').every(r => r.by || r.status === 'Done'), sec: 'rolloutSteps' },
+    { id: 'comms', label: 'The communication plan says who tells the field, and when', ok: (d('comms').rows || []).some(r => r.what && r.from && r.when), sec: 'comms' },
     { id: 'risks', label: 'The biggest risk is named and tagged with a failure mode', ok: (d('risks').rows || []).some(r => r.risk && r.mode), sec: 'risks' },
     { id: 'economics', label: 'Renewal date and next expansion step are filled in', ok: !!(d('economics').renewal && d('economics').next), sec: 'economics' },
     { id: 'objective', label: 'The objective is written', ok: !!d('fcObjective').objective, sec: 'fcObjective' },
@@ -1580,6 +1819,7 @@ function newPlan(meta) {
     custom: [],
     notes: {}
   };
+  if (plans[id].meta.rollout === 'full') addSections(plans[id], rolloutKeys());
   currentId = id;
   currentSec = 'basics';
   saveNow();
@@ -1669,6 +1909,17 @@ function visibleSections(p) {
   Object.keys(flow.own || {}).forEach(id => { const s = sectionByKey('own-' + id, p); if (s && !seen[s.key] && hasWork(p, s)) push(s); });
   return out;
 }
+/* Full rollout: the steps a company-wide rollout needs. Picked on the welcome screen or Account basics
+   for Launch and Grow; "Start with first crews" leaves them out. Written work never disappears. */
+function rolloutKeys() { return SECTIONS.filter(s => s.rollout).map(s => s.key); }
+function setRollout(p, v) {
+  p.meta.rollout = v;
+  if (v === 'full') { addSections(p, rolloutKeys()); return; }
+  const keep = k => { const s = sectionByKey(k, p); return s && hasWork(p, s); };
+  p.meta.sections = (p.meta.sections || []).filter(k => !rolloutKeys().includes(k) || keep(k));
+  if (p.meta.flow) p.meta.flow.steps = p.meta.flow.steps.filter(x => !rolloutKeys().includes(x.key) || keep(x.key));
+}
+const ROLLOUT_MODES = ['launch', 'grow'];
 function planLabel(p) { return p.meta.flow ? (p.meta.flow.name || 'Custom Build') : 'Guided Plan'; }
 function addSections(p, keys) {
   if (p.meta.flow) { keys.forEach(k => { if (!inFlow(p, k)) p.meta.flow.steps.push({ key: k }); }); return; }
@@ -1795,6 +2046,7 @@ function welcomeHtml() {
     <p>Name the account, then pick how you want to build the plan. The map builds itself as you go.</p>
     <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"></div>
     <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"></div>
+    <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option></select></div>
     <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
   </div>`;
 }
@@ -2029,7 +2281,7 @@ function finishBuilder() {
   if (!builder.forPlan) {
     const f = cleanFlow(builder.draft, null), nw = pendingNew || {};
     if (!f.steps.length) return;
-    fadeSwap(() => { builder = null; pendingNew = null; newPlan({ account: nw.account || '', mode: nw.mode || 'launch', modeOther: nw.mode === 'other' ? nw.modeOther || '' : '', template: 'custom', flow: f }); renderAll(); });
+    fadeSwap(() => { builder = null; pendingNew = null; newPlan({ account: nw.account || '', mode: nw.mode || 'launch', modeOther: nw.mode === 'other' ? nw.modeOther || '' : '', rollout: nw.rollout || '', template: 'custom', flow: f }); renderAll(); });
     return;
   }
   const p = plans[builder.forPlan], f = cleanFlow(builder.draft, p);
@@ -2062,6 +2314,7 @@ function basicsHtml(p) {
     <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} Changing it adds that size's usual sections; it never removes anything.</div></div>
     ${modeFieldHtml(m)}
   </div>`}
+  ${ROLLOUT_MODES.includes(m.mode) || m.rollout === 'full' ? `<div class="field"><label>How big is the rollout?</label><div class="seg"><button class="btn ${m.rollout !== 'full' ? 'on' : ''}" data-action="rollout" data-v="first">Start with first crews</button><button class="btn ${m.rollout === 'full' ? 'on' : ''}" data-action="rollout" data-v="full">Full rollout</button></div><div class="help" style="margin-top:6px">${m.rollout === 'full' ? 'Adds the steps for every project, region and audience: projects, setup and access, leader alignment, training by audience, rollout steps and the communication plan.' : 'One project or a few crews first. Pick Full rollout to add the steps for every project, region and audience.'}</div></div>` : ''}
   <div class="row2">
     <div class="field"><label>CSM</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
     <div class="field"><label>Backup</label><input type="text" data-meta="backup" value="${esc(m.backup)}"></div>
@@ -2152,7 +2405,7 @@ function tableHtml(s, f, rows, opts) {
           return `<select ${attr} data-row="${i}" data-col="${c.key}" data-other-sel="1">${c.options.map(o => `<option value="${esc(o)}" ${!other && o === cv ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}<option value="__other" ${other ? 'selected' : ''}>${OTHER}</option></select>${other ? `<input type="text" class="other-box" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(custom ? cv : '')}" placeholder="Type it in" aria-label="${esc(c.label)}: something else">` : ''}`; })()
       : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}${opts.fixed ? '' : `<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td>`}</tr>`).join('')}
     ${rows.length ? '' : `<tr><td colspan="${cols.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
-    </tbody></table></div>${opts.fixed ? '' : `<button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button>`}</div>`;
+    </tbody></table></div>${opts.fixed ? '' : `<button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button>`}${s.rollout && !opts.fixed ? `<button class="btn small ghost add-row" data-action="copy-rows" ${attr} title="Copies the table so you can paste it into a spreadsheet">Copy for a spreadsheet</button>` : ''}</div>`;
 }
 
 function phaseHtml(p, ph, items, i) {
@@ -2191,7 +2444,7 @@ function addMoreHtml(p) {
   <div class="sec-head"><h2>Build out this plan</h2></div>
   <p class="sec-intro">Add a section when this account calls for it. It joins the plan and the map. An empty section can be removed any time; anything you've written in stays.</p>
   ${flow ? `<div class="presets">Want a different order, new steps or your own questions? <button class="btn small" data-action="edit-steps">Change the steps</button></div>`
-  : `<div class="presets">Shortcuts: <button class="btn small" data-action="add-preset" data-tier="growth">Add the Growth set</button><button class="btn small" data-action="add-preset" data-tier="enterprise">Add the Enterprise set</button></div>`}
+  : `<div class="presets">Shortcuts: <button class="btn small" data-action="add-preset" data-tier="growth">Add the Growth set</button><button class="btn small" data-action="add-preset" data-tier="enterprise">Add the Enterprise set</button>${p.meta.rollout === 'full' ? '' : '<button class="btn small" data-action="rollout" data-v="full">Add the Full rollout set</button>'}</div>`}
   <div class="catalog">${cards}
     <div class="cat-card"><div class="cat-branch">Your own</div><div class="cat-title">Your own branch</div><div class="cat-when">Anything this account needs that the standard plan doesn't cover.</div><button class="btn small" data-action="add-branch">+ Add a branch</button></div>
   </div>
@@ -2411,6 +2664,17 @@ function docPaginate(blocks) {
   if (page.some(c => c.length)) pages.push(page);
   return pages.map(cols => `<div class="doc-cols">${cols.map(c => `<div>${c.join('')}</div>`).join('')}</div>`);
 }
+/* A table that may run long, split across pages by rough height so no row runs off the bottom. */
+function docTablePages(title, cols, rows, foot) {
+  const W = 960, cap = 540, chunks = [[]]; let used = 0;
+  cols.forEach(c => { c.cpl = Math.max(8, Math.floor(W * (parseFloat(c.w) || (100 / cols.length)) / 100 / 6.3)); });
+  rows.forEach(r => {
+    const h = Math.max(1, ...cols.map(c => Math.ceil(String(c.v(r) || '').length / c.cpl))) * 16 + 14;
+    if (used + h > cap && chunks[chunks.length - 1].length) { chunks.push([]); used = 0; }
+    chunks[chunks.length - 1].push(r); used += h;
+  });
+  return chunks.map((rs, ci) => ({ title: title + (ci ? ' (continued)' : ''), body: `<table class="doc-table doc-grid"><thead><tr>${cols.map(c => `<th${c.w ? ` style="width:${c.w}"` : ''}>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rs.map(r => `<tr>${cols.map((c, i) => { const v = c.v(r) || ''; return `<td>${i === 0 ? '<b>' + esc(v) + '</b>' : v === 'Done' || v === 'Launched' ? '<span class="doc-done">' + esc(v) + '</span>' : esc(v)}</td>`; }).join('')}</tr>`).join('')}</tbody></table>${ci === chunks.length - 1 && foot ? foot : ''}` }));
+}
 function presentHtml(p, customer) {
   const m = p.meta, d = k => p.data[k] || {};
   const pages = [], full = [];
@@ -2502,6 +2766,26 @@ function presentHtml(p, customer) {
     </div>`;
     pages.push({ title: ms.length && owners.length ? 'Scorecard and owners' : ms.length ? 'Scorecard' : 'Owners', body: b3 });
   }
+
+  // ---- Full rollout: projects, rollout steps, training, setup. Each on its own pages; the customer sees them once filled in ----
+  const col = (label, key, w) => ({ label, w, v: r => r[key] });
+  const rp = has('rolloutProjects') ? (d('rolloutProjects').rows || []).filter(r => r.project) : [];
+  if (rp.length) {
+    const g = d('rolloutProjects');
+    docTablePages('Projects and launch order', [col('Project', 'project', '20%'), col('Region', 'region', '11%'), col('Operations lead', 'ops', '14%'), col('Safety lead', 'safety', '14%'), col('Crews and languages', 'crews', '17%'), col('Launch', 'launch', '11%'), col('Status', 'status', '13%')], rp,
+      (g.gate || []).length || g.approver ? `<p class="doc-note"><b>Before a project launches:</b> ${esc((g.gate || []).join(', '))}${g.approver ? (g.gate || []).length ? '. Approved by ' + esc(g.approver) + '.' : 'Approved by ' + esc(g.approver) + '.' : ''}</p>` : '').forEach(x => pages.push(x));
+  }
+  const rs = has('rolloutSteps') ? (d('rolloutSteps').rows || []).filter(r => r.item && r.status !== 'Not needed') : [];
+  if (rs.length && (!customer || rs.some(r => r.by || r.status))) docTablePages('Rollout steps', [col('Step', 'item', '36%'), col('Stage', 'phase', '14%'), col('Area', 'bucket', '10%'), col('Who owns it', 'owner', '16%'), col('By', 'by', '11%'), col('Status', 'status', '13%')], rs).forEach(x => pages.push(x));
+  const rt = has('rolloutTraining') ? (d('rolloutTraining').rows || []).filter(r => r.audience) : [];
+  if (rt.length && (!customer || rt.some(r => r.sessions || r.trainer || r.date || r.value))) {
+    const vids = d('rolloutTraining').videos || [];
+    docTablePages('Training by audience', [col('Audience', 'audience', '16%'), col('What we ask of them', 'ask', '27%'), col("Why it's good for them", 'value', '27%'), col('Sessions', 'sessions', '9%'), col('Who trains', 'trainer', '11%'), col('When', 'date', '10%')], rt,
+      vids.length ? `<p class="doc-note"><b>Leader why videos:</b> ${esc(vids.join('; '))}</p>` : '').forEach(x => pages.push(x));
+  }
+  const su = has('rolloutSetup') ? (d('rolloutSetup').rows || []).filter(r => r.item && r.need !== 'Not needed') : [];
+  if (su.length && (!customer || su.some(r => r.need || r.customer || r.factorlab || r.status))) docTablePages('Setup and access', [col('Item', 'item', '17%'), col('Needed?', 'need', '10%'), col(m.account || 'Their owner', 'customer', '14%'), col('FactorLab', 'factorlab', '13%'), col('Done looks like', 'done', '33%'), col('Status', 'status', '13%')], su,
+    d('rolloutSetup').admin ? `<p class="doc-note"><b>Their admin:</b> ${esc(d('rolloutSetup').admin)}</p>` : '').forEach(x => pages.push(x));
 
   // ---- Readiness punch list: its own page, split by height so nothing runs off the page ----
   const pr = (has('fcPunch') ? (d('fcPunch').rows || []) : []).filter(r => r.item);
@@ -2689,7 +2973,7 @@ function handleClick(e) {
   const p = cur();
   const act = a.dataset.action;
   if (act === 'create') {
-    const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '' };
+    const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '', rollout: ROLLOUT_MODES.includes(document.getElementById('w-mode').value) ? document.getElementById('w-rollout').value : '' };
     fadeSwap(() => { pendingNew = nw; renderAll(); }); return;
   }
   if (act === 'repick') { fadeSwap(() => { repick = true; renderAll(); }); return; }
@@ -2698,13 +2982,13 @@ function handleClick(e) {
   if (act === 'start-back') {
     fadeSwap(() => {
       const nw = pendingNew; pendingNew = null; renderAll();
-      if (nw) { document.getElementById('w-account').value = nw.account; document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; }
+      if (nw) { document.getElementById('w-account').value = nw.account; document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; document.getElementById('w-rollout').value = nw.rollout || 'first'; document.getElementById('w-rolloutWrap').style.display = ROLLOUT_MODES.includes(nw.mode) ? '' : 'none'; }
     }); return;
   }
   if (act === 'start') {
     const t = a.dataset.t, nw = pendingNew || { account: '', mode: 'launch' };
     if (t === 'custom') { fadeSwap(() => { builder = { forPlan: null, draft: seedFlow('guided'), open: null, msg: '' }; renderAll(); }); return; }
-    fadeSwap(() => { pendingNew = null; newPlan(Object.assign({ account: nw.account, mode: nw.mode, modeOther: nw.mode === 'other' ? nw.modeOther : '', template: t }, t === 'flintco' ? { flow: seedFlow('flintco') } : {})); renderAll(); });
+    fadeSwap(() => { pendingNew = null; newPlan(Object.assign({ account: nw.account, mode: nw.mode, modeOther: nw.mode === 'other' ? nw.modeOther : '', rollout: nw.rollout || '', template: t }, t === 'flintco' ? { flow: seedFlow('flintco') } : {})); renderAll(); });
     return;
   }
   if (act === 'present') { openPresent(); return; }
@@ -2721,6 +3005,14 @@ function handleClick(e) {
     saveSoon(); renderAll(); return;
   }
   if (act.startsWith('fill-')) { fillClick(act, a, p); return; }
+  if (act === 'copy-rows') {
+    const s = sectionByKey(a.dataset.sec, p), f = s.fields.find(x => x.key === a.dataset.field), rows = (p.data[s.key] || {})[f.key] || [];
+    const cell = v => String(v || '').replace(/[\t\n]+/g, ' ').trim();
+    const tsv = [f.columns.map(c => c.label).join('\t')].concat(rows.filter(r => Object.values(r).some(Boolean)).map(r => f.columns.map(c => cell(r[c.key])).join('\t'))).join('\n');
+    copyText(tsv).then(ok => showToast(ok ? 'Copied. Paste it into a spreadsheet.' : 'This browser blocked copying. Try again from the hosted page.'));
+    return;
+  }
+  if (act === 'rollout') { setRollout(p, a.dataset.v); saveSoon(); renderAll(); return; }
   if (act === 'edit-steps') {
     builder = { forPlan: p.id, draft: p.meta.flow ? clone(p.meta.flow) : { name: '', steps: visibleSections(p).map(s => ({ key: s.key })), own: {} }, open: null, msg: '' };
     renderWork(); window.scrollTo(0, 0); return;
@@ -2883,7 +3175,7 @@ document.getElementById('printBtn').addEventListener('click', printPlan);
 window.addEventListener('afterprint', () => { document.title = APP_TITLE; });
 document.querySelector('.side-tabs').addEventListener('click', e => { const t = e.target.closest('.side-tab'); if (t) { sideTab = t.dataset.tab; renderSide(); } });
 document.addEventListener('change', e => {
-  if (e.target.id === 'w-mode') { const b = document.getElementById('w-modeOther'); b.style.display = e.target.value === 'other' ? '' : 'none'; if (e.target.value === 'other') b.focus(); return; }
+  if (e.target.id === 'w-mode') { document.getElementById('w-rolloutWrap').style.display = ROLLOUT_MODES.includes(e.target.value) ? '' : 'none'; const b = document.getElementById('w-modeOther'); b.style.display = e.target.value === 'other' ? '' : 'none'; if (e.target.value === 'other') b.focus(); return; }
   if (e.target.id !== 'mobileJump') return;
   if (e.target.value === '__branch') { const a = document.querySelector('[data-action=add-branch]'); if (a) a.click(); return; }
   go(e.target.value);
@@ -3682,7 +3974,7 @@ function fillQuestions(p) {
   const shelved = shelvedKeys(p) || new Set();
   const secs = p.meta.flow ? visibleSections(p) : SECTIONS.filter(s => !s.set && !shelved.has(s.key)).map(s => sectionByKey(s.key, p));
   const steps = [], qs = [];
-  secs.filter(s => s && !FILL_SKIP.includes(s.key)).forEach(s => {
+  secs.filter(s => s && !FILL_SKIP.includes(s.key) && !(s.rollout && !inPlan(p, s))).forEach(s => {
     const sid = 'S' + (steps.length + 1), addOn = !inPlan(p, s);
     steps.push({ sid, s, addOn });
     s.fields.forEach(f => {
