@@ -341,6 +341,11 @@ body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .ready-list .mark.no { border: 1.5px solid var(--line); }
 .ready-list button { border: 0; background: none; padding: 0; text-align: left; color: var(--ink); }
 .ready-list button:hover { color: var(--navy); text-decoration: underline; }
+.agree-h { margin: 22px 0 4px; font-size: 14px; }
+.agree-help { margin: 0 0 6px; color: var(--muted); font-size: 12.5px; }
+.agree-when { display: block; font-size: 12px; color: var(--green); margin-top: 2px; }
+.ready-list label.agree { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.ready-list label.agree input { margin-top: 2px; flex: none; accent-color: var(--green); }
 
 /* ---------- Present view ---------- */
 .present { display: none; position: fixed; inset: 0; background: var(--surface); z-index: 50; overflow-y: auto; }
@@ -753,15 +758,23 @@ const TIERS = {
   enterprise: { label: 'Enterprise', help: 'Everything, for company-wide accounts.' }
 };
 
+/* Grow: from the team's own playbook (controlled scale: prove it in one group, reuse what worked in the next). */
+const GROW_ASK = [
+  'Which step are they on: one project, a group of projects, a region or business unit, an operating company, or the whole company? What is the next step?',
+  "What worked in the first group that we'll reuse in the next?",
+  'What could they add next, now that crews know the app?'
+];
 /* What the account needs this year. Each need shapes the plan, in this one place:
    adds:    steps it puts in the plan (taken out again only if still empty when the need changes)
    ask:     extra curious questions on a step, { sectionKey: [...] }
    docLead: a step whose highlights open page 1 of the plan document, { sec, title }
-   Launch is the starting shape. Grow and Renew come from what the team does today; Recover waits on John. */
+   Launch is the starting shape. Grow and Renew come from what the team does today (John's and Katie's rollout
+   decks, John's renewal review, the growth ladder and raving fans); Recover waits on John. */
 const MODES = {
   launch:  { label: 'Launch',  lead: 'Lead with baselines, the first workflow and the 30-day milestone.', adds: [], ask: {} },
-  grow:    { label: 'Grow',    lead: 'Lead with what moves next, the next region or unit, and trade partners.', adds: ['scope', 'trades'], ask: {} },
-  renew:   { label: 'Renew',   lead: 'Lead with proof in their numbers and what comes next.', adds: ['results'], ask: {}, docLead: { sec: 'results', title: 'Where things stand' } },
+  grow:    { label: 'Grow',    lead: 'Lead with what moves next, the next region or unit, and trade partners.', adds: ['scope', 'trades', 'advocacy'],
+             ask: { scope: GROW_ASK, fcConverge: GROW_ASK } },
+  renew:   { label: 'Renew',   lead: 'Lead with proof in their numbers and what comes next.', adds: ['results', 'advocacy'], ask: {}, docLead: { sec: 'results', title: 'Where things stand' } },
   recover: { label: 'Recover', lead: 'Lead with the failure mode, one recovery milestone and re-engaging the sponsor.', adds: [], ask: {} }
 };
 const SAME_AS = { scope: 'fcConverge', trades: 'fcTrades' };   // a need skips a step when the plan already has its Flintco twin
@@ -786,6 +799,15 @@ const FAILURE_MODES = ['Adoption', 'Value', 'Champion', 'Fit', 'Product gap'];
 /* Who does each milestone. Barry's rule: we give the baseline, they decide what to improve, we measure. */
 const MS_WHO = ['', 'FactorLab', 'Customer', 'Together'];
 /* The milestones every plan started with before Nov 2026, so older plans' untouched lists still read as starting text. */
+/* Starting text from Nov 3, 2026 (with who does it), before the Daily Planning Success Guide's launch steps were added. */
+const MS_NOV3_DEFAULT = {
+  readiness: [['Plan drafted with the customer', 'Together'], ['Owners named on both sides', 'Together'], ['Leaders can explain the why', 'Customer'], ['Go-live questions answered', 'FactorLab']],
+  d30: [['First workflow live', 'Customer'], ['Set the baseline: watch the first five together', 'Together'], ['Pick three things to improve', 'Customer'], ['Three recognitions sent', 'Customer']],
+  d90: [['Measure whether the three changes are working', 'FactorLab'], ['Next one or two improvements picked', 'Together']],
+  d180: [['First standard written and shared', 'Together'], ['Next workflow or region chosen', 'Together'], ['Advocacy ask made', 'FactorLab']],
+  d365: [['Quarterly learning reports shared', 'FactorLab'], ['Renewal case built in their numbers', 'FactorLab'], ["Next year's plan drafted", 'Together']]
+};
+const RHYTHM_OLD = { monthly: 'Leaders review their two chosen workbooks', quarterly: 'Learning report, sponsor review, one experiment' };
 const MS_OLD_DEFAULT = {
   readiness: ['Plan drafted with the customer', 'Baselines and owners set', 'Go-live questions answered'],
   d30: ['First workflow live', 'Three recognitions sent', 'Leaders can explain the why'],
@@ -821,7 +843,7 @@ const SECTIONS = [
     ]
   },
   {
-    key: 'hypothesis', when: "When you want one clear bet the whole team can repeat.", branch: 'why', title: 'Change hypothesis', short: 'hypothesis',
+    key: 'hypothesis', core: true, branch: 'why', title: 'Change hypothesis', short: 'hypothesis',
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'One sentence that says what we expect to change, and what that should improve. Plus one conversation we want more of and one we want less of.',
     ask: [
@@ -855,6 +877,7 @@ const SECTIONS = [
       { key: 'first', label: 'First workflow', type: 'select', options: ['', 'Daily planning / pre-task plans', 'Observations', 'Inspections', 'Permits', 'Audits', 'Other'] },
       { key: 'firstOther', label: 'Which one', type: 'text', showIf: d => d.first === 'Other' },
       { key: 'sites', label: 'First sites, projects or regions', type: 'list' },
+      { key: 'reach', label: 'How far it reaches today', type: 'select', options: ['', 'One project', 'A group of projects', 'A region or business unit', 'An operating company', 'The whole company'] },
       { key: 'next', label: 'What moves next', type: 'list', placeholder: 'e.g. permits, then inspections' },
       { key: 'systems', label: 'Systems they use today', type: 'list', placeholder: 'e.g. Procore, paper, Microsoft Forms' },
       { key: 'stop', label: "What they'll stop doing", type: 'list', placeholder: 'e.g. a report nobody reads' }
@@ -862,6 +885,7 @@ const SECTIONS = [
     leaves: d => [
       (d.first === 'Other' ? d.firstOther : d.first) && 'First: ' + (d.first === 'Other' ? d.firstOther : d.first),
       (d.sites || []).length && 'Starting at: ' + d.sites.join(', '),
+      d.reach && 'Reaches: ' + d.reach.toLowerCase(),
       ...(d.next || []).map(x => 'Next: ' + x),
       ...(d.stop || []).map(x => 'Stop: ' + x)
     ]
@@ -956,6 +980,8 @@ const SECTIONS = [
     ],
     fields: [
       { key: 'standard', label: 'The standard, in plain words', type: 'textarea' },
+      { key: 'convPri', label: 'Conversation priorities', type: 'checks', options: ['Hazards', 'Planning', 'Engagement', 'Participation', 'Leadership'] },
+      { key: 'planPri', label: 'Planning priorities', type: 'checks', options: ['Scope', 'Capacity', 'Work expectations', 'Anticipating change', 'Hazards and controls'] },
       { key: 'goodTape', label: 'Good game tape (job, leader, link)', type: 'list' },
       { key: 'poorTape', label: 'Examples to learn from', type: 'list' },
       { key: 'benchmark', label: 'Benchmark we\'ll compare against', type: 'text' }
@@ -1025,6 +1051,7 @@ const SECTIONS = [
           ['Company layout', 'Regions, business units and projects set up the way they run the work.'],
           ['Who sees what', 'Each role (executive, middle manager, project team, foreman, trade partner, admin) sees and does the right things, checked with a test login.'],
           ['Sign-in', 'People sign in the way they already do (single sign-on if they use it), tested before training.'],
+          ['Roster to FactorLab', 'Name, role, email, phone, project and trade partner company for everyone who runs or reviews plans, 2 weeks before Day 1.'],
           ['Adding and removing people', 'New people get access and leavers lose it without anyone remembering to.'],
           ['Connections to their systems', 'Projects, people and trade partners come in from where they already live.'],
           ['Forms', 'Their forms built and tried by a field leader before launch.'],
@@ -1066,6 +1093,7 @@ const SECTIONS = [
           { role: 'Operations sponsor' },
           { role: 'Safety champion' },
           { role: 'Field voice (toughest critic)' },
+          { role: 'Pro Planners (help peers make it work)' },
           { role: 'Implementation owner' }
         ],
         addLabel: 'Add a role'
@@ -1104,7 +1132,8 @@ const SECTIONS = [
       { key: 'forWhat', label: 'Recognized for what', type: 'text', placeholder: 'e.g. best planner, most improved' },
       { key: 'often', label: 'How often', type: 'select', options: ['', 'Weekly', 'Monthly', 'Quarterly'] },
       { key: 'channel', label: 'How it reaches people', type: 'text', placeholder: 'e.g. group text, jobsite board, safety committee' },
-      { key: 'reward', label: 'Reward, if any', type: 'text' }
+      { key: 'reward', label: 'Reward, if any', type: 'text' },
+      { key: 'wins', label: "Where we'll create the first wins", type: 'select', options: ['', 'A crew', 'A foreman', 'A trade partner', 'A project'] }
     ],
     leaves: d => [d.forWhat && ((d.often ? d.often + ': ' : '') + d.forWhat), d.channel && 'Via ' + d.channel]
   },
@@ -1169,15 +1198,15 @@ const SECTIONS = [
     fields: [
       { key: 'phases', label: 'Milestones', type: 'milestones',
         default: () => ({
-          readiness: [['Plan drafted with the customer', 'Together'], ['Owners named on both sides', 'Together'], ['Leaders can explain the why', 'Customer'], ['Go-live questions answered', 'FactorLab']],
-          d30: [['First workflow live', 'Customer'], ['Set the baseline: watch the first five together', 'Together'], ['Pick three things to improve', 'Customer'], ['Three recognitions sent', 'Customer']],
+          readiness: [['Plan drafted with the customer', 'Together'], ['Owners named on both sides', 'Together'], ['Leaders can explain the why', 'Customer'], ['Roster sent 2 weeks before Day 1', 'Customer'], ['Go-live questions answered', 'FactorLab']],
+          d30: [['Day 1: everyone activated', 'Customer'], ['Set the baseline: watch the first five together', 'Together'], ['Pick three things to improve', 'Customer'], ['Three recognitions sent', 'Customer'], ['Day 30 report-out, 90-day goals set', 'Together']],
           d90: [['Measure whether the three changes are working', 'FactorLab'], ['Next one or two improvements picked', 'Together']],
-          d180: [['First standard written and shared', 'Together'], ['Next workflow or region chosen', 'Together'], ['Advocacy ask made', 'FactorLab']],
+          d180: [['First standard written and shared', 'Together'], ['Next workflow or region chosen', 'Together'], ['Raving fans ask made', 'FactorLab']],
           d365: [['Quarterly learning reports shared', 'FactorLab'], ['Renewal case built in their numbers', 'FactorLab'], ["Next year's plan drafted", 'Together']]
         }) },
       { key: 'weekly', label: 'Weekly', type: 'text', default: () => 'Champion checks the dashboard and thanks top crews' },
-      { key: 'monthly', label: 'Monthly', type: 'text', default: () => 'Leaders review their two chosen workbooks' },
-      { key: 'quarterly', label: 'Quarterly', type: 'text', default: () => 'Learning report, sponsor review, one experiment' },
+      { key: 'monthly', label: 'Monthly', type: 'text', default: () => "Champion sends a 'state of safety' note; lagging sites get coaching, not blame" },
+      { key: 'quarterly', label: 'Quarterly', type: 'text', default: () => 'Results review with the sponsors, recognition awards, new 90-day targets' },
       { key: 'workbooks', label: 'Their two monthly workbooks', type: 'list' }
     ],
     leaves: d => {
@@ -1226,11 +1255,14 @@ const SECTIONS = [
           ['Regional safety and operations leaders, together', 'Training', 'People', 'FactorLab'],
           ['Project leadership: their part in better planning', 'Training', 'People', 'FactorLab'],
           ['Foremen and crews, at times that fit their day', 'Training', 'People', 'Together'],
+          ["Day 1: 'today's the day' text, everyone activated, first plans done", 'Launch', 'People', 'Customer'],
+          ['Week 1: follow up one to one with anyone not yet activated', 'Launch', 'People', 'Customer'],
           ["First crews' conversations recorded", 'Launch', 'People', 'Customer'],
           ['Baseline set from the first examples', 'Launch', 'Process', 'Together'],
           ['Launch approved, project by project', 'Launch', 'Process', 'Customer'],
           ['Leaders comment on and recognize good plans', 'Coaching', 'People', 'Customer'],
           ['Pick three things to improve', 'Coaching', 'Process', 'Customer'],
+          ['Day 30 report-out: share results, set the 90-day goals', 'Coaching', 'Process', 'Together'],
           ['Measure whether the changes are working', 'Coaching', 'Process', 'FactorLab'],
           ['New crews and projects start the same way', 'Running on their own', 'Process', 'Customer'],
           ['Day-to-day ownership handed over', 'Running on their own', 'People', 'FactorLab, then customer']
@@ -1380,14 +1412,20 @@ const SECTIONS = [
     leaves: d => [...(d.quirks || []), d.access && 'Access: ' + d.access, d.contact && 'Setup contact: ' + d.contact, ...(d.open || []).map(x => 'Open: ' + x)]
   },
   {
-    key: 'advocacy', when: "When the account is healthy enough to ask for a reference or a story.", branch: 'internal', title: 'Advocacy', short: 'advocacy',
+    key: 'advocacy', when: "When the account is healthy enough to ask for a reference, a story or a referral.", branch: 'internal', title: 'Raving fans', short: 'raving fans',
     tiers: ['growth', 'enterprise'],
-    intro: 'Internal only. Plan the ask instead of hoping for it. Aim for one by the 180-day review.',
+    intro: 'Internal only. The people on their side who speak up for this, and what we will ask of them. Plan the ask instead of hoping for it. Aim for one by the 180-day review.',
+    ask: [
+      'Who on their side talks about this without being asked?',
+      'Would they speak at an event, or do a reference interview?',
+      'Who would they refer us to?'
+    ],
     fields: [
+      { key: 'fans', label: 'Who the raving fans are', type: 'list', placeholder: 'e.g. name, role, project' },
       { key: 'asks', label: 'What we\'ll ask for', type: 'checks', options: ['Reference call', 'Event speaker', 'Case study or video', 'Referral', 'Early win story for marketing'] },
       { key: 'who', label: 'Who, and when', type: 'text' }
     ],
-    leaves: d => (d.asks || []).map(x => 'Ask: ' + x)
+    leaves: d => [...(d.fans || []).map(x => 'Fan: ' + x), ...(d.asks || []).map(x => 'Ask: ' + x)]
   },
   {
     key: 'journey', when: "When you're updating the customer journey checklist.", branch: 'internal', title: 'Journey checklist', short: 'checklist',
@@ -1697,6 +1735,16 @@ const ANSWER_TYPES = { text: 'Short answer', textarea: 'Long answer', list: 'Lis
 /* Ready check: what "ready to share" means. */
 /* Barry's test for a plan: how we'll be successful, who does what, by when, and how we'll know it happened. */
 const PROMISE_WORDS = /\b(guarantee[ds]?|promise[ds]?|double[ds]?|triple[ds]?|half the time|zero (incidents|injuries|accidents))\b/i;
+/* The customer's yes at each step of the Daily Planning Success Guide (its decision checkpoints).
+   Ticked on the ready check, saved in meta.agreed as { key: 'YYYY-MM-DD' }. Not part of the ready count:
+   later checkpoints (like the improvement priorities) only come after the plan is shared. */
+const CHECKPOINTS = [
+  { key: 'success', step: 'Define success', q: 'Do we agree on success, value and the change hypothesis?' },
+  { key: 'why', step: 'Create urgency', q: 'Are leaders aligned and committed to visible change?' },
+  { key: 'standard', step: 'Establish the standard', q: 'Have we defined the standard, expectations and what to stop doing?' },
+  { key: 'priorities', step: 'Learn through game tape', q: 'Have we agreed on the priority improvements and action plan?' },
+  { key: 'sustain', step: 'Reinforce and sustain', q: 'Do we have the ownership, reinforcement and governance to sustain improvement?' }
+];
 function readyChecks(plan) {
   const d = k => plan.data[k] || {};
   const owners = (d('owners').rows || []).filter(r => r.role);
@@ -1713,6 +1761,7 @@ function readyChecks(plan) {
   return [
     { id: 'goal', label: 'Their goal is written in their words', ok: !!d('goal').words, sec: 'goal' },
     { id: 'test30', label: 'The 30-day test is written', ok: !!(d('goal').test30 || '').trim(), sec: 'goal' },
+    { id: 'hypothesis', label: 'The change hypothesis is written: if we improve this, we will improve that', ok: !!(d('hypothesis').improve && d('hypothesis').result), sec: 'hypothesis' },
     { id: 'how', label: 'How: the first 30 days of milestones are written', ok: (phases.d30 || []).some(m => m.text), sec: 'milestones' },
     { id: 'who', label: 'Who: every milestone says who does it', ok: msAll.length > 0 && noWho === 0, tip: noWho ? noWho + ' without anyone named' : '', sec: 'milestones' },
     { id: 'owners', label: 'Who: every owner line has a customer name and a FactorLab name', ok: owners.length > 0 && owners.every(r => r.customer && r.factorlab), sec: 'owners' },
@@ -1877,6 +1926,7 @@ function fmtDate(iso) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return months[m - 1] + ' ' + d + ', ' + y;
 }
+function localIso(dt) { return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'); }
 function addDays(iso, n) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-').map(Number);
@@ -2569,11 +2619,11 @@ function msDefaults() { return SECTIONS.find(x => x.key === 'milestones').fields
 /* A milestone still exactly as the plan started it: not edited, ticked or kept. */
 function msIsStarting(phKey, m) {
   if (!m || !m.text || m.done || m.kept) return false;
-  return (msDefaults()[phKey] || []).some(x => x[0] === m.text && (m.who || '') === x[1]) || ((MS_OLD_DEFAULT[phKey] || []).includes(m.text) && !m.who);
+  return [msDefaults(), MS_NOV3_DEFAULT].some(def => (def[phKey] || []).some(x => x[0] === m.text && (m.who || '') === x[1])) || ((MS_OLD_DEFAULT[phKey] || []).includes(m.text) && !m.who);
 }
 function rhythmIsStarting(p, k) {
   const d = p.data.milestones || {}, f = SECTIONS.find(x => x.key === 'milestones').fields.find(x => x.key === k);
-  return !!d[k] && d[k] === f.default() && !(d.kept || []).includes(k);
+  return !!d[k] && (d[k] === f.default() || d[k] === RHYTHM_OLD[k]) && !(d.kept || []).includes(k);
 }
 /* What's still starting text: [label, count] pairs, for the ready check. */
 function startingLeft(p) {
@@ -2590,13 +2640,13 @@ function milestonesEdited(p) {
     const items = ph[k] || [];
     if (items.some(m => m.done || m.kept)) return true;
     const texts = JSON.stringify(items.map(m => m.text));
-    const isNew = texts === JSON.stringify((def[k] || []).map(x => x[0])), isOld = texts === JSON.stringify(MS_OLD_DEFAULT[k] || []);
-    const newWho = isNew && items.every((m, i) => (m.who || '') === def[k][i][1]), oldWho = isOld && items.every(m => !m.who);
-    if (!newWho && !oldWho) return true;
+    const withWho = set => texts === JSON.stringify((set[k] || []).map(x => x[0])) && items.every((m, i) => (m.who || '') === set[k][i][1]);
+    const oldWho = texts === JSON.stringify(MS_OLD_DEFAULT[k] || []) && items.every(m => !m.who);
+    if (!withWho(def) && !withWho(MS_NOV3_DEFAULT) && !oldWho) return true;
   }
   if ((d.kept || []).length) return true;
   if ((d.workbooks || []).length) return true;
-  return ['weekly', 'monthly', 'quarterly'].some(k => (d[k] || '') !== s.fields.find(f => f.key === k).default());
+  return ['weekly', 'monthly', 'quarterly'].some(k => (d[k] || '') !== s.fields.find(f => f.key === k).default() && (d[k] || '') !== RHYTHM_OLD[k]);
 }
 
 function mapHtml(p, opts) {
@@ -2653,7 +2703,14 @@ function readyHtml(p) {
   const checks = readyChecks(p);
   const n = checks.filter(c => c.ok).length;
   return `<p style="margin:0 0 10px;color:var(--muted)">${n} of ${checks.length} ready. A plan is ready to share when all of these are true.</p>
-    <ul class="ready-list">${checks.map(c => `<li><span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '&#10003;' : ''}</span><button data-goto="${c.sec}">${esc(c.label)}${!c.ok && c.tip ? `<span class="ready-tip">${esc(c.tip)}</span>` : ''}</button></li>`).join('')}</ul>`;
+    <ul class="ready-list">${checks.map(c => `<li><span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '&#10003;' : ''}</span><button data-goto="${c.sec}">${esc(c.label)}${!c.ok && c.tip ? `<span class="ready-tip">${esc(c.tip)}</span>` : ''}</button></li>`).join('')}</ul>
+    ${agreedHtml(p)}`;
+}
+function agreedHtml(p) {
+  const a = p.meta.agreed || {};
+  return `<h4 class="agree-h">The customer said yes</h4>
+    <p class="agree-help">The five checkpoints of the Daily Planning Success Guide. Tick each one when the customer agrees.</p>
+    <ul class="ready-list agree-list">${CHECKPOINTS.map(c => `<li><label class="agree"><input type="checkbox" data-agree="${c.key}" ${a[c.key] ? 'checked' : ''}><span><b>${esc(c.step)}.</b> ${esc(c.q)}${a[c.key] ? `<span class="agree-when">Agreed ${esc(fmtDate(a[c.key]))}</span>` : ''}</span></label></li>`).join('')}</ul>`;
 }
 
 function renderSide() {
@@ -2828,11 +2885,11 @@ function presentHtml(p, customer) {
   if (msShow) {
     const ph = mi.phases || {};
     let b2 = `<div class="doc-tl">${PHASES.map((x, i) => {
-      const items = (ph[x.key] || []).filter(it => it.text), shown = items.slice(0, 4), date = phaseDate(p, x), allDone = items.length && items.every(it => it.done);
+      const items = (ph[x.key] || []).filter(it => it.text), shown = items.slice(0, 5), date = phaseDate(p, x), allDone = items.length && items.every(it => it.done);
       return `<div class="doc-phase"><div class="doc-pnum ${allDone ? 'done' : ''}">${i + 1}</div><div class="doc-pname">${esc(x.label)}</div>
         <div class="doc-pwhen">${esc(date || x.when)}</div>
         <ul>${shown.map(it => `<li class="${it.done ? 'done' : ''}">${it.who ? `<span class="doc-who">${esc(it.who)}</span> ` : ''}${esc(it.text)}</li>`).join('') || '<li class="doc-empty">To be set</li>'}</ul>
-        ${items.length > 4 && !customer ? `<div class="doc-more" style="padding:0">+ ${items.length - 4} more</div>` : ''}
+        ${items.length > 5 && !customer ? `<div class="doc-more" style="padding:0">+ ${items.length - 5} more</div>` : ''}
         <div class="doc-gate">${esc(x.gate)}</div></div>`;
     }).join('')}</div>`;
     b2 += runHtml(false);
@@ -2947,6 +3004,12 @@ function handleInput(e) {
   if (!p) return;
   if (t.dataset.fill) { fillState(p)[t.dataset.fill] = t.value; if (t.dataset.fill === 'paste') { const b = document.querySelector('#work [data-action=fill-copy]'); if (b) b.disabled = !(t.value.trim() || fill.docs.length); } return; }
   if (t.dataset.fillItem != null) { if (e.type === 'change') { fill.items[+t.dataset.fillItem].on = t.checked; renderWork(); } return; }
+  if (t.dataset.agree) {
+    const a = Object.assign({}, p.meta.agreed || {}), k = t.dataset.agree;
+    if (t.checked) a[k] = a[k] || localIso(new Date()); else delete a[k];
+    if (JSON.stringify(a) !== JSON.stringify(p.meta.agreed || {})) { p.meta.agreed = a; saveSoon(); renderSide(); }
+    return;
+  }
   if (t.dataset.meta) {
     const k = t.dataset.meta;
     if (k === 'mode') setNeed(p, t.value);
@@ -4022,6 +4085,8 @@ function hubspotSummary(p) {
   const e = has('economics') ? d('economics') : {};
   const acct = [e.renewal && 'Renewal: ' + fmtDate(e.renewal), e.next && 'Next step: ' + e.next, e.signed && 'Signed: ' + e.signed + (e.signer ? ' (' + e.signer + ' signs)' : '')].filter(Boolean);
   if (acct.length) L.push('', ...acct);
+  const agreed = CHECKPOINTS.filter(c => (m.agreed || {})[c.key]);
+  if (agreed.length) L.push('', 'Customer agreed: ' + agreed.map(c => c.step.toLowerCase() + ' (' + fmtDate(m.agreed[c.key]) + ')').join(', '));
   L.push('', 'Updated ' + fmtDate((m.updated || '').slice(0, 10)) + ' in the Success Plan Builder');
   return L.join('\n');
 }
@@ -4105,7 +4170,7 @@ function fillAbout(p) {
     if (own.includes(s.key)) asksFor(p, s).forEach(add);
     else ((((s.modeAsk || {})[m.mode]) || []).concat(((prof.ask || {})[s.key]) || [])).forEach(add);
   });
-  if (listen.length) L.push('- Listen especially for:', ...listen.slice(0, 10).map(q => '  - ' + q));
+  if (listen.length) L.push('- Listen especially for:', ...listen.slice(0, 14).map(q => '  - ' + q));
   L.push('');
   return L;
 }
