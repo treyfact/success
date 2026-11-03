@@ -16,6 +16,10 @@ A floating **Back** button sits bottom left on every step (`backTarget()`): it g
 
 **Note (fill the plan like a notes app).** The **Note** button opens the whole plan as one plain note in its own window (`#note=<plan id>`, `initNote()`; a new tab on phones). A pinned strip under the account name lists every section; swipe it sideways and tap a name to jump there, and the section you're reading lights up as you scroll (`noteJumpTo()`, `noteSpy()`). Every step is a heading, every question is bold and the answer is typed underneath in plain text; pick-one questions are tappable words and tick-box questions a checklist, so there are no dropdowns. Lists are one item per line; tables are one row per line with cells split by " / " (`noteCols` picks which columns show; rows keep their hidden columns). End a line with "?" and press Enter to start a question of your own: if it matches a question in the plan the answer goes there, otherwise it's saved in `data.misc` and waits on the **Notes to sort** page in the main view, where each one is moved to a step or deleted. Notes to sort never reach the customer view, the Customer window or the PDFs. The note and the main window share the browser's saved copy: before every save, `mergeDisk()` takes in what other windows saved and keeps this window's changes on top, answer by answer (`fineKeys()`), and a `storage` event refreshes the other window. Edits in the note reach a teammate on a team code through the main window.
 
+**Fill from a call (for a call held without the plan open).** "Fill from a call" (Account basics, the side menu, More) opens the `fill` page. The CSM drops in the transcript (.txt, .vtt, .srt, .md, .rtf or .docx, read in the browser by `readAnyFile()`, `rtfText()`, `docxText()`; or pasted) and any of the customer's own documents, then **Copy for your AI** copies `fillPrompt()`: plain-English rules plus every question of this plan, numbered Q1, Q2 (steps S1, S2), built by `fillQuestions()` from the plan's own steps, so it works for Guided, Flintco and Custom plans and with any chat AI (ChatGPT, Claude, Gemini, Copilot). The AI replies with JSON (`answers` with a quote and `sure` for each, `followups`, `other`); the CSM pastes it back and `fillParse()` reads it forgivingly (chatter, code fences, trailing commas, ids as numbers). `fillItems()` turns it into a review list grouped by step: nothing goes in until it's ticked, lists, tables and milestones only add, a filled answer is never replaced unless the CSM ticks it, "sure": false adds "Check with them" to that step's notes, follow-ups become "To ask:" notes, and anything else goes to Notes to sort. An answer in an add-on section adds that section. Nothing is sent from the page and the transcript isn't saved (`fill` lives in the window only). There is no API key and no cost; keep it that way unless Trey decides otherwise. When a question, field or option changes, the prompt changes with it, so there is nothing else to update.
+
+**Copy summary for HubSpot.** More, then Copy summary for HubSpot, copies `hubspotSummary()`: a short plain-text snapshot (goal, 30-day test, targets, next milestones, owners, risks, renewal and signing) to paste as a note on the company in HubSpot. The page doesn't talk to HubSpot; that would need a private token, which can never live in this public repo.
+
 **Built for live customer meetings.** Three top-bar buttons:
 - **Focus** hides the side menu and map so only the current step shows. Remembered per browser (`spb.focus`).
 - **Timer** pops out a small window with Start, Pause and Reset (`spb.timer`). Chrome and Edge use Document Picture-in-Picture so it stays on top; other browsers get a pop-up placed at the top right. Reference only: no warnings or alarms.
@@ -45,7 +49,7 @@ Inside the `<script>` tag, top to bottom:
 | Block | What it holds | Edit it when |
 | --- | --- | --- |
 | `CONFIG` (TIERS, MODES, BRANCHES, PHASES, FAILURE_MODES, SECTIONS) | All the words and structure a CSM sees | Changing a question, prompt, section, field, default or tier |
-| `readyChecks()` | What "ready to share" means | Changing the quality bar |
+| `readyChecks()` | What "ready to share" means: Barry's test (how, who, by when, how we'll know), the 30-day test, targets worded as things we measure (`PROMISE_WORDS`), no starting text left | Changing the quality bar |
 | State and storage | localStorage load and save, `newPlan()`, `blankData()` | Rarely |
 | Render functions | Nav, forms, map, timeline, ready check, plan view | Changing how things look |
 | Events | One delegated handler for input, change and click | Adding a new kind of control |
@@ -84,9 +88,13 @@ Field types:
 | `list` | array of strings | Add with Enter; each item can become a map chip |
 | `checks` | array of strings | `options: [...]`, shown as pill checkboxes |
 | `table` | array of row objects | `columns: [{ key, label, type?: 'select', options?, multi?: true }]`, `defaultRows: () => [...]`, `addLabel` |
-| `milestones` | `{ readiness: [{text, done}], d30: [...], ... }` | Only used by the `milestones` section |
+| `milestones` | `{ readiness: [{text, done, who?, kept?}], d30: [...], ... }` | Only used by the `milestones` section. `who` is FactorLab, Customer, Together or typed text; `kept` marks starting text the CSM kept as is |
 
 `showIf: d => d.first === 'Other'` hides a field until it applies.
+
+`modeAsk: { renew: [...] }` adds curious questions when the account needs that (`asksFor()`); used for Renew on Targets and baselines.
+
+**Milestones: baseline first, and who does it.** New plans start with Barry's order in the first 30 days (set the baseline together, they pick three things to improve, we measure whether they're working), and every milestone has a "Who does it" choice. Pre-filled milestones and rhythm lines show a "Starting text: keep it" tag until the CSM edits, ticks or keeps them; the ready check lists what's still starting text. Plans saved before Nov 2026 have the old starting milestones (`MS_OLD_DEFAULT`) and are read the same way, so the customer view still hides them until touched.
 
 **Every multiple choice has "Something else".** Pick-one lists, tick boxes, pick-one table columns and "What the account needs this year" all add a "Something else" choice that opens a box to type in, in the main view and the Note. The typed text is saved as the answer itself (`select`: the value; `checks`: an extra item in the array; table cell: the cell; mode: `meta.mode = 'other'` plus `meta.modeOther`), so maps, ready checks and PDFs show it like any other answer. Use `modeOf(meta)`, never `MODES[meta.mode]` directly. A list that already has its own `'Other'` option with a follow-up box (First workflow) keeps it, shown as "Something else". Don't add "Something else" as a literal option in `options`; the renderer adds it. Plan size and the step builder's own controls are settings, not questions, and don't get it.
 
@@ -104,6 +112,7 @@ plan = {
   // flow (Flintco and Custom plans only): { name, steps: [{ key, title?, ask? }], own: { id: { title, branch, intro, ask, fields: [{ key, label, type, options }] } } }
   //   steps list the plan's steps in order; "own-<id>" keys are steps the CSM wrote; answers live in data['own-<id>']
   // data.misc: { items: [{ id, q, a, at }], end }: questions of your own from the Note, not yet sorted (at = the note box they follow)
+  // data.milestones.kept: rhythm lines (weekly, monthly, quarterly) the CSM kept as they started
   // shelf (only after a template switch): { [template]: flow, or { sections } for guided }: the steps set aside, restored on switching back
   data: { [sectionKey]: { [fieldKey]: value } },
   custom: [{ id, title, items: [], notes }],   // the CSM's own branches

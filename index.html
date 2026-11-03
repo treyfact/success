@@ -152,6 +152,15 @@ table.grid td.act { width: 30px; text-align: center; vertical-align: middle; }
 .ms { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .ms input[type=text] { flex: 1; }
 .ms.done input[type=text] { text-decoration: line-through; color: var(--faint); }
+.ms-who { display: inline-flex; gap: 6px; flex: 0 0 auto; }
+.ms-who select { width: 132px; padding: 6px 8px; font-size: 13px; color: var(--muted); }
+.ms-who .other-box { width: 120px; margin: 0; }
+.start-tag { flex: 0 0 auto; border: 1px dashed var(--amber); background: var(--amber-soft); color: #8a4a12; border-radius: 999px; font-size: 11.5px; padding: 3px 9px; white-space: nowrap; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.start-tag:hover { background: var(--surface); }
+label .start-tag { margin-left: 8px; vertical-align: 1px; }
+@media (max-width: 760px) { .ms { flex-wrap: wrap; } .ms input[type=text] { flex: 1 1 70%; } .ms-who { margin-left: 26px; } }
+.tl-who { font-size: 11px; color: var(--faint); white-space: nowrap; }
+.ready-tip { display: block; font-size: 12px; color: var(--amber); margin-top: 2px; }
 
 .qs-more { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 12.5px; padding: 2px 4px; white-space: nowrap; }
 .qs-more:hover { color: var(--navy); text-decoration: underline; }
@@ -466,6 +475,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 .doc-phase ul { padding: 8px 10px; gap: 6px; }
 .doc-phase li { font-size: 12.5px; -webkit-line-clamp: 2; }
 .doc-phase li.done { color: var(--faint); text-decoration: line-through; }
+.doc-who { font-family: 'FL Condensed', var(--font); text-transform: uppercase; letter-spacing: .04em; font-size: 10.5px; color: var(--amber); font-weight: 600; }
 .doc-pnum { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; margin: 0 10px 8px; padding: 0 !important; }
 .doc-pnum.done { background: var(--green); }
 .doc-pname { font-weight: 700; font-size: 14px; }
@@ -564,6 +574,43 @@ table.grid td .other-box { margin-top: 4px; }
 .sort-a { white-space: pre-wrap; margin-top: 4px; color: var(--ink); }
 .sort-act { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
 .sort-act select { flex: 1 1 220px; width: auto; }
+/* Fill from a call */
+.fill-cta { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; border: 1px dashed var(--line); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 18px; color: var(--muted); font-size: 13px; background: var(--surface); }
+.fill-cta b { color: var(--ink); }
+.fill-step-card { display: flex; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+.fill-num { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff; font-family: 'FL Condensed', var(--font); font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.fill-main { flex: 1; min-width: 0; }
+.fill-drop { display: block; border: 1.5px dashed var(--line); border-radius: 10px; padding: 16px; text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 10px; cursor: pointer; background: var(--soft); }
+.fill-drop.small { padding: 10px; margin: 8px 0 0; }
+.fill-drop.over, .fill-drop:hover { border-color: var(--navy); color: var(--ink); }
+.fill-drop u { color: var(--navy); }
+.fill-docs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.fill-doc { display: inline-flex; align-items: center; gap: 6px; background: var(--navy-soft); border-radius: 999px; padding: 3px 4px 3px 12px; font-size: 12.5px; }
+.fill-doc small { color: var(--muted); }
+.fill-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.fill-ok { background: var(--green-soft); color: var(--green); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 13px; font-weight: 600; }
+.fill-err { background: var(--amber-soft); color: var(--amber); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 13px; }
+.fill-manual { margin-top: 6px; min-height: 120px; font-size: 12px; }
+.fill-bar { background: var(--soft); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.fill-bar b { color: var(--ink); }
+.fill-bar-act { margin-left: auto; display: inline-flex; gap: 4px; }
+.fill-group { margin-bottom: 18px; }
+.fill-step { font-family: 'FL Condensed', var(--font); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: var(--amber); font-size: 14px; margin-bottom: 6px; }
+.fill-item { display: flex; gap: 10px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; opacity: .62; }
+.fill-item.on { opacity: 1; border-color: #b9cbe4; }
+.fill-item input { margin-top: 3px; flex: none; }
+.fill-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fill-q { font-weight: 600; font-size: 13px; }
+.fill-a { white-space: pre-wrap; overflow-wrap: anywhere; }
+.fill-now { font-size: 12px; color: var(--faint); white-space: pre-wrap; }
+.fill-quote { font-size: 12.5px; color: var(--muted); font-style: italic; overflow-wrap: anywhere; }
+.fill-flag { display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 600; color: var(--amber); background: var(--amber-soft); border-radius: 999px; padding: 1px 8px; vertical-align: 1px; }
+.fill-flag.add { color: var(--navy); background: var(--navy-soft); }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--ink); color: var(--surface); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 60; max-width: calc(100vw - 32px); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+[data-theme="dark"] .fill-item.on { border-color: #4d6f9c; }
+[data-theme="dark"] .start-tag { color: #f0a868; }
+@media (max-width: 760px) { .fill-step-card { padding: 12px; gap: 10px; } .fill-bar-act { margin-left: 0; } }
 
 /* ---------- Dark mode (More, then Dark mode; remembered per browser as spb.theme) ----------
    The plan pages keep their light paper look in dark mode: they're what prints and what the customer sees. */
@@ -645,6 +692,9 @@ table.grid td .other-box { margin-top: 4px; }
       <button data-cmd="theme" id="themeCmd">Dark mode</button>
       <button data-cmd="duplicate">Duplicate this plan</button>
       <hr>
+      <button data-cmd="fill">Fill from a call transcript</button>
+      <button data-cmd="hubspot">Copy summary for HubSpot</button>
+      <hr>
       <button data-cmd="export">Export this plan (file)</button>
       <button data-cmd="import">Import a plan file</button>
       <hr>
@@ -723,6 +773,16 @@ const PHASES = [
 ];
 
 const FAILURE_MODES = ['Adoption', 'Value', 'Champion', 'Fit', 'Product gap'];
+/* Who does each milestone. Barry's rule: we give the baseline, they decide what to improve, we measure. */
+const MS_WHO = ['', 'FactorLab', 'Customer', 'Together'];
+/* The milestones every plan started with before Nov 2026, so older plans' untouched lists still read as starting text. */
+const MS_OLD_DEFAULT = {
+  readiness: ['Plan drafted with the customer', 'Baselines and owners set', 'Go-live questions answered'],
+  d30: ['First workflow live', 'Three recognitions sent', 'Leaders can explain the why'],
+  d90: ['Game tape reviewed against the baseline', '1 or 2 improvement priorities picked'],
+  d180: ['First standard written and shared', 'Next workflow or region chosen', 'Advocacy ask made'],
+  d365: ['Quarterly learning reports shared', 'Renewal case built in their numbers', "Next year's plan drafted"]
+};
 
 /* Field types: text, textarea, select, date, list, table, checks, milestones */
 const SECTIONS = [
@@ -735,15 +795,18 @@ const SECTIONS = [
       "Tell me what you're doing next year to cut injuries, and I'll show you whether it's working.",
       'If this works, what can your people stop doing?',
       'Which report do you build by hand every month?',
-      'What number does your boss keep asking you for?'
+      'What number does your boss keep asking you for?',
+      'At the end of 30 days, what will tell you this was worth it?'
     ],
     fields: [
       { key: 'words', label: 'Their goal, in their words', type: 'textarea', placeholder: 'Quote them as closely as you can.' },
+      { key: 'test30', label: 'The 30-day test: at the end of 30 days, what will tell us this worked?', type: 'textarea', placeholder: 'e.g. three good examples on record, and a baseline we both trust' },
       { key: 'plate', label: "Work we'll take off their plate", type: 'list', placeholder: 'e.g. building the monthly report by hand' },
       { key: 'priorities', label: 'Priorities they already have', type: 'list', placeholder: 'e.g. stronger planning, earlier leadership action' }
     ],
     leaves: d => [
       d.words && '"' + trunc(d.words, 46) + '"',
+      d.test30 && 'In 30 days: ' + d.test30,
       ...(d.plate || []).map(x => 'Off their plate: ' + x)
     ]
   },
@@ -801,8 +864,18 @@ const SECTIONS = [
     ask: [
       'How long does this take your people today? Can we time a few?',
       'How many people should be doing this each week?',
-      'What would "better" sound like in a morning plan?'
+      'What would "better" sound like in a morning plan?',
+      "What's the number they have to hit, and what would they love to hit?"
     ],
+    modeAsk: {
+      renew: [
+        'How has engagement trended over the last 12 months?',
+        'How many projects are loaded, and how many are active?',
+        'How many people improved after doing ten or more?',
+        'How do their regions compare with the FactorLab benchmark?',
+        'What on the roadmap matters most to them?'
+      ]
+    },
     fields: [
       {
         key: 'measures', label: 'Scorecard', type: 'table',
@@ -811,10 +884,11 @@ const SECTIONS = [
           { key: 'how', label: 'How we score it', width: '33%', multi: true },
           { key: 'baseline', label: 'Baseline' },
           { key: 'target', label: 'Target' },
+          { key: 'stretch', label: 'Stretch' },
           { key: 'current', label: 'Now' },
           { key: 'by', label: 'By when' }
         ],
-        noteCols: ['measure', 'baseline', 'target', 'current', 'by'],
+        noteCols: ['measure', 'baseline', 'target', 'stretch', 'current', 'by'],
         defaultRows: () => [
           { measure: 'Effort', how: 'Minutes to complete a targeted activity' },
           { measure: 'Participation', how: 'Active contributors vs expected, per week' },
@@ -828,7 +902,7 @@ const SECTIONS = [
       { key: 'outcome', label: 'One outcome they already track (we follow it alongside, never predict it)', type: 'text', placeholder: 'e.g. their incident cost per hour worked' }
     ],
     leaves: d => [
-      ...(d.measures || []).filter(r => r.target).map(r => r.measure + ': ' + (r.baseline || '?') + ' to ' + r.target),
+      ...(d.measures || []).filter(r => r.target).map(r => r.measure + ': ' + (r.baseline || '?') + ' to ' + r.target + (r.stretch ? ' (stretch ' + r.stretch + ')' : '')),
       d.outcome && 'Tracking: ' + d.outcome
     ]
   },
@@ -860,7 +934,9 @@ const SECTIONS = [
     intro: 'Every line gets a customer name and a FactorLab name. Include a field voice: the toughest critic tries every change before it rolls out.',
     ask: [
       'Who outside safety would care if this worked?',
-      "Who's your toughest critic in the field, and what would win them over?"
+      "Who's your toughest critic in the field, and what would win them over?",
+      'Who is personally on the hook for this working, not just signing off on it?',
+      'Who will show the results to their leadership?'
     ],
     fields: [
       {
@@ -917,15 +993,16 @@ const SECTIONS = [
   {
     key: 'milestones', core: true, branch: 'know', title: 'Milestones and rhythm', short: 'milestones', model: true,
     tiers: ['starter', 'growth', 'enterprise'],
-    intro: 'Five phases, each closed by a short review. Edit the milestones to fit the account and tick them off as you go. Set Day 1 in Account basics to see dates.',
+    intro: 'Five phases, each closed by a short review. Edit the milestones to fit the account, say who does each one, and tick them off as you go. Set Day 1 in Account basics to see dates.',
+    hint: 'Baseline first: we can only help them improve once we know where they start. Watch the first examples together, they pick what to improve, then we measure whether it worked.',
     fields: [
       { key: 'phases', label: 'Milestones', type: 'milestones',
         default: () => ({
-          readiness: ['Plan drafted with the customer', 'Baselines and owners set', 'Go-live questions answered'],
-          d30: ['First workflow live', 'Three recognitions sent', 'Leaders can explain the why'],
-          d90: ['Game tape reviewed against the baseline', '1 or 2 improvement priorities picked'],
-          d180: ['First standard written and shared', 'Next workflow or region chosen', 'Advocacy ask made'],
-          d365: ['Quarterly learning reports shared', 'Renewal case built in their numbers', "Next year's plan drafted"]
+          readiness: [['Plan drafted with the customer', 'Together'], ['Owners named on both sides', 'Together'], ['Leaders can explain the why', 'Customer'], ['Go-live questions answered', 'FactorLab']],
+          d30: [['First workflow live', 'Customer'], ['Set the baseline: watch the first five together', 'Together'], ['Pick three things to improve', 'Customer'], ['Three recognitions sent', 'Customer']],
+          d90: [['Measure whether the three changes are working', 'FactorLab'], ['Next one or two improvements picked', 'Together']],
+          d180: [['First standard written and shared', 'Together'], ['Next workflow or region chosen', 'Together'], ['Advocacy ask made', 'FactorLab']],
+          d365: [['Quarterly learning reports shared', 'FactorLab'], ['Renewal case built in their numbers', 'FactorLab'], ["Next year's plan drafted", 'Together']]
         }) },
       { key: 'weekly', label: 'Weekly', type: 'text', default: () => 'Champion checks the dashboard and thanks top crews' },
       { key: 'monthly', label: 'Monthly', type: 'text', default: () => 'Leaders review their two chosen workbooks' },
@@ -980,14 +1057,20 @@ const SECTIONS = [
     fields: [
       { key: 'arr', label: 'ARR', type: 'text' },
       { key: 'renewal', label: 'Renewal date', type: 'date' },
-      { key: 'hours', label: 'Service hours in contract', type: 'text' },
+      { key: 'hours', label: 'Service hours or days in the deal', type: 'text' },
+      { key: 'crews', label: 'Crews at peak', type: 'text', placeholder: 'e.g. 12 crews across 3 projects' },
+      { key: 'pricing', label: 'Priced by', type: 'select', options: ['', 'Users', 'Projects', 'Users and projects'] },
+      { key: 'signer', label: 'Who signs', type: 'text' },
+      { key: 'signed', label: 'Signed', type: 'select', options: ['', 'Yes', 'Not yet'] },
       { key: 'rungNow', label: 'Where they are now', type: 'select', options: ['', 'Project', 'Project group', 'Region or business unit', 'Operating company', 'Enterprise'] },
       { key: 'next', label: 'Next expansion step', type: 'text', placeholder: 'e.g. second region, permits, trade partner users' },
       { key: 'mustBeTrue', label: 'What has to be true first', type: 'text' }
     ],
     leaves: d => [
+      d.signed === 'Not yet' && 'Not signed yet' + (d.signer ? ': ' + d.signer + ' signs' : ''),
       d.renewal && 'Renewal: ' + fmtDate(d.renewal),
       d.arr && 'ARR: ' + d.arr,
+      d.crews && 'Crews at peak: ' + d.crews,
       d.next && 'Next step: ' + d.next
     ]
   },
@@ -1010,6 +1093,22 @@ const SECTIONS = [
       }
     ],
     leaves: d => (d.rows || []).filter(r => r.risk).map(r => (r.mode || 'Untagged') + ': ' + r.risk)
+  },
+  {
+    key: 'setup', when: "When the account has setup quirks a teammate covering for you would need to know.", branch: 'internal', title: 'Setup notes', short: 'setup notes',
+    tiers: ['enterprise'],
+    intro: 'Internal only. The quirks of how this account is set up, so anyone covering for you can help without starting over.',
+    ask: [
+      'If you were out next week, what would a teammate need to know to help this account?',
+      'Anything about how this account is set up that surprised you?'
+    ],
+    fields: [
+      { key: 'quirks', label: 'Account quirks', type: 'list', placeholder: 'e.g. permission groups by region, how trade partner usernames work' },
+      { key: 'access', label: 'How people get in', type: 'text', placeholder: 'e.g. SSO for employees, project QR codes for trade partners' },
+      { key: 'contact', label: 'Who to call on their side about setup', type: 'text' },
+      { key: 'open', label: 'Open setup items', type: 'list' }
+    ],
+    leaves: d => [...(d.quirks || []), d.access && 'Access: ' + d.access, d.contact && 'Setup contact: ' + d.contact, ...(d.open || []).map(x => 'Open: ' + x)]
   },
   {
     key: 'advocacy', when: "When the account is healthy enough to ask for a reference or a story.", branch: 'internal', title: 'Advocacy', short: 'advocacy',
@@ -1327,17 +1426,33 @@ function modeOf(m) { return MODES[m.mode] || { label: m.modeOther || OTHER, lead
 const ANSWER_TYPES = { text: 'Short answer', textarea: 'Long answer', list: 'List', select: 'Pick one', checks: 'Tick boxes', date: 'Date', table: 'Table' };
 
 /* Ready check: what "ready to share" means. */
+/* Barry's test for a plan: how we'll be successful, who does what, by when, and how we'll know it happened. */
+const PROMISE_WORDS = /\b(guarantee[ds]?|promise[ds]?|double[ds]?|triple[ds]?|half the time|zero (incidents|injuries|accidents))\b/i;
 function readyChecks(plan) {
   const d = k => plan.data[k] || {};
   const owners = (d('owners').rows || []).filter(r => r.role);
   const measures = (d('targets').measures || []).filter(r => r.target);
-  const phases = d('milestones').phases || {};
+  const phases = d('milestones').phases || {}, msAll = [].concat(...PHASES.map(x => (phases[x.key] || []).filter(m => m.text)));
+  const baselineMs = msAll.some(m => /baseline/i.test(m.text));
+  const vis = visibleSections(plan).map(s => s.key);
+  const promises = [].concat(
+    (d('targets').measures || []).map(r => [[r.target, 'targets'], [r.stretch, 'targets']]).flat(),
+    (d('fcValue').rows || []).map(r => [r.target, 'fcValue']),
+    [[d('goal').test30, 'goal'], [d('hypothesis').result, 'hypothesis']]
+  ).filter(x => x[0] && vis.includes(x[1]) && PROMISE_WORDS.test(x[0]));
+  const left = startingLeft(plan), noWho = msAll.filter(m => !m.who).length;
   return [
     { id: 'goal', label: 'Their goal is written in their words', ok: !!d('goal').words, sec: 'goal' },
-    { id: 'targets', label: 'At least one target, and every target has a baseline', ok: measures.length > 0 && measures.every(r => r.baseline), sec: 'targets' },
-    { id: 'owners', label: 'Every owner line has a customer name and a FactorLab name', ok: owners.length > 0 && owners.every(r => r.customer && r.factorlab), sec: 'owners' },
+    { id: 'test30', label: 'The 30-day test is written', ok: !!(d('goal').test30 || '').trim(), sec: 'goal' },
+    { id: 'how', label: 'How: the first 30 days of milestones are written', ok: (phases.d30 || []).some(m => m.text), sec: 'milestones' },
+    { id: 'who', label: 'Who: every milestone says who does it', ok: msAll.length > 0 && noWho === 0, tip: noWho ? noWho + ' without anyone named' : '', sec: 'milestones' },
+    { id: 'owners', label: 'Who: every owner line has a customer name and a FactorLab name', ok: owners.length > 0 && owners.every(r => r.customer && r.factorlab), sec: 'owners' },
     { id: 'field', label: 'A field voice is named', ok: owners.some(r => /field|foreman|superintendent|critic/i.test(r.role) && r.customer), sec: 'owners' },
-    { id: 'recognition', label: 'The 30-day milestones and the recognition plan are written', ok: (phases.d30 || []).some(m => m.text) && !!d('recognition').forWhat, sec: 'recognition' },
+    { id: 'when', label: 'By when: Day 1 is set, so every milestone has a date', ok: !!plan.meta.day1, sec: 'basics', shows: 'milestones' },
+    { id: 'targets', label: "How we'll know: a target with a baseline, or a milestone to set the baseline", ok: measures.length > 0 && (measures.every(r => r.baseline) || baselineMs), sec: 'targets' },
+    { id: 'measured', label: "Every target is something we'll measure together, from a baseline", ok: !promises.length, tip: promises.length ? 'Check the wording of "' + trunc(promises[0][0], 50) + '": lead with the baseline, then what we\'ll measure.' : '', sec: promises.length ? promises[0][1] : 'basics' },
+    { id: 'starting', label: 'The pre-filled milestones and rhythm are made theirs', ok: !left.length, tip: left.length ? 'Still starting text: ' + left.join(', ') + '. Edit it, or click Keep it.' : '', sec: 'milestones' },
+    { id: 'recognition', label: 'The recognition plan is written', ok: !!d('recognition').forWhat, sec: 'recognition' },
     { id: 'risks', label: 'The biggest risk is named and tagged with a failure mode', ok: (d('risks').rows || []).some(r => r.risk && r.mode), sec: 'risks' },
     { id: 'economics', label: 'Renewal date and next expansion step are filled in', ok: !!(d('economics').renewal && d('economics').next), sec: 'economics' },
     { id: 'objective', label: 'The objective is written', ok: !!d('fcObjective').objective, sec: 'fcObjective' },
@@ -1346,7 +1461,7 @@ function readyChecks(plan) {
     { id: 'punch', label: 'Every punch list item has an owner and a date', ok: (d('fcPunch').rows || []).filter(r => r.item).every(r => r.owner && r.by), sec: 'fcPunch' },
     { id: 'readytest', label: 'All of the ready-for-the-year questions are answered yes', ok: (d('fcReady').rows || []).filter(r => r.question).every(r => r.ready === 'Yes'), sec: 'fcReady' },
     { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it in Account basics)', ok: !!plan.meta.verified, sec: 'basics' }
-  ].filter(c => c.sec === 'basics' || visibleSections(plan).some(s => s.key === c.sec));
+  ].filter(c => { const k = c.shows || c.sec; return k === 'basics' || visibleSections(plan).some(s => s.key === k); });
 }
 
 /* =========================================================
@@ -1357,6 +1472,8 @@ let currentId = null;
 let currentSec = 'basics';
 let sideTab = 'map';
 let storageOk = true;
+let fill = null;       // Fill from a call: { planId, docs: [{ name, text }], paste, reply, items, err, copied, manual }, this window only
+let fillDone = '';     // a one-time note on Account basics after answers are added
 
 function uid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 function clone(x) { return JSON.parse(JSON.stringify(x)); }
@@ -1446,7 +1563,7 @@ function blankData() {
       else if (f.type === 'milestones') {
         const def = f.default();
         const ph = {};
-        PHASES.forEach(p => { ph[p.key] = (def[p.key] || []).map(t => ({ text: t, done: false })); });
+        PHASES.forEach(p => { ph[p.key] = (def[p.key] || []).map(t => Array.isArray(t) ? { text: t[0], done: false, who: t[1] } : { text: t, done: false }); });
         data[s.key][f.key] = ph;
       }
       else if (f.default) data[s.key][f.key] = f.default();
@@ -1592,7 +1709,7 @@ function renderNav() {
   if (p.meta.flow) {
     html += `<div class="nav-group"><div class="nav-group-title">${esc(planLabel(p))}</div>${vis.map(navItem).join('')}</div>`;
     html += `<div class="nav-group"><div class="nav-group-title">Your branches</div>${p.custom.map(c => `<button class="nav-item ${currentSec === 'custom:' + c.id ? 'active' : ''}" data-goto="custom:${c.id}"><span class="dot ${(c.items || []).length ? 'on' : ''}"></span>${esc(c.title || 'Untitled branch')}</button>`).join('')}<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
-    html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item" data-action="edit-steps" style="color:var(--muted)">Change the steps</button></div>`;
+    html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item ${currentSec === 'fill' ? 'active' : ''}" data-goto="fill" style="color:var(--muted)">Fill from a call</button><button class="nav-item" data-action="edit-steps" style="color:var(--muted)">Change the steps</button></div>`;
     html += `<div class="nav-foot"><div class="toggle-row" style="font-size:12px">${esc(planLabel(p))}, ${vis.length + 1} steps. Dashed steps stay FactorLab only.</div></div>`;
     nav.innerHTML = html; return;
   }
@@ -1614,7 +1731,7 @@ function renderNav() {
       html += `<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
     }
   });
-  html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button></div>`;
+  html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item ${currentSec === 'fill' ? 'active' : ''}" data-goto="fill" style="color:var(--muted)">Fill from a call</button></div>`;
   html += `<div class="nav-foot">
     <div class="toggle-row" style="font-size:12px">${esc(TIERS[p.meta.tier].label)} plan, ${visibleSections(p).length} of ${SECTIONS.filter(s => !s.set).length} sections in use</div>
     <div class="toggle-row" style="font-size:12px"><span class="dogear"></span> ${esc(MODEL_TIP)}</div></div>`;
@@ -1631,6 +1748,7 @@ function backTarget() {
   if (!p || builder || repick) return null;
   const order = navOrder(p);
   if (currentSec === 'addmore' || currentSec === 'sort') return order[order.length - 1];
+  if (currentSec === 'fill') return 'basics';
   const i = order.indexOf(currentSec);
   return i > 0 ? order[i - 1] : i === 0 ? '__start' : null;
 }
@@ -1646,10 +1764,11 @@ function renderWorkInner() {
   const p = cur();
   if (!p) { work.innerHTML = pendingNew ? startHtml() : welcomeHtml(); return; }
   if (repick) { work.innerHTML = startHtml(); return; }
-  if (!['basics', 'addmore', 'sort'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
+  if (!['basics', 'addmore', 'sort', 'fill'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
   const jump = stepBarHtml(p) + mobileJumpHtml(p);
   if (currentSec === 'addmore') { work.innerHTML = jump + addMoreHtml(p); return; }
   if (currentSec === 'sort') { work.innerHTML = jump + sortHtml(p); return; }
+  if (currentSec === 'fill') { work.innerHTML = jump + fillHtml(p); return; }
   if (currentSec === 'basics') { work.innerHTML = jump + basicsHtml(p); return; }
   const c = customByKey(currentSec);
   if (c) { work.innerHTML = jump + customHtml(p, c); return; }
@@ -1659,6 +1778,7 @@ function renderWorkInner() {
 function secName(k) {
   if (k === 'addmore') return 'Build out this plan';
   if (k === 'sort') return 'Notes to sort';
+  if (k === 'fill') return 'Fill from a call';
   if (k === 'basics') return 'Account basics';
   const c = customByKey(k);
   if (c) return c.title || 'Your branch';
@@ -1666,7 +1786,7 @@ function secName(k) {
   return s ? s.title : k;
 }
 function mobileJumpHtml(p) {
-  return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}${miscCount(p) ? `<option value="sort" ${currentSec === 'sort' ? 'selected' : ''}>Notes to sort (${miscCount(p)})</option>` : ''}<option value="addmore" ${currentSec === 'addmore' ? 'selected' : ''}>+ Build out this plan</option><option value="__branch">+ Add your own branch</option></select>`;
+  return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}${miscCount(p) ? `<option value="sort" ${currentSec === 'sort' ? 'selected' : ''}>Notes to sort (${miscCount(p)})</option>` : ''}<option value="addmore" ${currentSec === 'addmore' ? 'selected' : ''}>+ Build out this plan</option><option value="fill" ${currentSec === 'fill' ? 'selected' : ''}>Fill from a call</option><option value="__branch">+ Add your own branch</option></select>`;
 }
 
 function welcomeHtml() {
@@ -1932,6 +2052,8 @@ function basicsHtml(p) {
   return `<div class="sec-branch">Start here</div>
   <div class="sec-head"><h2>Account basics</h2></div>
   <p class="sec-intro">Who this plan is for and what the account needs this year. Drop in anything you already know; you can shape it into the plan later.</p>
+  ${fillDone ? `<div class="fill-ok" style="margin-bottom:16px">${esc(fillDone)}</div>` : ''}
+  <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
   ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}</div>` : ''}
   <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
   ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span><button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button></div>
@@ -1951,19 +2073,25 @@ function basicsHtml(p) {
   ${footHtml(p)}`;
 }
 
+/* A step's curious questions, plus any for what the account needs this year (e.g. Renew). */
+function asksFor(p, s) { return (s.ask || []).concat(((s.modeAsk || {})[p.meta.mode]) || []); }
 function sectionHtml(p, s) {
   const d = p.data[s.key] || (p.data[s.key] = {});
   const branch = BRANCHES.find(b => b.key === s.branch);
   let html = `<div class="sec-branch">${esc(branch.label)}${branch.internal ? ' (not shown to the customer)' : ''}</div>
     <div class="sec-head"><h2>${esc(s.title)}</h2>${s.model ? `<span class="dogear" title="${esc(MODEL_TIP)}" style="margin-top:9px"></span>` : ''}${(p.meta.flow || !s.core) && !leavesFor(s, p).length && !(p.notes || {})[s.key] ? `<button class="qs-more" data-action="remove-section" data-key="${s.key}">Remove from this plan</button>` : ''}</div>
     ${s.intro ? `<p class="sec-intro">${esc(s.intro)}</p>` : ''}`;
-  if (s.ask && s.ask.length) html += `<div class="ask"><div class="ask-title">Questions to get curious with</div><ul>${s.ask.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>`;
+  const asks = asksFor(p, s);
+  if (asks.length) html += `<div class="ask"><div class="ask-title">Questions to get curious with</div><ul>${asks.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>`;
   if (s.hint) html += `<div class="hint">${esc(s.hint)}</div>`;
   if (s.key === 'milestones') {
     const phases = d.phases || {};
     html += `<div class="field"><div class="field-label">Milestones</div>${PHASES.map((ph, i) => phaseHtml(p, ph, phases[ph.key] || [], i)).join('')}</div>`;
     html += `<div class="field-label" style="margin-top:18px">The rhythm underneath</div>`;
-    ['weekly', 'monthly', 'quarterly'].forEach(k => { html += fieldHtml(s, s.fields.find(f => f.key === k), d); });
+    ['weekly', 'monthly', 'quarterly'].forEach(k => {
+      const fh = fieldHtml(s, s.fields.find(f => f.key === k), d);
+      html += rhythmIsStarting(p, k) ? fh.replace('</label>', ` <button class="start-tag" data-action="keep-rhythm" data-k="${k}" title="This is the starting text. Edit it, or keep it as it is.">Starting text: keep it</button></label>`) : fh;
+    });
     html += fieldHtml(s, s.fields.find(f => f.key === 'workbooks'), d);
   } else {
     s.fields.forEach(f => { if (!f.showIf || f.showIf(d)) html += fieldHtml(s, f, d); });
@@ -2029,12 +2157,17 @@ function tableHtml(s, f, rows, opts) {
 
 function phaseHtml(p, ph, items, i) {
   const date = phaseDate(p, ph);
-  return `<div class="phase"><div class="phase-head"><b>${i + 1}. ${esc(ph.label)}</b><span>${esc(ph.when)}${date ? ' · ' + esc(date) : ''}</span></div>
-    ${items.map((m, j) => `<div class="ms ${m.done ? 'done' : ''}"><input type="checkbox" data-ms="${ph.key}" data-idx="${j}" data-mkey="done" ${m.done ? 'checked' : ''} title="Done"><input type="text" data-ms="${ph.key}" data-idx="${j}" data-mkey="text" value="${esc(m.text)}"><button class="x" title="Remove" data-action="remove-ms" data-ms="${ph.key}" data-idx="${j}">&times;</button></div>`).join('')}
+  const starting = items.filter(m => msIsStarting(ph.key, m)).length;
+  return `<div class="phase"><div class="phase-head"><b>${i + 1}. ${esc(ph.label)}</b><span>${esc(ph.when)}${date ? ' · ' + esc(date) : ''}</span>${starting > 1 ? `<button class="qs-more" data-action="keep-phase" data-ms="${ph.key}">Keep all ${starting} as they are</button>` : ''}</div>
+    ${items.map((m, j) => `<div class="ms ${m.done ? 'done' : ''}"><input type="checkbox" data-ms="${ph.key}" data-idx="${j}" data-mkey="done" ${m.done ? 'checked' : ''} title="Done"><input type="text" data-ms="${ph.key}" data-idx="${j}" data-mkey="text" value="${esc(m.text)}" aria-label="Milestone">${msWhoHtml(ph.key, j, m)}${msIsStarting(ph.key, m) ? `<button class="start-tag" data-action="keep-ms" data-ms="${ph.key}" data-idx="${j}" title="This is the starting text. Edit it, or keep it as it is.">Starting text: keep it</button>` : ''}<button class="x" title="Remove" data-action="remove-ms" data-ms="${ph.key}" data-idx="${j}">&times;</button></div>`).join('')}
     <button class="btn small ghost" data-action="add-ms" data-ms="${ph.key}">+ Add a milestone</button>
     <div style="margin-top:6px"><span class="tl-gate">${esc(ph.gate)}</span></div></div>`;
 }
 
+function msWhoHtml(phKey, j, m) {
+  const v = m.who || '', custom = !!v && !MS_WHO.includes(v), other = custom || otherOpen['ms|' + phKey + '|' + j];
+  return `<span class="ms-who"><select data-ms="${phKey}" data-idx="${j}" data-mkey="who" aria-label="Who does it">${MS_WHO.map(o => `<option value="${o}" ${!other && o === v ? 'selected' : ''}>${o || 'Who does it?'}</option>`).join('')}<option value="__other" ${other ? 'selected' : ''}>${OTHER}</option></select>${other ? `<input type="text" class="other-box" data-ms="${phKey}" data-idx="${j}" data-mkey="whoText" value="${esc(custom ? v : '')}" placeholder="Who?" aria-label="Who does it: something else">` : ''}</span>`;
+}
 /* Hide "Remove from this plan" once the section has something in it. */
 function updateRemoveLink() {
   const p = cur(), btn = document.querySelector('#work [data-action=remove-section]');
@@ -2114,15 +2247,36 @@ function footHtml(p) {
 /* The milestones and rhythm come pre-filled. In the customer view they appear only once the CSM
    has set Day 1 or changed or ticked something, so the customer sees the plan build as it's filled in. */
 function milestonesTouched(p) { return !!p.meta.day1 || milestonesEdited(p); }
+function msDefaults() { return SECTIONS.find(x => x.key === 'milestones').fields.find(f => f.key === 'phases').default(); }
+/* A milestone still exactly as the plan started it: not edited, ticked or kept. */
+function msIsStarting(phKey, m) {
+  if (!m || !m.text || m.done || m.kept) return false;
+  return (msDefaults()[phKey] || []).some(x => x[0] === m.text && (m.who || '') === x[1]) || ((MS_OLD_DEFAULT[phKey] || []).includes(m.text) && !m.who);
+}
+function rhythmIsStarting(p, k) {
+  const d = p.data.milestones || {}, f = SECTIONS.find(x => x.key === 'milestones').fields.find(x => x.key === k);
+  return !!d[k] && d[k] === f.default() && !(d.kept || []).includes(k);
+}
+/* What's still starting text: [label, count] pairs, for the ready check. */
+function startingLeft(p) {
+  const ph = ((p.data.milestones || {}).phases) || {}, out = [];
+  PHASES.forEach(x => { const n = (ph[x.key] || []).filter(m => msIsStarting(x.key, m)).length; if (n) out.push(x.label + ' (' + n + ')'); });
+  ['weekly', 'monthly', 'quarterly'].forEach(k => { if (rhythmIsStarting(p, k)) out.push(k[0].toUpperCase() + k.slice(1) + ' rhythm'); });
+  return out;
+}
 function milestonesEdited(p) {
   const s = SECTIONS.find(x => x.key === 'milestones'), d = p.data.milestones || {};
-  const def = s.fields.find(f => f.key === 'phases').default();
+  const def = msDefaults();
   const ph = d.phases || {};
   for (const k of Object.keys(ph)) {
     const items = ph[k] || [];
-    if (items.some(m => m.done)) return true;
-    if (JSON.stringify(items.map(m => m.text)) !== JSON.stringify(def[k] || [])) return true;
+    if (items.some(m => m.done || m.kept)) return true;
+    const texts = JSON.stringify(items.map(m => m.text));
+    const isNew = texts === JSON.stringify((def[k] || []).map(x => x[0])), isOld = texts === JSON.stringify(MS_OLD_DEFAULT[k] || []);
+    const newWho = isNew && items.every((m, i) => (m.who || '') === def[k][i][1]), oldWho = isOld && items.every(m => !m.who);
+    if (!newWho && !oldWho) return true;
   }
+  if ((d.kept || []).length) return true;
   if ((d.workbooks || []).length) return true;
   return ['weekly', 'monthly', 'quarterly'].some(k => (d[k] || '') !== s.fields.find(f => f.key === k).default());
 }
@@ -2171,7 +2325,7 @@ function timelineHtml(p, wide) {
     const date = phaseDate(p, ph);
     return `<div class="${wide ? 'tl-col' : 'tl-phase'}"><div class="tl-num ${allDone ? 'done' : ''}">${i + 1}</div><div>
       <div class="tl-name">${esc(ph.label)}</div><div class="tl-when">${esc(ph.when)}${date ? ' · ' + esc(date) : ''}</div>
-      <ul class="tl-items">${items.map(m => `<li class="${m.done ? 'done' : ''}">${esc(m.text)}</li>`).join('') || '<li class="empty-note">No milestones yet</li>'}</ul>
+      <ul class="tl-items">${items.map(m => `<li class="${m.done ? 'done' : ''}">${esc(m.text)}${m.who ? ` <span class="tl-who">${esc(m.who)}</span>` : ''}</li>`).join('') || '<li class="empty-note">No milestones yet</li>'}</ul>
       <span class="tl-gate">${esc(ph.gate)}</span></div></div>`;
   }).join('');
   return wide ? `<div class="tl-wide">${cols}</div>` : `<div class="tl">${cols}</div>`;
@@ -2181,7 +2335,7 @@ function readyHtml(p) {
   const checks = readyChecks(p);
   const n = checks.filter(c => c.ok).length;
   return `<p style="margin:0 0 10px;color:var(--muted)">${n} of ${checks.length} ready. A plan is ready to share when all of these are true.</p>
-    <ul class="ready-list">${checks.map(c => `<li><span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '&#10003;' : ''}</span><button data-goto="${c.sec}">${esc(c.label)}</button></li>`).join('')}</ul>`;
+    <ul class="ready-list">${checks.map(c => `<li><span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '&#10003;' : ''}</span><button data-goto="${c.sec}">${esc(c.label)}${!c.ok && c.tip ? `<span class="ready-tip">${esc(c.tip)}</span>` : ''}</button></li>`).join('')}</ul>`;
 }
 
 function renderSide() {
@@ -2215,7 +2369,7 @@ function docBranches(p, customer) {
       if (customer && s.key === 'milestones' && !milestonesTouched(p)) return;
       let ls = [];
       try { ls = (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
-      if (s.key === 'goal') ls = ls.filter(x => !x.startsWith('"'));              // the goal is shown at the top
+      if (s.key === 'goal') ls = ls.filter(x => !x.startsWith('"') && !x.startsWith('In 30 days: '));   // the goal and 30-day test are shown at the top
       if (s.key === 'hypothesis') ls = ls.filter(x => !x.startsWith('If we improve'));
       if (s.key === 'fcObjective') ls = ls.filter(x => x !== (p.data.fcObjective || {}).objective);
       items = items.concat(ls);
@@ -2268,9 +2422,15 @@ function presentHtml(p, customer) {
   const branches = docBranches(p, customer).filter(b => b.items.length || !(b.label === 'Why' && goalNow));   // the goal up top already covers an empty Why
   const n = branches.length, cols = n <= 4 ? Math.max(n, 1) : n <= 6 ? 3 : 4, rows = Math.ceil(n / cols);
   const goal = (has('goal') && d('goal').words) || (has('fcObjective') && d('fcObjective').objective), hy = has('hypothesis') ? d('hypothesis') : {};
-  const per = rows === 1 ? (goal ? 7 : 9) : rows === 2 ? (goal ? 3 : 4) : 2;
+  const lead = (goal ? 1 : 0) + ((has('goal') && (d('goal').test30 || '').trim()) ? 1 : 0);
+  const per = rows === 1 ? (lead ? 8 - lead : 9) : rows === 2 ? (lead ? 4 - lead : 4) : 2;
   let b1 = '';
   if (goal) b1 += `<div class="doc-goal">"${esc(goal)}"</div>`;
+  const t30 = has('goal') ? (d('goal').test30 || '').trim() : '';
+  if (t30) {
+    b1 += `<p class="doc-bet"><b>In 30 days:</b> ${esc(trunc(t30, 200))}</p>`;
+    if (t30.length > 200) { cut = true; full.push({ title: 'The 30-day test', items: [t30] }); }
+  }
   if (hy.improve && hy.result) b1 += `<p class="doc-bet"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
   if (n) {
     b1 += `<div class="doc-cards" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${branches.map(b => {
@@ -2293,11 +2453,11 @@ function presentHtml(p, customer) {
     b2 += `<div class="doc-tl">${PHASES.map((x, i) => {
       const items = (ph[x.key] || []).filter(it => it.text), shown = items.slice(0, 4), hidden = items.length - shown.length;
       if (hidden > 0) { cut = true; msCut = true; }
-      items.forEach(it => msAll.push(x.label + ': ' + it.text + (it.done ? ' (done)' : '')));
+      items.forEach(it => msAll.push(x.label + ': ' + it.text + (it.who ? ' (' + it.who + ')' : '') + (it.done ? ', done' : '')));
       const date = phaseDate(p, x), allDone = items.length && items.every(it => it.done);
       return `<div class="doc-phase"><div class="doc-pnum ${allDone ? 'done' : ''}">${i + 1}</div><div class="doc-pname">${esc(x.label)}</div>
         <div class="doc-pwhen">${esc(date || x.when)}</div>
-        <ul>${shown.map(it => `<li class="${it.done ? 'done' : ''}">${esc(it.text)}</li>`).join('') || '<li class="doc-empty">To be set</li>'}</ul>
+        <ul>${shown.map(it => `<li class="${it.done ? 'done' : ''}">${it.who ? `<span class="doc-who">${esc(it.who)}</span> ` : ''}${esc(it.text)}</li>`).join('') || '<li class="doc-empty">To be set</li>'}</ul>
         ${hidden > 0 ? `<div class="doc-more" style="padding:0">+ ${hidden} more</div>` : ''}
         <div class="doc-gate">${esc(x.gate)}</div></div>`;
     }).join('')}</div>`;
@@ -2331,12 +2491,12 @@ function presentHtml(p, customer) {
     (gv.workstreams || []).map(r => ({ role: r.workstream, customer: r.customer, factorlab: r.factorlab }))).filter(r => r.customer || r.factorlab);
   let b3 = '';
   if (ms.length || owners.length) {
-    const msShown = ms.slice(0, 8), owShown = owners.slice(0, 10);
+    const msShown = ms.slice(0, 8), owShown = owners.slice(0, 10), msStretch = ms.some(r => r.stretch);
     if (ms.length > 8 || owners.length > 10) cut = true;
-    if (ms.length > 8) full.push({ title: 'Scorecard', items: ms.map(r => `${r.measure}: ${r.baseline || '?'} to ${r.target || '?'}${r.by ? ', by ' + r.by : ''}`) });
+    if (ms.length > 8) full.push({ title: 'Scorecard', items: ms.map(r => `${r.measure}: ${r.baseline || '?'} to ${r.target || '?'}${r.stretch ? ' (stretch ' + r.stretch + ')' : ''}${r.by ? ', by ' + r.by : ''}`) });
     if (owners.length > 10) full.push({ title: 'Owners', items: owners.map(r => `${r.role}: ${[r.customer, r.factorlab].filter(Boolean).join(' / ')}`) });
     b3 = `<div class="doc-split ${ms.length && owners.length ? '' : 'one'}">
-      ${ms.length ? `<div><h3 class="doc-h3" style="margin-top:0">Scorecard</h3><table class="doc-table"><thead><tr><th>Measure</th><th>How we score it</th><th>Baseline</th><th>Target</th><th>Now</th><th>By</th></tr></thead><tbody>${msShown.map(r => `<tr><td><b>${esc(r.measure)}</b></td><td>${esc(r.how)}</td><td>${esc(r.baseline)}</td><td>${esc(r.target)}</td><td>${esc(r.current)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table>
+      ${ms.length ? `<div><h3 class="doc-h3" style="margin-top:0">Scorecard</h3><table class="doc-table"><thead><tr><th>Measure</th><th>How we score it</th><th>Baseline</th><th>Target</th>${msStretch ? '<th>Stretch</th>' : ''}<th>Now</th><th>By</th></tr></thead><tbody>${msShown.map(r => `<tr><td><b>${esc(r.measure)}</b></td><td>${esc(r.how)}</td><td>${esc(r.baseline)}</td><td>${esc(r.target)}</td>${msStretch ? `<td>${esc(r.stretch)}</td>` : ''}<td>${esc(r.current)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table>
         ${d('targets').outcome ? `<p class="doc-note">Also tracking: ${esc(d('targets').outcome)}</p>` : ''}</div>` : ''}
       ${owners.length ? `<div><h3 class="doc-h3" style="margin-top:0">Owners</h3><table class="doc-table"><thead><tr><th>Role</th><th>${esc(m.account || 'Customer')}</th><th>FactorLab</th></tr></thead><tbody>${owShown.map(r => `<tr><td>${esc(r.role)}</td><td>${esc(r.customer)}</td><td>${esc(r.factorlab)}</td></tr>`).join('')}</tbody></table></div>` : ''}
     </div>`;
@@ -2367,6 +2527,9 @@ function presentHtml(p, customer) {
         <tr><th>ARR</th><td>${esc(e.arr) || '<span class="doc-empty">Not confirmed</span>'}</td></tr>
         <tr><th>Renewal</th><td>${esc(fmtDate(e.renewal)) || '<span class="doc-empty">Not confirmed</span>'}</td></tr>
         <tr><th>Service hours</th><td>${esc(e.hours)}</td></tr>
+        ${e.crews ? `<tr><th>Crews at peak</th><td>${esc(e.crews)}</td></tr>` : ''}
+        ${e.pricing ? `<tr><th>Priced by</th><td>${esc(e.pricing)}</td></tr>` : ''}
+        ${e.signer || e.signed ? `<tr><th>Signed</th><td>${esc(e.signed || 'Not confirmed')}${e.signer ? ` <span class="doc-muted">(${esc(e.signer)} signs)</span>` : ''}</td></tr>` : ''}
         <tr><th>Next step</th><td>${esc(e.next)}${e.mustBeTrue ? ` <span class="doc-muted">(first: ${esc(e.mustBeTrue)})</span>` : ''}</td></tr>
         ${asks.length ? `<tr><th>Advocacy ask</th><td>${esc(asks.join(', '))}${d('advocacy').who ? ` <span class="doc-muted">(${esc(d('advocacy').who)})</span>` : ''}</td></tr>` : ''}
       </tbody></table>` : '';
@@ -2404,7 +2567,7 @@ let sideTimer = null;
 function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { renderSide(); renderNav(); updateStepBar(); updateRemoveLink(); renderShare(); }, 150); }
 
 function go(sec) {
-  builder = null; repick = false;
+  builder = null; repick = false; fillDone = '';
   currentSec = sec;
   setTimeout(() => renderShare(), 0);
   renderNav(); renderWork();
@@ -2415,6 +2578,8 @@ function go(sec) {
 function handleInput(e) {
   const t = e.target, p = cur();
   if (!p) return;
+  if (t.dataset.fill) { fillState(p)[t.dataset.fill] = t.value; if (t.dataset.fill === 'paste') { const b = document.querySelector('#work [data-action=fill-copy]'); if (b) b.disabled = !(t.value.trim() || fill.docs.length); } return; }
+  if (t.dataset.fillItem != null) { if (e.type === 'change') { fill.items[+t.dataset.fillItem].on = t.checked; renderWork(); } return; }
   if (t.dataset.meta) {
     const k = t.dataset.meta;
     p.meta[k] = t.type === 'checkbox' ? t.checked : t.value;
@@ -2437,7 +2602,16 @@ function handleInput(e) {
     const ph = p.data.milestones.phases[t.dataset.ms];
     const item = ph[+t.dataset.idx];
     if (t.dataset.mkey === 'done') { item.done = t.checked; t.closest('.ms').classList.toggle('done', t.checked); }
+    else if (t.dataset.mkey === 'who') {
+      const k = 'ms|' + t.dataset.ms + '|' + t.dataset.idx;
+      if (t.value === '__other') { otherOpen[k] = true; item.who = ''; } else { delete otherOpen[k]; item.who = t.value; }
+      saveSoon(); sideSoon();
+      if (e.type === 'change') { renderWork(); if (t.value === '__other') { const b = document.querySelector(`#work input[data-ms="${t.dataset.ms}"][data-idx="${t.dataset.idx}"][data-mkey=whoText]`); if (b) b.focus(); } }
+      return;
+    }
+    else if (t.dataset.mkey === 'whoText') item.who = t.value;
     else item.text = t.value;
+    if (!msIsStarting(t.dataset.ms, item)) { const tag = t.closest('.ms') && t.closest('.ms').querySelector('.start-tag'); if (tag) tag.remove(); }
     saveSoon(); sideSoon(); return;
   }
   if (t.dataset.sec && t.dataset.field) {
@@ -2546,6 +2720,7 @@ function handleClick(e) {
     if (id === 'end') m.end = ''; else { m.items.forEach(x => { if (x.at === 'x|' + id) x.at = it.at; }); m.items = m.items.filter(x => x.id !== id); }
     saveSoon(); renderAll(); return;
   }
+  if (act.startsWith('fill-')) { fillClick(act, a, p); return; }
   if (act === 'edit-steps') {
     builder = { forPlan: p.id, draft: p.meta.flow ? clone(p.meta.flow) : { name: '', steps: visibleSections(p).map(s => ({ key: s.key })), own: {} }, open: null, msg: '' };
     renderWork(); window.scrollTo(0, 0); return;
@@ -2575,6 +2750,9 @@ function handleClick(e) {
     if (list.length) list[list.length - 1].focus();
     return;
   }
+  if (act === 'keep-ms') { p.data.milestones.phases[a.dataset.ms][+a.dataset.idx].kept = true; saveSoon(); renderWork(); sideSoon(); return; }
+  if (act === 'keep-phase') { p.data.milestones.phases[a.dataset.ms].forEach(m => { if (msIsStarting(a.dataset.ms, m)) m.kept = true; }); saveSoon(); renderWork(); sideSoon(); return; }
+  if (act === 'keep-rhythm') { const d = p.data.milestones; d.kept = (d.kept || []).concat([a.dataset.k]); saveSoon(); renderWork(); sideSoon(); return; }
   if (act === 'remove-ms') { p.data.milestones.phases[a.dataset.ms].splice(+a.dataset.idx, 1); saveSoon(); renderWork(); sideSoon(); return; }
   if (act === 'add-section') { addSections(p, [a.dataset.key]); saveSoon(); go(a.dataset.key); renderSide(); return; }
   if (act === 'remove-section') {
@@ -2605,6 +2783,8 @@ function runCmd(c) {
   if (c === 'new') { currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (!p) return;
+  if (c === 'fill') { go('fill'); return; }
+  if (c === 'hubspot') { copyText(hubspotSummary(p)).then(ok => showToast(ok ? 'Copied. Paste it as a note on the company in HubSpot.' : 'This browser blocked copying. Try again from the hosted page.')); return; }
   if (c === 'pdf-customer') { exportPdf(true); return; }
   if (c === 'pdf-internal') { exportPdf(false); return; }
   if (c === 'duplicate') {
@@ -3107,12 +3287,18 @@ function textToTable(f, text, base) {
   });
   return out;
 }
-function msToText(items) { return (items || []).filter(m => m.text).map(m => (m.done ? '✓ ' : '') + m.text).join('\n'); }
+function msToText(items) { return (items || []).filter(m => m.text).map(m => (m.done ? '✓ ' : '') + m.text + (m.who ? ' / ' + m.who : '')).join('\n'); }
+/* "✓ text / who": the tick marks it done, the part after the last " / " is who does it. */
 function textToMs(text, base) {
   return String(text).split('\n').filter(l => l.trim()).map(l => {
-    const m = l.match(/^\s*(✓|\[x\])\s*/i), t = m ? l.slice(m[0].length).trim() : l.trim();
-    const old = (base || []).find(x => x.text === t);
-    return { text: t, done: !!m || !!(old && old.done && !m && false) };
+    const m = l.match(/^\s*(✓|\[x\])\s*/i);
+    let t = m ? l.slice(m[0].length).trim() : l.trim(), who = '';
+    const cut = t.lastIndexOf(' / ');
+    if (cut > 0) { who = t.slice(cut + 3).trim(); t = t.slice(0, cut).trim(); const k = MS_WHO.find(o => o && o.toLowerCase() === who.toLowerCase()); if (k) who = k; }
+    const old = (base || []).find(x => x.text === t), out = { text: t, done: !!m };
+    if (who) out.who = who;
+    if (old && old.kept) out.kept = true;
+    return out;
   });
 }
 function parseLooseDate(t) {
@@ -3219,7 +3405,7 @@ function noteHtml(p) {
     const d = p.data[k] || {};
     let inner = '';
     if (k === 'milestones') {
-      PHASES.forEach((ph, i) => { inner += block('ms|' + ph.key, ph.label + ' (' + ph.when + ')', 'ms', i ? {} : { hint: 'One per line. Start a line with ✓ when it is done.' }); });
+      PHASES.forEach((ph, i) => { inner += block('ms|' + ph.key, ph.label + ' (' + ph.when + ')', 'ms', i ? {} : { hint: 'One per line. Start a line with ✓ when it is done. End it with / Customer, / FactorLab or / Together for who does it.' }); });
       ['weekly', 'monthly', 'quarterly', 'workbooks'].forEach(fk => { const f = s0.fields.find(x => x.key === fk); if (f) inner += block('d|' + k + '|' + fk, f.label, f.type === 'list' ? 'list' : 'text', f.type === 'list' ? { hint: 'One per line' } : {}); });
     } else s0.fields.forEach(f => {
       if (f.showIf && !f.showIf(d)) return;
@@ -3232,7 +3418,7 @@ function noteHtml(p) {
       else inner += block(nk, f.label, f.type === 'textarea' ? 'textarea' : 'text', { ph: f.placeholder });
     });
     inner += block('n|' + k, 'Notes and open questions', 'textarea');
-    html += section(s0.title, s0.branch === 'internal', s0.ask, inner);
+    html += section(s0.title, s0.branch === 'internal', asksFor(p, s0), inner);
   });
   const orphans = misc.items.filter(it => !seen.has('x|' + it.id));
   if (orphans.length) html += section('Other notes', false, null, orphans.map(it => { sig.push('x|' + it.id); seen.add('x|' + it.id); return miscHtml(it) + after('x|' + it.id); }).join(''));
@@ -3433,6 +3619,428 @@ function sortHtml(p) {
     ${items.length || (m.end || '').trim() ? '' : '<p class="empty-note">Nothing to sort.</p>'}
     <div class="sec-foot"><span></span><button class="btn primary" data-goto="basics">Back to the plan</button></div>`;
 }
+
+/* ---------- Copy summary for HubSpot: a short plain-text snapshot to paste as a note ---------- */
+function hubspotSummary(p) {
+  const m = p.meta, d = k => p.data[k] || {}, vis = visibleSections(p).map(s => s.key), has = k => vis.includes(k);
+  const L = ['Success plan: ' + (m.account || 'Untitled plan')];
+  L.push(['Needs this year: ' + modeOf(m).label, m.csm && 'CSM: ' + m.csm, m.backup && 'Backup: ' + m.backup, m.day1 && 'Day 1: ' + fmtDate(m.day1)].filter(Boolean).join(' | '));
+  const goal = (has('goal') && d('goal').words) || (has('fcObjective') && d('fcObjective').objective);
+  if (goal) L.push('', 'Goal: ' + goal);
+  if (has('goal') && d('goal').test30) L.push('30-day test: ' + d('goal').test30);
+  const targets = [].concat(has('targets') ? d('targets').measures || [] : [], has('fcValue') ? d('fcValue').rows || [] : []).filter(r => r.target);
+  if (targets.length) L.push('', 'Targets:', ...targets.map(r => '- ' + r.measure + ': ' + (r.baseline ? r.baseline + ' to ' : '') + r.target + (r.stretch ? ' (stretch ' + r.stretch + ')' : '') + (r.baseline ? '' : ', baseline to set') + (r.by ? ', by ' + r.by : '')));
+  if (has('milestones')) {
+    const ph = d('milestones').phases || {}, next = [];
+    PHASES.forEach(x => (ph[x.key] || []).forEach(it => { if (it.text && !it.done && next.length < 4) next.push('- ' + it.text + (it.who ? ' (' + it.who + ')' : '') + (phaseDate(p, x) ? ', ' + phaseDate(p, x).toLowerCase() : '')); }));
+    if (next.length) L.push('', 'Next milestones:', ...next);
+  }
+  const gv = has('fcGovern') ? d('fcGovern') : {};
+  const owners = [].concat(has('owners') ? d('owners').rows || [] : [], gv.sponsor ? [{ role: 'Operations sponsor', customer: gv.sponsor }] : [], gv.impl ? [{ role: 'Implementation owner', customer: gv.impl }] : []).filter(r => r.customer || r.factorlab);
+  if (owners.length) L.push('', 'Owners (customer / FactorLab):', ...owners.map(r => '- ' + r.role + ': ' + [r.customer || '?', r.factorlab || '?'].join(' / ')));
+  const risks = has('risks') ? (d('risks').rows || []).filter(r => r.risk) : [];
+  if (risks.length) L.push('', 'Risks:', ...risks.slice(0, 5).map(r => '- ' + (r.mode ? r.mode + ': ' : '') + r.risk + (r.fix ? ' Fix: ' + r.fix : '')));
+  const e = has('economics') ? d('economics') : {};
+  const acct = [e.renewal && 'Renewal: ' + fmtDate(e.renewal), e.next && 'Next step: ' + e.next, e.signed && 'Signed: ' + e.signed + (e.signer ? ' (' + e.signer + ' signs)' : '')].filter(Boolean);
+  if (acct.length) L.push('', ...acct);
+  L.push('', 'Updated ' + fmtDate((m.updated || '').slice(0, 10)) + ' in the Success Plan Builder');
+  return L.join('\n');
+}
+function copyText(text) {
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    ta.remove(); return ok;
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(() => true, () => fallback());
+  return Promise.resolve(fallback());
+}
+let toastTimer = null;
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* =========================================================
+   FILL FROM A CALL
+   For a call held without the plan open. The CSM adds the transcript, copies a prompt built from
+   this plan's own steps into whatever AI they use (ChatGPT, Claude, Gemini, Copilot), pastes the
+   reply back, and ticks each answer before it goes in. This page sends nothing anywhere, and the
+   transcript is never saved: it lives in this window until the answers are added.
+   ========================================================= */
+function fillState(p) {
+  if (!fill || fill.planId !== p.id) fill = { planId: p.id, docs: [], paste: '', reply: '', items: null, err: '', copied: '', manual: '' };
+  return fill;
+}
+const FILL_SKIP = ['journey'];   // checklists that never come from a call
+/* The plan's questions, numbered for the AI: Q1, Q2... in step order. Steps are S1, S2... */
+function fillQuestions(p) {
+  const shelved = shelvedKeys(p) || new Set();
+  const secs = p.meta.flow ? visibleSections(p) : SECTIONS.filter(s => !s.set && !shelved.has(s.key)).map(s => sectionByKey(s.key, p));
+  const steps = [], qs = [];
+  secs.filter(s => s && !FILL_SKIP.includes(s.key)).forEach(s => {
+    const sid = 'S' + (steps.length + 1), addOn = !inPlan(p, s);
+    steps.push({ sid, s, addOn });
+    s.fields.forEach(f => {
+      if (f.showIf) return;   // follow-up boxes are filled through the question they follow
+      if (f.type === 'milestones') { PHASES.forEach(ph => qs.push({ id: 'Q' + (qs.length + 1), sid, s, f, ph, label: 'Milestones: ' + ph.label + ' (' + ph.when + ')' })); return; }
+      qs.push({ id: 'Q' + (qs.length + 1), sid, s, f, label: f.label });
+    });
+  });
+  return { steps, qs };
+}
+function fillDescribe(q, p) {
+  const f = q.f, opts = (f.options || []).filter(o => o && o !== 'Other');
+  if (q.ph) {
+    const now = (((p.data.milestones || {}).phases || {})[q.ph.key] || []).filter(m => m.text).map(m => m.text);
+    return 'A list of milestones agreed on the call, each {"text": "...", "who": "FactorLab" or "Customer" or "Together"}.' + (now.length ? ' Already planned (leave these out unless the call changed who does them): ' + now.join('; ') + '.' : '');
+  }
+  switch (f.type) {
+    case 'text': return 'Short text.';
+    case 'textarea': return 'Text.';
+    case 'date': return 'A date, YYYY-MM-DD.';
+    case 'list': return 'A list of short items.';
+    case 'select': return 'One of: ' + opts.join(' | ') + '. Or your own short words if none fit.';
+    case 'checks': return 'A list. Use these where they fit: ' + opts.join(' | ') + '. Add your own short words if needed.';
+    case 'table': {
+      const rows = (f.defaultRows ? f.defaultRows() : []).map(r => r[f.columns[0].key]).filter(Boolean);
+      return 'A list of rows, each {' + f.columns.map(c => '"' + c.key + '": ' + (c.type === 'select' ? c.options.filter(Boolean).join(' | ') : c.label.toLowerCase())).join(', ') + '}.'
+        + (rows.length ? ' Rows already there: ' + rows.join('; ') + '. To fill one, use the same "' + f.columns[0].key + '".' : '');
+    }
+    default: return 'Text.';
+  }
+}
+function fillPrompt(p, withTranscript) {
+  const { steps, qs } = fillQuestions(p);
+  const L = [
+    "You're helping a customer success manager at FactorLab fill in a customer success plan from a call they had with a customer.",
+    withTranscript ? 'Read the call transcript (and any documents) at the end of this message. Then answer the plan questions below.' : 'Read the call transcript (and any documents) attached to this message. Then answer the plan questions below.',
+    '',
+    'RULES',
+    '1. Use only what was said in the transcript or written in the documents. Never make up names, numbers, dates or quotes.',
+    "2. Skip any question the call didn't cover. Leave it out completely.",
+    "3. Use the customer's own words where you can. Keep answers short and plain, the way a superintendent talks.",
+    '4. For every answer, add "quote": the exact words from the call that back it up (one short line).',
+    '5. Set "sure": false when it was only implied, unclear, or you are inferring it. Otherwise "sure": true.',
+    "6. Write targets as things we'll measure together, starting from a baseline. Don't promise results (like doubling quality) and don't predict incidents or injuries.",
+    '7. Anything important that fits no question goes in "other".',
+    '8. Questions the CSM should still ask go in "followups", with the step they belong to.',
+    '9. Reply with only the JSON, in one code block. No other text.',
+    '',
+    'REPLY IN THIS SHAPE',
+    '{',
+    '  "answers": [ { "id": "Q1", "answer": "...", "quote": "...", "sure": true } ],',
+    '  "followups": [ { "step": "S1", "question": "..." } ],',
+    '  "other": [ { "note": "...", "quote": "..." } ]',
+    '}',
+    '"answer" is text, a list like ["...", "..."], or a list of rows like [{ ... }], as each question says.',
+    'For Account basics, the "id" is the word before the colon (account, mode, day1, context). In a row, leave out any part the call didn\'t cover.',
+    '',
+    'THE PLAN QUESTIONS',
+    'Account basics',
+    '  account: The customer company name. Short text.',
+    '  mode: What the account needs this year. One of: ' + Object.keys(MODES).join(' | ') + '. Or your own short words.',
+    '  day1: The day the first workflow goes live, only if a date was agreed. A date, YYYY-MM-DD.',
+    '  context: A short summary of the call: who was on it, what they want, what was agreed, what is still open. Text.'
+  ];
+  steps.forEach(st => {
+    L.push('', st.sid + '. ' + st.s.title + (st.s.branch === 'internal' ? ' (FactorLab only, never shown to the customer)' : '') + (st.addOn ? ' (optional: only if the call covered it)' : ''));
+    if (st.s.intro) L.push('  About this step: ' + st.s.intro);
+    qs.filter(q => q.sid === st.sid).forEach(q => L.push('  ' + q.id + ': ' + q.label + (/[.?!:]$/.test(q.label) ? ' ' : '. ') + fillDescribe(q, p)));
+  });
+  if (withTranscript) {
+    const docs = fill.docs.map(d => '=== ' + d.name + ' ===\n' + d.text.trim()), pasted = (fill.paste || '').trim();
+    L.push('', 'THE TRANSCRIPT AND DOCUMENTS', ...(pasted ? ['=== Pasted ===\n' + pasted] : []), ...docs);
+  }
+  return L.join('\n');
+}
+
+/* ---- Reading files: plain text, Word (.docx) and Rich Text (.rtf) ---- */
+const CP1252 = { 0x85: '…', 0x91: '‘', 0x92: '’', 0x93: '“', 0x94: '”', 0x96: '–', 0x97: '—' };
+function rtfText(s) {
+  return s.replace(/\\u(-?\d+)\??/g, (m, n) => String.fromCharCode(n < 0 ? 65536 + +n : +n))
+    .replace(/\\'([0-9a-f]{2})/gi, (m, h) => { const c = parseInt(h, 16); return CP1252[c] || String.fromCharCode(c); })
+    .replace(/\\\r?\n/g, '\n').replace(/\\par[d]?\b ?/g, '\n')
+    .replace(/\{\\fonttbl(?:[^{}]|\{[^{}]*\})*\}/, '').replace(/\{\\colortbl[^}]*\}/, '').replace(/\{\\\*\\[^{}]*\}/g, '')
+    .replace(/\\[a-z]+-?\d* ?/gi, '').replace(/[{}]/g, '').replace(/\n{3,}/g, '\n\n').trim();
+}
+async function docxText(buf) {
+  const v = new DataView(buf), u8 = new Uint8Array(buf);
+  let e = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 66000); i--) if (v.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('not a Word file');
+  let o = v.getUint32(e + 16, true);
+  for (let k = v.getUint16(e + 10, true); k > 0; k--) {
+    if (v.getUint32(o, true) !== 0x02014b50) break;
+    const method = v.getUint16(o + 10, true), size = v.getUint32(o + 20, true), nl = v.getUint16(o + 28, true), el = v.getUint16(o + 30, true), cl = v.getUint16(o + 32, true), lo = v.getUint32(o + 42, true);
+    if (new TextDecoder().decode(u8.subarray(o + 46, o + 46 + nl)) === 'word/document.xml') {
+      const start = lo + 30 + v.getUint16(lo + 26, true) + v.getUint16(lo + 28, true);
+      let data = u8.subarray(start, start + size);
+      if (method === 8) data = new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      return new TextDecoder().decode(data).replace(/<w:tab\/>/g, '\t').replace(/<w:br\/>/g, '\n').replace(/<\/w:p>/g, '\n').replace(/<[^>]+>/g, '')
+        .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&').replace(/\n{3,}/g, '\n\n').trim();
+    }
+    o += 46 + nl + el + cl;
+  }
+  throw new Error('no text found');
+}
+async function readAnyFile(file) {
+  const n = file.name.toLowerCase();
+  if (n.endsWith('.docx')) return docxText(await file.arrayBuffer());
+  if (/\.(pdf|doc|pages|xlsx?|pptx?)$/.test(n)) throw new Error('save it as text or Word first');
+  const t = await file.text();
+  return n.endsWith('.rtf') || t.startsWith('{\\rtf') ? rtfText(t) : t;
+}
+async function fillAddFiles(files, into) {
+  const p = cur(); if (!p) return;
+  const st = fillState(p);
+  for (const file of Array.from(files || [])) {
+    try {
+      const text = await readAnyFile(file);
+      if (into === 'reply') st.reply = text; else st.docs.push({ name: file.name, text });
+      st.err = '';
+    } catch (err) { st.err = 'Couldn’t read ' + file.name + ' (' + err.message + '). Paste the text in instead.'; }
+  }
+  if (currentSec === 'fill') renderWork();
+}
+
+/* ---- Reading the AI's reply ---- */
+function fillParse(text) {
+  let t = String(text || '').trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) t = fence[1];
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a < 0 || b < a) throw new Error('no answers');
+  t = t.slice(a, b + 1).replace(/,\s*([}\]])/g, '$1');
+  try { return JSON.parse(t); }
+  catch (e) { return JSON.parse(t.replace(/[“”]/g, '"').replace(/[‘’]/g, "'")); }
+}
+function asText(v) {
+  if (v == null) return '';
+  if (Array.isArray(v)) return v.map(asText).filter(Boolean).join('\n');
+  if (typeof v === 'object') return Object.values(v).map(asText).filter(Boolean).join(', ');
+  return String(v).trim();
+}
+function asList(v) {
+  if (Array.isArray(v)) return v.map(x => asText(x).replace(/\s*\n\s*/g, ' ')).filter(Boolean);
+  const t = asText(v);
+  return t ? t.split(/\n|;\s+/).map(x => x.replace(/^\s*[-•*]\s*/, '').trim()).filter(Boolean) : [];
+}
+const same = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+function matchOpt(opts, v) { return (opts || []).find(o => o && same(o, v)); }
+function cleanRow(f, r) {
+  const row = {};
+  if (Array.isArray(r)) f.columns.forEach((c, i) => { if (r[i] != null) row[c.key] = asText(r[i]); });
+  else if (r && typeof r === 'object') Object.keys(r).forEach(k => { const c = f.columns.find(x => same(x.key, k) || same(x.label, k)); if (c) row[c.key] = asText(r[k]); });
+  else if (r != null) row[f.columns[0].key] = asText(r);
+  f.columns.forEach(c => { if (c.type === 'select' && row[c.key]) row[c.key] = matchOpt(c.options, row[c.key]) || row[c.key]; });
+  return Object.values(row).some(Boolean) ? row : null;
+}
+const showRow = (f, r) => f.columns.filter(c => r[c.key]).map((c, i) => i ? c.label + ': ' + r[c.key] : r[c.key]).join(' · ');
+/* One review item per answer that would change something. kind: set (replaces), add (adds to what's there). */
+function fillItems(p, obj) {
+  const { steps, qs } = fillQuestions(p), items = [];
+  let ans = obj.answers || [];
+  if (!Array.isArray(ans)) ans = Object.entries(ans).map(([id, v]) => Object.assign({ id }, v && typeof v === 'object' && !Array.isArray(v) && 'answer' in v ? v : { answer: v }));
+  ['account', 'mode', 'day1', 'context'].forEach(k => { if (obj[k] != null && !ans.some(a => same(a.id, k))) ans.push({ id: k, answer: obj[k] }); });
+  const stepOf = sid => steps.find(st => same(st.sid, sid));
+  ans.forEach(a => {
+    if (!a) return;
+    let id = String(a.id || '').trim();
+    if (/^q?\s*\d+$/i.test(id)) id = 'Q' + id.replace(/\D/g, '');
+    const base = { quote: asText(a.quote), sure: a.sure !== false && a.sure !== 'false', on: true };
+    const m = p.meta, v = a.answer;
+    if (['account', 'mode', 'day1', 'context'].includes(id.toLowerCase())) {
+      id = id.toLowerCase();
+      const step = 'Account basics', label = META_Q.find(x => x[0] === id)[1];
+      if (id === 'account') { const t = asText(v).replace(/\s*\n\s*/g, ' '); if (!t || same(t, m.account)) return; items.push(Object.assign(base, { key: 'm|account', step, label, val: t, show: t, now: m.account, on: !m.account })); }
+      if (id === 'mode') {
+        const t = asText(v), k = Object.keys(MODES).find(x => same(x, t) || same(MODES[x].label, t)), val = k || t;
+        if (!t || val === m.mode || (!k && m.mode === 'other' && same(t, m.modeOther))) return;
+        items.push(Object.assign(base, { key: 'm|mode', step, label, val, show: k ? MODES[k].label : t, now: modeOf(m).label, on: false }));
+      }
+      if (id === 'day1') { const t = parseLooseDate(asText(v)); if (!t || t === m.day1) return; items.push(Object.assign(base, { key: 'm|day1', step, label, val: t, show: fmtDate(t), now: fmtDate(m.day1), on: !m.day1 })); }
+      if (id === 'context') { const t = asText(v); if (!t || (m.context || '').includes(t)) return; items.push(Object.assign(base, { key: 'm|context', step, label, val: t, show: t, now: m.context ? 'Adds to what you have' : '', add: true })); }
+      return;
+    }
+    const q = qs.find(x => x.id === id); if (!q) return;
+    const s = q.s, f = q.f, d = p.data[s.key] || {}, step = s.title, label = q.label;
+    const it = Object.assign(base, { key: 'd|' + s.key + '|' + f.key, sec: s.key, step, label, addOn: steps.find(st => st.sid === q.sid).addOn });
+    if (q.ph) {
+      const now = ((d.phases || {})[q.ph.key]) || [], add = [];
+      (Array.isArray(v) ? v : asList(v)).forEach(x => {
+        const text = asText(x && typeof x === 'object' ? x.text || x.milestone || x.name : x).replace(/\s*\n\s*/g, ' '); if (!text) return;
+        const whoRaw = x && typeof x === 'object' ? asText(x.who) : '', who = matchOpt(MS_WHO, whoRaw) || whoRaw;
+        const ex = now.find(n => same(n.text, text));
+        if (ex && (!who || ex.who === who)) return;
+        add.push({ text, who });
+      });
+      if (!add.length) return;
+      items.push(Object.assign(it, { key: 'ms|' + q.ph.key, ph: q.ph.key, val: add, show: add.map(x => '+ ' + x.text + (x.who ? ' (' + x.who + ')' : '')).join('\n'), add: true }));
+      return;
+    }
+    const cur0 = d[f.key];
+    switch (f.type) {
+      case 'text': case 'textarea': case 'date': {
+        let t = f.type === 'date' ? parseLooseDate(asText(v)) : asText(v);
+        if (f.type === 'text') t = t.replace(/\s*\n\s*/g, ' ');
+        if (!t || same(t, cur0)) return;
+        items.push(Object.assign(it, { val: t, show: f.type === 'date' ? fmtDate(t) : t, now: f.type === 'date' ? fmtDate(cur0) : cur0, on: !cur0 }));
+        return;
+      }
+      case 'select': {
+        const t = asText(v).replace(/\s*\n\s*/g, ' '); if (!t) return;
+        const o = matchOpt(f.options, t), own = hasOwnOther(f.options);
+        const val = o || (own ? 'Other' : t), extra = !o && own ? t : '';
+        if (val === cur0 && (!extra || same(extra, d[f.key + 'Other']))) return;
+        items.push(Object.assign(it, { val, extra, show: o || t, now: cur0 === 'Other' ? d[f.key + 'Other'] || cur0 : cur0, on: !cur0 }));
+        return;
+      }
+      case 'list': case 'checks': {
+        const have = Array.isArray(cur0) ? cur0 : [];
+        const add = asList(v).map(x => f.type === 'checks' ? matchOpt(f.options, x) || x : x).filter((x, i, arr) => !have.some(h => same(h, x)) && arr.findIndex(y => same(y, x)) === i);
+        if (!add.length) return;
+        items.push(Object.assign(it, { val: add, show: add.map(x => '+ ' + x).join('\n'), add: true }));
+        return;
+      }
+      case 'table': {
+        const have = Array.isArray(cur0) ? cur0 : [], k0 = f.columns[0].key, changes = [];
+        (Array.isArray(v) ? v : [v]).map(r => cleanRow(f, r)).filter(Boolean).forEach(r => {
+          const ex = have.find(h => r[k0] && same(h[k0], r[k0]));
+          if (ex) { const fillIn = {}; f.columns.forEach(c => { if (r[c.key] && !String(ex[c.key] || '').trim()) fillIn[c.key] = r[c.key]; }); if (Object.keys(fillIn).length) changes.push({ match: ex[k0], cells: fillIn, row: Object.assign({}, fillIn, { [k0]: ex[k0] }) }); }
+          else changes.push({ cells: r, row: r });
+        });
+        if (!changes.length) return;
+        items.push(Object.assign(it, { val: changes, show: changes.map(c => (c.match ? '' : '+ ') + showRow(f, c.row)).join('\n'), add: true }));
+        return;
+      }
+    }
+  });
+  (Array.isArray(obj.followups) ? obj.followups : []).forEach(fu => {
+    const st = stepOf(fu && fu.step), q = asText(fu && (fu.question || fu.q || fu)); if (!q) return;
+    const key = st ? st.s.key : 'misc';
+    if (st ? ((p.notes || {})[key] || '').includes(q) : miscOf(p).items.some(x => (x.a || '').includes(q))) return;
+    items.push({ key: 'n|' + key, sec: st && st.s.key, step: st ? st.s.title : 'Notes to sort', label: 'Still to find out', val: q, show: q, sure: true, on: true, add: true, addOn: st && st.addOn });
+  });
+  (Array.isArray(obj.other) ? obj.other : obj.other ? [obj.other] : []).forEach(o => {
+    const t = asText(o && typeof o === 'object' ? o.note || o.text : o); if (!t || miscOf(p).items.some(x => (x.a || '').startsWith(t))) return;
+    items.push({ key: 'misc', step: 'Notes to sort', label: 'From the call', val: t, show: t, quote: asText(o && o.quote), sure: true, on: true, add: true });
+  });
+  return items;
+}
+function fillApply(p, items) {
+  let n = 0, sorted = 0;
+  const notes = p.notes || (p.notes = {}), addNote = (k, line) => { if (k) notes[k] = (notes[k] ? notes[k].replace(/\s+$/, '') + '\n' : '') + line; };
+  items.filter(it => it.on).forEach(it => {
+    n++;
+    if (it.sec && it.addOn) addSections(p, [it.sec]);
+    if (it.key === 'misc' || it.key === 'n|misc') { miscOf(p).items.push({ id: uid(), q: it.key === 'misc' ? 'From the call' : 'Still to find out', a: it.val + (it.quote ? '\n"' + it.quote + '"' : ''), at: '' }); sorted++; return; }
+    const [t, a, b] = it.key.split('|');
+    if (t === 'm') {
+      if (a === 'mode') { if (MODES[it.val]) p.meta.mode = it.val; else { p.meta.mode = 'other'; p.meta.modeOther = it.val; } }
+      else if (a === 'context') p.meta.context = p.meta.context ? p.meta.context.replace(/\s+$/, '') + '\n\nFrom the call: ' + it.val : it.val;
+      else p.meta[a] = it.val;
+      return;
+    }
+    if (t === 'n') { addNote(a, 'To ask: ' + it.val); return; }
+    if (t === 'ms') {
+      const d = p.data.milestones || (p.data.milestones = {}), ph = (d.phases = d.phases || {})[a] || (d.phases[a] = []);
+      it.val.forEach(x => { const ex = ph.find(m => same(m.text, x.text)); if (ex) ex.who = x.who; else ph.push(x.who ? { text: x.text, done: false, who: x.who } : { text: x.text, done: false }); });
+    } else {
+      const s = sectionByKey(a, p), f = s.fields.find(x => x.key === b), d = p.data[a] || (p.data[a] = {});
+      if (f.type === 'list' || f.type === 'checks') d[b] = (Array.isArray(d[b]) ? d[b] : []).concat(it.val);
+      else if (f.type === 'table') {
+        const rows = Array.isArray(d[b]) ? d[b] : (d[b] = []), k0 = f.columns[0].key;
+        it.val.forEach(c => {
+          if (c.match) { const r = rows.find(x => same(x[k0], c.match)); if (r) Object.assign(r, c.cells); return; }
+          const r = {}; f.columns.forEach(col => { r[col.key] = c.cells[col.key] || ''; }); rows.push(r);
+        });
+      }
+      else if (f.type === 'select') { d[b] = it.val; if (it.extra) d[b + 'Other'] = it.extra; }
+      else d[b] = it.val;
+    }
+    if (!it.sure) addNote(it.sec, 'Check with them: ' + it.label + (Array.isArray(it.val) && it.val.length && it.val[0].row ? ' (' + it.val.map(c => c.row[Object.keys(c.row)[0]]).filter(Boolean).join(', ') + ')' : ''));
+  });
+  return { n, sorted };
+}
+
+function fillHtml(p) {
+  const st = fillState(p), docs = st.docs, hasText = docs.length || (st.paste || '').trim();
+  const head = `<div class="sec-branch">From a call</div><div class="sec-head"><h2>Fill this plan from a call</h2></div>
+    <p class="sec-intro">For a call you had without the plan open. Your own AI (ChatGPT, Claude, Gemini or Copilot) reads the transcript and answers this plan's questions. You check every answer before it goes in. Nothing is sent from this page, and the transcript isn't saved.</p>`;
+  if (st.items) {
+    const order = ['Account basics'].concat(fillQuestions(p).steps.map(x => x.s.title), ['Notes to sort']), groups = [];
+    st.items.forEach((it, i) => { let g = groups.find(x => x.step === it.step); if (!g) groups.push(g = { step: it.step, list: [] }); g.list.push([it, i]); });
+    groups.sort((x, y) => order.indexOf(x.step) - order.indexOf(y.step));
+    const on = st.items.filter(x => x.on).length;
+    return head + `<div class="fill-review">
+      <div class="fill-bar"><b>${st.items.length} answer${st.items.length === 1 ? '' : 's'} found.</b> Untick anything that's wrong. Answers marked “Check with them” also go in that step's notes, so you can confirm them.
+        <span class="fill-bar-act"><button class="qs-more" data-action="fill-tick" data-on="1">Tick all</button><button class="qs-more" data-action="fill-tick" data-on="">Untick all</button></span></div>
+      ${st.items.length ? groups.map(g => `<div class="fill-group"><div class="fill-step">${esc(g.step)}</div>${g.list.map(([it, i]) => `<label class="fill-item ${it.on ? 'on' : ''}"><input type="checkbox" data-fill-item="${i}" ${it.on ? 'checked' : ''}>
+        <span class="fill-body"><span class="fill-q">${esc(it.label)}${it.sure ? '' : '<span class="fill-flag">Check with them</span>'}${it.addOn ? '<span class="fill-flag add">Adds this step</span>' : ''}</span>
+        <span class="fill-a">${esc(it.show)}</span>
+        ${it.now ? `<span class="fill-now">${it.add ? esc(it.now) : 'Now: ' + esc(it.now) + (it.on ? '' : '. Tick to replace it.')}</span>` : ''}
+        ${it.quote ? `<span class="fill-quote">“${esc(it.quote)}”</span>` : ''}</span></label>`).join('')}</div>`).join('') : '<p class="empty-note">Nothing new in the reply. Everything it found is already in the plan.</p>'}
+      <div class="sec-foot"><button class="btn ghost" data-action="fill-back">Back</button><button class="btn primary" data-action="fill-apply" ${on ? '' : 'disabled'}>Add ${on} answer${on === 1 ? '' : 's'} to the plan</button></div></div>`;
+  }
+  return head + `
+    <div class="fill-step-card"><div class="fill-num">1</div><div class="fill-main">
+      <div class="field-label">Add the transcript</div>
+      <label class="fill-drop" data-drop="docs"><input type="file" data-fill-file="docs" multiple accept=".txt,.vtt,.srt,.md,.rtf,.docx,.csv,.json,text/*" hidden>Drop the transcript file here, or <u>choose a file</u>. Zoom, Teams, Granola and Word files all work. Add their own documents too, like a strategic plan, so the plan uses their words.</label>
+      ${docs.length ? `<div class="fill-docs">${docs.map((d, i) => `<span class="fill-doc">${esc(d.name)} <small>${Math.max(1, Math.round(d.text.length / 1000))}k characters</small><button class="x" data-action="fill-remove-doc" data-idx="${i}" title="Remove">&times;</button></span>`).join('')}</div>` : ''}
+      <textarea data-fill="paste" placeholder="Or paste the transcript here" style="min-height:${(st.paste || '').trim() ? 160 : 72}px">${esc(st.paste)}</textarea>
+    </div></div>
+    <div class="fill-step-card"><div class="fill-num">2</div><div class="fill-main">
+      <div class="field-label">Copy it into your AI</div>
+      <div class="help">Paste it into ChatGPT, Claude, Gemini or Copilot and send. Use your company account if you have one, since the call has customer details in it.</div>
+      <div class="fill-actions"><button class="btn primary" data-action="fill-copy" ${hasText ? '' : 'disabled'}>Copy for your AI</button><button class="btn" data-action="fill-copy-q">Copy the questions only</button></div>
+      ${st.copied ? `<div class="fill-ok">${esc(st.copied)}</div>` : ''}
+      ${st.manual ? `<div class="help" style="margin-top:8px">This browser blocked copying. Select everything in the box (Ctrl+A or Cmd+A), copy it, then paste it into your AI.</div><textarea class="fill-manual" readonly>${esc(st.manual)}</textarea>` : ''}
+      <div class="help" style="margin-top:8px">If your AI says the message is too long, attach the transcript file there instead, then paste “the questions only”.</div>
+    </div></div>
+    <div class="fill-step-card"><div class="fill-num">3</div><div class="fill-main">
+      <div class="field-label">Paste the AI's reply</div>
+      <textarea data-fill="reply" placeholder="Copy the AI's whole reply and paste it here" style="min-height:110px">${esc(st.reply)}</textarea>
+      <label class="fill-drop small" data-drop="reply"><input type="file" data-fill-file="reply" accept=".json,.txt,text/*,application/json" hidden>If it gave you a file instead, drop it here or <u>choose it</u>.</label>
+      ${st.err ? `<div class="fill-err">${esc(st.err)}</div>` : ''}
+      <div class="fill-actions"><button class="btn primary" data-action="fill-check">Check the answers</button></div>
+    </div></div>
+    <div class="sec-foot"><button class="btn ghost" data-goto="basics">Back to the plan</button><span></span></div>`;
+}
+function fillClick(act, a, p) {
+  const st = fillState(p);
+  if (act === 'fill-remove-doc') { st.docs.splice(+a.dataset.idx, 1); renderWork(); return; }
+  if (act === 'fill-copy' || act === 'fill-copy-q') {
+    const text = fillPrompt(p, act === 'fill-copy');
+    copyText(text).then(ok => {
+      st.copied = ok ? (act === 'fill-copy' ? 'Copied the questions and the transcript. Paste them into your AI and send.' : 'Copied the questions. Paste them into your AI with the transcript attached.') : '';
+      st.manual = ok ? '' : text;
+      renderWork();
+      const m = document.querySelector('#work .fill-manual'); if (m) { m.focus(); m.select(); }
+    });
+    return;
+  }
+  if (act === 'fill-check') {
+    let obj;
+    try { obj = fillParse(st.reply); } catch (e) { st.err = 'That doesn’t look like the AI’s answers. Copy its whole reply, including the part in the code block, and paste it again.'; renderWork(); return; }
+    st.err = ''; st.items = fillItems(p, obj); renderWork(); window.scrollTo(0, 0); return;
+  }
+  if (act === 'fill-tick') { st.items.forEach(it => it.on = !!a.dataset.on); renderWork(); return; }
+  if (act === 'fill-back') { st.items = null; renderWork(); return; }
+  if (act === 'fill-apply') {
+    const r = fillApply(p, st.items);
+    fillDone = 'Added ' + r.n + ' answer' + (r.n === 1 ? '' : 's') + ' from the call.' + (r.sorted ? ' ' + r.sorted + ' went to Notes to sort.' : '') + ' Go through each step to check them.';
+    fill = null; saveSoon(); currentSec = 'basics'; renderAll(); window.scrollTo(0, 0);
+  }
+}
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.fillFile && t.files && t.files.length) { fillAddFiles(t.files, t.dataset.fillFile); t.value = ''; } });
+document.addEventListener('dragover', e => { const z = e.target.closest && e.target.closest('[data-drop]'); if (z) { e.preventDefault(); z.classList.add('over'); } });
+document.addEventListener('dragleave', e => { const z = e.target.closest && e.target.closest('[data-drop]'); if (z) z.classList.remove('over'); });
+document.addEventListener('drop', e => { const z = e.target.closest && e.target.closest('[data-drop]'); if (z) { e.preventDefault(); z.classList.remove('over'); fillAddFiles(e.dataTransfer.files, z.dataset.drop); } });
 
 /* ---------- Dark mode: More, then Dark mode. Remembered in this browser; open windows follow along. ---------- */
 function isDark() { return document.documentElement.getAttribute('data-theme') === 'dark'; }

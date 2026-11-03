@@ -20,6 +20,10 @@ A simple page for building customer success plans as you learn about an account.
 
 **In a live meeting:** click **Focus** to see only the step you're on, **Timer** to pop out a small timer with Start and Pause, and **Customer window** to open a clean window you can share on screen. The customer window shows only what the customer should see and updates as you type. In Zoom or Teams, share that window, not your whole screen.
 
+**Had the call without the plan open?** Click **Fill from a call** (on Account basics, or under More). Drop in the transcript, click **Copy for your AI**, paste it into ChatGPT, Claude, Gemini or Copilot and send. Copy the AI's whole reply, paste it back, and tick the answers you want. Nothing goes in until you tick it, and nothing you already wrote gets replaced. Use a company AI account if you have one, since the transcript has customer details in it.
+
+**Logging it in HubSpot:** More, then **Copy summary for HubSpot**, then paste it as a note on the company.
+
 **Building a plan with a teammate:** click **Team code**, then **Start a team code**, and read the code out (or paste it in chat). Your teammate opens the page, clicks **Team code**, types it in and clicks **Join**. The plan appears on their screen and changes show up on both screens as you type. The plan passes between you but isn't stored online; you each keep a saved copy in your own browser.
 5. Click **View plan** to see it the way the customer will.
 6. To share it, click **Export PDF, then For the customer**. Your browser's print window opens; pick **Save as PDF**. The customer version leaves out the FactorLab-only parts. **Internal (full plan)** keeps them.
