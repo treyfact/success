@@ -500,15 +500,11 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 .doc-done { color: var(--green); font-weight: 600; }
 .doc-grid td, .doc-grid th { font-size: 12px; padding: 6px 7px; }
 .doc-context { font-size: 13px; white-space: pre-wrap; margin: 0; display: -webkit-box; -webkit-line-clamp: 9; -webkit-box-orient: vertical; overflow: hidden; }
-.doc-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
-.doc-ftitle { font-weight: 700; font-size: 13px; color: var(--navy); margin: 0 0 6px; padding-top: 4px; }
-.doc-fitem { font-size: 12.5px; line-height: 1.4; padding: 0 0 6px 12px; position: relative; }
-.doc-fitem::before { content: ''; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
 @media screen {
   .doc.flow { padding: 12px 0 30px; }
   .doc.flow .doc-pages { width: auto; }
   .doc.flow .doc-page { width: auto; height: auto; margin: 0 10px 14px; padding: 20px 18px 16px; }
-  .doc.flow .doc-cards, .doc.flow .doc-tl, .doc.flow .doc-cols, .doc.flow .doc-split { grid-template-columns: 1fr !important; }
+  .doc.flow .doc-cards, .doc.flow .doc-tl, .doc.flow .doc-split { grid-template-columns: 1fr !important; }
   .doc.flow .doc-account { font-size: 21px; }
   .doc.flow .doc-table { display: block; overflow-x: auto; }
 }
@@ -2609,32 +2605,11 @@ function renderSide() {
 /* =========================================================
    THE PLAN DOCUMENT (View plan, Customer window, PDFs)
    Fixed letter-size landscape pages, drawn exactly as they print. Each page carries the
-   FactorLab logo top right. Page 1 is a calm summary with a few items per card; anything
-   that doesn't fit goes to an "In full" page instead of being squeezed or cut off.
+   FactorLab logo top right. The pages are the highlights: page 1 is a calm summary with a few
+   items per card, untouched starting rows never print, and what doesn't fit stays in the builder.
    ========================================================= */
 const DOC_W = 1056;   // 11in at 96 dpi
 function docLogo() { const l = document.querySelector('.brand-logo'); return l ? l.src : ''; }
-function docBranches(p, customer) {
-  const vis = visibleSections(p), out = [];
-  BRANCHES.filter(b => !b.internal).forEach(b => {
-    let items = [];
-    vis.filter(s => s.branch === b.key).forEach(s => {
-      if (customer && s.key === 'milestones' && !milestonesTouched(p)) return;
-      let ls = [];
-      try { ls = (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
-      if (s.key === 'goal') ls = ls.filter(x => !x.startsWith('"') && !x.startsWith('In 30 days: '));   // the goal and 30-day test are shown at the top
-      if (s.key === 'hypothesis') ls = ls.filter(x => !x.startsWith('If we improve'));
-      if (s.key === 'fcObjective') ls = ls.filter(x => x !== (p.data.fcObjective || {}).objective);
-      items = items.concat(ls);
-    });
-    if (items.length || !customer) out.push({ label: b.label, sub: b.sub, items, cls: '' });
-    if (b.key === 'know') p.custom.forEach(c => {
-      const ci = (c.items || []).filter(Boolean);
-      if (ci.length || !customer) out.push({ label: c.title || 'Your branch', sub: 'Added for this account', items: ci, cls: 'custom' });
-    });
-  });
-  return out;
-}
 function docPage(p, customer, title, body) {
   return { title, body };
 }
@@ -2647,102 +2622,155 @@ function docWrap(p, customer, pages) {
     <div class="doc-body">${pg.body}</div>
     <footer class="doc-foot"><span>${foot}</span><span>Page ${i + 1} of ${n}</span></footer></section>`).join('')}</div></div>`;
 }
-/* Rough height of a line of text in the In full columns, to split them across pages. */
-function docPaginate(blocks) {
-  const COLS = 3, CAP = 560, perLine = 50, lineH = 18, pages = [];
-  let page = [[]], col = 0, used = 0;
-  const nextCol = () => { col++; used = 0; if (col === COLS) { pages.push(page); page = [[]]; col = 0; } else page.push([]); };
-  blocks.forEach(b => {
-    let titled = false;
-    b.items.forEach((it, i) => {
-      const h = Math.ceil(String(it).length / perLine) * lineH + 8, th = titled ? 0 : 30;
-      if (used + th + h > CAP && used > 0) { nextCol(); titled = false; }
-      if (!titled) { page[col].push(`<div class="doc-ftitle">${esc(b.title)}${i ? ' (continued)' : ''}</div>`); used += 30; titled = true; }
-      page[col].push(`<div class="doc-fitem">${esc(it)}</div>`); used += h;
+/* The plan document is the highlights, not the whole builder. Starting rows nobody touched never print,
+   steps with their own page stay off the page 1 cards, and anything that doesn't fit is left in the
+   builder (the internal copy says how much) instead of spilling onto extra pages. */
+const DOC_OWN_PAGE = ['milestones', 'fcPunch', 'rolloutSteps', 'rolloutSetup', 'rolloutTraining', 'rolloutProjects', 'comms', 'fcRhythm', 'recognition', 'loop'];
+function fieldDef(secKey, fieldKey, p) { const s = sectionByKey(secKey, p); return s && s.fields.find(f => f.key === fieldKey); }
+/* A row someone wrote in: anything that differs from the starting row with the same first cell. Values in
+   `blank` (like a bare "Not started") don't count as writing. */
+function rowTouched(f, r, blank) {
+  const val = c => { const v = String(r[c.key] || '').trim(); return blank && blank.includes(v) ? '' : v; };
+  const k0 = f.columns[0].key, def = (f.defaultRows ? f.defaultRows() : []).find(x => x[k0] && x[k0] === r[k0]) || {};
+  return f.columns.some(c => val(c) && val(c) !== String(def[c.key] || '').trim());
+}
+function touchedRows(p, sec, field, blank) {
+  const f = fieldDef(sec, field, p), rows = (p.data[sec] || {})[field];
+  return f && Array.isArray(rows) ? rows.filter(r => rowTouched(f, r, blank)) : [];
+}
+function docBranches(p, customer) {
+  const vis = visibleSections(p), out = [], valueLine = (p.data.fcValue || {}).line;
+  BRANCHES.filter(b => !b.internal).forEach(b => {
+    const lists = [];
+    vis.filter(s => s.branch === b.key && !DOC_OWN_PAGE.includes(s.key)).forEach(s => {
+      let ls = [];
+      try { ls = (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
+      if (s.key === 'goal') ls = ls.filter(x => !x.startsWith('"') && !x.startsWith('In 30 days: '));   // the goal and 30-day test are shown at the top
+      if (s.key === 'hypothesis') ls = ls.filter(x => !x.startsWith('If we improve'));
+      if (s.key === 'fcObjective') ls = ls.filter(x => x !== (p.data.fcObjective || {}).objective);
+      if (s.key === 'fcValue') ls = ls.filter(x => x !== valueLine);
+      if (ls.length) lists.push(ls);
+    });
+    const items = [];   // a little from every step before more from any one
+    for (let i = 0; lists.some(l => l[i] != null); i++) lists.forEach(l => { if (l[i] != null) items.push(l[i]); });
+    if (items.length || !customer) out.push({ label: b.label, sub: b.sub, items, cls: '' });
+    if (b.key === 'know') p.custom.forEach(c => {
+      const ci = (c.items || []).filter(Boolean);
+      if (ci.length || !customer) out.push({ label: c.title || 'Your branch', sub: 'Added for this account', items: ci, cls: 'custom' });
     });
   });
-  if (page.some(c => c.length)) pages.push(page);
-  return pages.map(cols => `<div class="doc-cols">${cols.map(c => `<div>${c.join('')}</div>`).join('')}</div>`);
+  return out;
 }
-/* A table that may run long, split across pages by rough height so no row runs off the bottom. */
-function docTablePages(title, cols, rows, foot) {
-  const W = 960, cap = 540, chunks = [[]]; let used = 0;
-  cols.forEach(c => { c.cpl = Math.max(8, Math.floor(W * (parseFloat(c.w) || (100 / cols.length)) / 100 / 6.3)); });
-  rows.forEach(r => {
-    const h = Math.max(1, ...cols.map(c => Math.ceil(String(c.v(r) || '').length / c.cpl))) * 16 + 14;
-    if (used + h > cap && chunks[chunks.length - 1].length) { chunks.push([]); used = 0; }
-    chunks[chunks.length - 1].push(r); used += h;
+/* Rough row height for a table of known column widths (px), to stop before the page runs out. */
+function rowH(cols, r) { return Math.max(1, ...cols.map(c => Math.ceil(String(c.v(r) || '').length / Math.max(6, Math.floor((c.px - 16) / 5.9))))) * 16 + 14; }
+function fitRows(cols, rows, cap) { let used = 0, n = 0; for (const r of rows) { const h = rowH(cols, r); if (used + h > cap && n) break; used += h; n++; } return n; }
+function tableHtml2(cols, rows) {
+  return `<table class="doc-table doc-grid"><thead><tr>${cols.map(c => `<th${c.w ? ` style="width:${c.w}"` : ''}>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${cols.map((c, i) => { const v = c.v(r) || ''; return `<td>${i === 0 ? '<b>' + esc(v) + '</b>' : v === 'Done' || v === 'Launched' ? '<span class="doc-done">' + esc(v) + '</span>' : esc(v)}</td>`; }).join('')}</tr>`).join('')}</tbody></table>`;
+}
+/* Several tables on as few pages as they fit, each under its own heading; a long one carries on to the next page. */
+function docBlocksPages(title, blocks) {
+  const W = 960, CAP = 560, pages = [];
+  let body = '', used = 0, onPage = 0;
+  const flush = () => { if (body) pages.push({ title: title + (pages.length ? ' (continued)' : ''), body }); body = ''; used = 0; onPage = 0; };
+  blocks.forEach(b => {
+    b.cols.forEach(c => { c.px = W * parseFloat(c.w) / 100; });
+    let rest = b.rows.slice(), first = true;
+    while (rest.length) {
+      const head = (blocks.length > 1 ? 40 : 0) + 34;
+      if (onPage && used + head + rowH(b.cols, rest[0]) > CAP) flush();
+      const n = Math.max(1, fitRows(b.cols, rest, CAP - used - head));
+      const part = rest.slice(0, n); rest = rest.slice(n);
+      body += (blocks.length > 1 ? `<h3 class="doc-h3" ${onPage ? '' : 'style="margin-top:0"'}>${esc(b.title)}${first ? '' : ' (continued)'}</h3>` : '') + tableHtml2(b.cols, part) + (!rest.length && b.foot ? b.foot : '');
+      used += head + part.reduce((t, r) => t + rowH(b.cols, r), 0) + (!rest.length && b.foot ? 34 : 0) + 16; onPage++; first = false;
+      if (rest.length) flush();
+    }
   });
-  return chunks.map((rs, ci) => ({ title: title + (ci ? ' (continued)' : ''), body: `<table class="doc-table doc-grid"><thead><tr>${cols.map(c => `<th${c.w ? ` style="width:${c.w}"` : ''}>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rs.map(r => `<tr>${cols.map((c, i) => { const v = c.v(r) || ''; return `<td>${i === 0 ? '<b>' + esc(v) + '</b>' : v === 'Done' || v === 'Launched' ? '<span class="doc-done">' + esc(v) + '</span>' : esc(v)}</td>`; }).join('')}</tr>`).join('')}</tbody></table>${ci === chunks.length - 1 && foot ? foot : ''}` }));
+  flush();
+  return pages;
+}
+/* What's next: the steps someone has started, owns or dated, from every list in the plan, in one place. */
+function docNextSteps(p, has) {
+  const out = [], seen = new Set();
+  const add = (what, who, when, status) => { const k = String(what || '').toLowerCase().trim(); if (!k || seen.has(k)) return; seen.add(k); out.push({ what, who: who || '', when: when || '', status: status === 'Not started' ? '' : status || '' }); };
+  if (p.meta.day1) add('Day 1: first workflow live', '', fmtDate(p.meta.day1), '');
+  if (has('fcPunch')) touchedRows(p, 'fcPunch', 'rows', ['Not started']).forEach(r => add(r.item, r.owner, r.by, r.status));
+  if (has('rolloutSteps')) touchedRows(p, 'rolloutSteps', 'rows', ['Not started']).filter(r => r.status !== 'Not needed').forEach(r => add(r.item, r.owner, r.by, r.status));
+  if (has('rolloutTraining')) touchedRows(p, 'rolloutTraining', 'rows').filter(r => r.date).forEach(r => add('Training: ' + r.audience, r.trainer, r.date, ''));
+  if (has('rolloutProjects')) ((p.data.rolloutProjects || {}).rows || []).filter(r => r.project && r.launch && r.status !== 'Launched').forEach(r => add('Launch: ' + r.project, r.ops, r.launch, r.status));
+  const rank = x => x.status === 'In progress' ? 0 : x.when ? 1 : 2;
+  return { open: out.filter(x => x.status !== 'Done').sort((a, b) => rank(a) - rank(b)), done: out.filter(x => x.status === 'Done') };
 }
 function presentHtml(p, customer) {
   const m = p.meta, d = k => p.data[k] || {};
-  const pages = [], full = [];
-  let cut = false;
+  const pages = [], more = n => !customer && n > 0 ? `<div class="doc-more">+ ${n} more in the plan builder</div>` : '';
 
   // ---- Page 1: the plan at a glance ----
   const vis = visibleSections(p), has = k => vis.some(s => s.key === k);
-  const goalNow = (has('goal') && d('goal').words) || (has('fcObjective') && d('fcObjective').objective);
-  const branches = docBranches(p, customer).filter(b => b.items.length || !(b.label === 'Why' && goalNow));   // the goal up top already covers an empty Why
-  const n = branches.length, cols = n <= 4 ? Math.max(n, 1) : n <= 6 ? 3 : 4, rows = Math.ceil(n / cols);
   const goal = (has('goal') && d('goal').words) || (has('fcObjective') && d('fcObjective').objective), hy = has('hypothesis') ? d('hypothesis') : {};
-  const lead = (goal ? 1 : 0) + ((has('goal') && (d('goal').test30 || '').trim()) ? 1 : 0);
-  const per = rows === 1 ? (lead ? 8 - lead : 9) : rows === 2 ? (lead ? 4 - lead : 4) : 2;
+  const t30 = has('goal') ? (d('goal').test30 || '').trim() : '', value = has('fcValue') ? (d('fcValue').line || '').trim() : '';
+  const branches = docBranches(p, customer).filter(b => b.items.length || !(b.label === 'Why' && goal));   // the goal up top already covers an empty Why
+  const n = branches.length, cols = n <= 4 ? Math.max(n, 1) : n <= 6 ? 3 : 4, rows = Math.ceil(n / cols);
+  const lead = (goal ? 1 : 0) + (t30 ? 1 : 0) + (value ? 1 : 0) + (hy.improve && hy.result ? 1 : 0);
+  const per = rows === 1 ? Math.max(4, 8 - lead) : rows === 2 ? Math.max(2, 4 - Math.ceil(lead / 2)) : 2;
   let b1 = '';
-  if (goal) b1 += `<div class="doc-goal">"${esc(goal)}"</div>`;
-  const t30 = has('goal') ? (d('goal').test30 || '').trim() : '';
-  if (t30) {
-    b1 += `<p class="doc-bet"><b>In 30 days:</b> ${esc(trunc(t30, 200))}</p>`;
-    if (t30.length > 200) { cut = true; full.push({ title: 'The 30-day test', items: [t30] }); }
-  }
+  if (goal) b1 += `<div class="doc-goal">"${esc(trunc(goal, 260))}"</div>`;
+  if (t30) b1 += `<p class="doc-bet"><b>In 30 days:</b> ${esc(trunc(t30, 220))}</p>`;
+  if (value) b1 += `<p class="doc-bet"><b>The value:</b> ${esc(trunc(value, 220))}</p>`;
   if (hy.improve && hy.result) b1 += `<p class="doc-bet"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
-  if (n) {
-    b1 += `<div class="doc-cards" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${branches.map(b => {
-      const shown = b.items.slice(0, per), hidden = b.items.length - shown.length;
-      if (hidden > 0 || b.items.some(x => x.length > 110)) { cut = true; }
-      if (b.items.length) full.push({ title: b.label, items: b.items });
-      return `<div class="doc-card ${b.cls}"><div class="doc-card-head"><b>${esc(b.label)}</b><span>${esc(b.sub)}</span></div>
-        ${b.items.length ? `<ul>${shown.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<ul><li class="doc-empty">Not started yet</li></ul>'}
-        ${hidden > 0 ? `<div class="doc-more">+ ${hidden} more on the "In full" page</div>` : ''}</div>`;
-    }).join('')}</div>`;
-  }
+  if (n) b1 += `<div class="doc-cards" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${branches.map(b => `<div class="doc-card ${b.cls}"><div class="doc-card-head"><b>${esc(b.label)}</b><span>${esc(b.sub)}</span></div>
+      <ul>${b.items.length ? b.items.slice(0, per).map(x => `<li>${esc(x)}</li>`).join('') : '<li class="doc-empty">Not started yet</li>'}</ul>${more(b.items.length - per)}</div>`).join('')}</div>`;
   if (!b1) b1 = '<p class="doc-empty" style="margin-top:30px;font-size:15px">The plan builds here as we talk it through.</p>';
   pages.push({ title: 'The plan at a glance', body: b1 });
 
-  // ---- Page 2: milestones and how we'll run it ----
-  const touched = milestonesTouched(p), mi = d('milestones'), rec = d('recognition');
-  let b2 = '';
-  if (has('milestones') && (!customer || touched)) {
-    const ph = mi.phases || {}, msAll = []; let msCut = false;
-    b2 += `<div class="doc-tl">${PHASES.map((x, i) => {
-      const items = (ph[x.key] || []).filter(it => it.text), shown = items.slice(0, 4), hidden = items.length - shown.length;
-      if (hidden > 0) { cut = true; msCut = true; }
-      items.forEach(it => msAll.push(x.label + ': ' + it.text + (it.who ? ' (' + it.who + ')' : '') + (it.done ? ', done' : '')));
-      const date = phaseDate(p, x), allDone = items.length && items.every(it => it.done);
+  // ---- How we'll run it: the rhythm, recognition and how people hear about things ----
+  const touched = milestonesTouched(p), mi = d('milestones'), rec = d('recognition'), msShow = has('milestones') && (!customer || touched);
+  const rh = has('fcRhythm') ? d('fcRhythm') : {}, ye = has('fcYearEnd') ? d('fcYearEnd') : {}, cm = has('comms') ? d('comms') : {};
+  const run = [
+    msShow && mi.weekly ? ['Weekly', mi.weekly] : null,
+    msShow && mi.monthly ? ['Monthly', mi.monthly + ((mi.workbooks || []).length ? ' (' + mi.workbooks.join(', ') + ')' : '')] : null,
+    msShow && mi.quarterly ? ['Quarterly', mi.quarterly] : null,
+    (rh.rhythm || []).length ? ['Operating rhythm', rh.rhythm.join('; ')] : null,
+    (rh.workbooks || []).length ? ['Monthly workbooks', rh.workbooks.join('; ')] : null,
+    (rh.feedback || []).length ? ['Reports we review', rh.feedback.join('; ')] : null,
+    (rh.questions || []).length ? ['Daily questions', rh.questions.slice(0, 3).join('; ')] : null,
+    has('recognition') && rec.forWhat ? ['Recognition', [rec.often, rec.forWhat].filter(Boolean).join(': ') + (rec.channel ? ', via ' + rec.channel : '')] : null,
+    has('loop') && d('loop').how ? ['Closing the loop', d('loop').how] : null,
+    ye.loop ? ['Closing the loop', ye.loop] : null,
+    ...touchedRows(p, 'comms', 'rows').filter(r => r.what && (r.from || r.how || r.when)).slice(0, 3).map(r => [trunc(r.what, 34), [r.from && 'From ' + r.from, r.how, r.when].filter(Boolean).join('. ')]),
+    cm.rule ? ['Any new change', cm.rule] : null,
+    has('fcGovern') && d('fcGovern').message ? ['How leaders hear why', d('fcGovern').message] : null,
+    has('rolloutTraining') && (d('rolloutTraining').videos || []).length ? ['Leader why videos', d('rolloutTraining').videos.join('; ')] : null,
+    (ye.readers || []).length ? ['Quarterly report goes to', ye.readers.join(', ')] : null
+  ].filter(Boolean).slice(0, 9);
+  const runHtml = top => run.length ? `<h3 class="doc-h3" ${top ? 'style="margin-top:0"' : ''}>How we'll run it</h3><table class="doc-table doc-run"><tbody>${run.map(r => `<tr><th>${esc(r[0])}</th><td>${esc(trunc(r[1], 170))}</td></tr>`).join('')}</tbody></table>` : '';
+  const ns = docNextSteps(p, has);
+  const nsHtml = (widthPx, cap) => {
+    const cols = [{ label: 'Step', w: '48%', v: r => r.what }, { label: 'Who', w: '22%', v: r => r.who }, { label: 'When', w: '17%', v: r => r.when }, { label: 'Status', w: '13%', v: r => r.status }];
+    cols.forEach(c => { c.px = widthPx * parseFloat(c.w) / 100; });
+    let k = fitRows(cols, ns.open, cap - (ns.done.length ? 64 : 0));
+    if (k < ns.open.length) k = fitRows(cols, ns.open, cap - (ns.done.length ? 64 : 0) - 30);   // room for the "more on our list" line
+    return (ns.open.length ? tableHtml2(cols, ns.open.slice(0, k)) : '') + (ns.done.length ? `<p class="doc-note"><b>Done:</b> ${esc(trunc(ns.done.map(x => x.what).join('; '), 240))}</p>` : '') + (ns.open.length > k ? `<p class="doc-note">+ ${ns.open.length - k} more step${ns.open.length - k > 1 ? 's' : ''} on our list</p>` : '');
+  };
+  const hasNext = ns.open.length || ns.done.length;
+  if (msShow) {
+    const ph = mi.phases || {};
+    let b2 = `<div class="doc-tl">${PHASES.map((x, i) => {
+      const items = (ph[x.key] || []).filter(it => it.text), shown = items.slice(0, 4), date = phaseDate(p, x), allDone = items.length && items.every(it => it.done);
       return `<div class="doc-phase"><div class="doc-pnum ${allDone ? 'done' : ''}">${i + 1}</div><div class="doc-pname">${esc(x.label)}</div>
         <div class="doc-pwhen">${esc(date || x.when)}</div>
         <ul>${shown.map(it => `<li class="${it.done ? 'done' : ''}">${it.who ? `<span class="doc-who">${esc(it.who)}</span> ` : ''}${esc(it.text)}</li>`).join('') || '<li class="doc-empty">To be set</li>'}</ul>
-        ${hidden > 0 ? `<div class="doc-more" style="padding:0">+ ${hidden} more</div>` : ''}
+        ${items.length > 4 && !customer ? `<div class="doc-more" style="padding:0">+ ${items.length - 4} more</div>` : ''}
         <div class="doc-gate">${esc(x.gate)}</div></div>`;
     }).join('')}</div>`;
-    if (msCut) full.push({ title: 'Milestones', items: msAll });
-  }
-  const msRun = has('milestones') && (!customer || touched), rh = has('fcRhythm') ? d('fcRhythm') : {}, ye = has('fcYearEnd') ? d('fcYearEnd') : {};
-  const run = [
-    msRun && mi.weekly ? ['Weekly', esc(mi.weekly)] : null,
-    msRun && mi.monthly ? ['Monthly', esc(mi.monthly) + ((mi.workbooks || []).length ? ' (' + esc(mi.workbooks.join(', ')) + ')' : '')] : null,
-    msRun && mi.quarterly ? ['Quarterly', esc(mi.quarterly)] : null,
-    (rh.rhythm || []).length ? ['Operating rhythm', esc(rh.rhythm.join(', '))] : null,
-    (rh.workbooks || []).length ? ['Monthly workbooks', esc(rh.workbooks.join(', '))] : null,
-    (rh.questions || []).length ? ['Daily questions', esc(rh.questions.slice(0, 3).join(' · '))] : null,
-    has('recognition') && rec.forWhat ? ['Recognition', esc([rec.often, rec.forWhat].filter(Boolean).join(': ')) + (rec.channel ? ', via ' + esc(rec.channel) : '')] : null,
-    has('loop') && d('loop').how ? ['Closing the loop', esc(d('loop').how)] : null,
-    ye.loop ? ['Closing the loop', esc(ye.loop)] : null
-  ].filter(Boolean);
-  if (run.length) b2 += `<h3 class="doc-h3">How we'll run it</h3><table class="doc-table doc-run"><tbody>${run.map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('')}</tbody></table>`;
-  if (b2) pages.push({ title: has('milestones') && (!customer || touched) ? "Milestones and how we'll run it" : "How we'll run it", body: b2 });
+    b2 += runHtml(false);
+    pages.push({ title: "Milestones and how we'll run it", body: b2 });
+    if (hasNext) pages.push({ title: 'What happens next', body: nsHtml(960, 560) });
+  } else if (hasNext && run.length) {
+    pages.push({ title: "What happens next and how we'll run it", body: `<div class="doc-split"><div>${nsHtml(540, 560)}</div><div>${runHtml(true)}</div></div>` });
+  } else if (hasNext) pages.push({ title: 'What happens next', body: nsHtml(960, 560) });
+  else if (run.length) pages.push({ title: "How we'll run it", body: runHtml(true) });
 
-  // ---- Page 3: scorecard and owners ----
+  // ---- Scorecard and owners ----
   const ms = [].concat(
     has('targets') ? (d('targets').measures || []) : [],
     has('fcValue') ? (d('fcValue').rows || []) : [],
@@ -2753,54 +2781,36 @@ function presentHtml(p, customer) {
     gv.sponsor ? [{ role: 'Operations sponsor', customer: gv.sponsor }] : [],
     gv.impl ? [{ role: 'Implementation owner', customer: gv.impl }] : [],
     (gv.workstreams || []).map(r => ({ role: r.workstream, customer: r.customer, factorlab: r.factorlab }))).filter(r => r.customer || r.factorlab);
-  let b3 = '';
   if (ms.length || owners.length) {
-    const msShown = ms.slice(0, 8), owShown = owners.slice(0, 10), msStretch = ms.some(r => r.stretch);
-    if (ms.length > 8 || owners.length > 10) cut = true;
-    if (ms.length > 8) full.push({ title: 'Scorecard', items: ms.map(r => `${r.measure}: ${r.baseline || '?'} to ${r.target || '?'}${r.stretch ? ' (stretch ' + r.stretch + ')' : ''}${r.by ? ', by ' + r.by : ''}`) });
-    if (owners.length > 10) full.push({ title: 'Owners', items: owners.map(r => `${r.role}: ${[r.customer, r.factorlab].filter(Boolean).join(' / ')}`) });
-    b3 = `<div class="doc-split ${ms.length && owners.length ? '' : 'one'}">
-      ${ms.length ? `<div><h3 class="doc-h3" style="margin-top:0">Scorecard</h3><table class="doc-table"><thead><tr><th>Measure</th><th>How we score it</th><th>Baseline</th><th>Target</th>${msStretch ? '<th>Stretch</th>' : ''}<th>Now</th><th>By</th></tr></thead><tbody>${msShown.map(r => `<tr><td><b>${esc(r.measure)}</b></td><td>${esc(r.how)}</td><td>${esc(r.baseline)}</td><td>${esc(r.target)}</td>${msStretch ? `<td>${esc(r.stretch)}</td>` : ''}<td>${esc(r.current)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table>
-        ${d('targets').outcome ? `<p class="doc-note">Also tracking: ${esc(d('targets').outcome)}</p>` : ''}</div>` : ''}
-      ${owners.length ? `<div><h3 class="doc-h3" style="margin-top:0">Owners</h3><table class="doc-table"><thead><tr><th>Role</th><th>${esc(m.account || 'Customer')}</th><th>FactorLab</th></tr></thead><tbody>${owShown.map(r => `<tr><td>${esc(r.role)}</td><td>${esc(r.customer)}</td><td>${esc(r.factorlab)}</td></tr>`).join('')}</tbody></table></div>` : ''}
-    </div>`;
-    pages.push({ title: ms.length && owners.length ? 'Scorecard and owners' : ms.length ? 'Scorecard' : 'Owners', body: b3 });
+    const both = ms.length && owners.length, W = both ? 560 : 960;
+    const any = k => ms.some(r => r[k]);
+    const mc = [{ label: 'Measure', w: '18%', v: r => r.measure }, any('how') ? { label: 'How we score it', w: '24%', v: r => r.how } : null, { label: 'Baseline', w: '18%', v: r => r.baseline }, { label: 'Target', w: '20%', v: r => r.target },
+      any('stretch') ? { label: 'Stretch', w: '12%', v: r => r.stretch } : null, any('current') ? { label: 'Now', w: '9%', v: r => r.current } : null, any('by') ? { label: 'By', w: '11%', v: r => r.by } : null].filter(Boolean);
+    const oc = [{ label: 'Role', w: '30%', v: r => r.role }, { label: m.account || 'Customer', w: '40%', v: r => r.customer }, { label: 'FactorLab', w: '30%', v: r => r.factorlab }];
+    mc.forEach(c => { c.px = W * parseFloat(c.w) / 100; }); oc.forEach(c => { c.px = (both ? 400 : 960) * parseFloat(c.w) / 100; });
+    const mk = fitRows(mc, ms, 520), ok = fitRows(oc, owners, 520);
+    const msHtml = ms.length ? `<div><h3 class="doc-h3" style="margin-top:0">Scorecard</h3>${tableHtml2(mc, ms.slice(0, mk))}${more(ms.length - mk)}${has('targets') && d('targets').outcome ? `<p class="doc-note">Also tracking: ${esc(d('targets').outcome)}</p>` : ''}</div>` : '';
+    const owHtml = owners.length ? `<div><h3 class="doc-h3" style="margin-top:0">Owners</h3>${tableHtml2(oc, owners.slice(0, ok))}${more(owners.length - ok)}</div>` : '';
+    pages.push({ title: both ? 'Scorecard and owners' : ms.length ? 'Scorecard' : 'Owners', body: `<div class="doc-split ${both ? '' : 'one'}">${msHtml}${owHtml}</div>` });
   }
 
-  // ---- Full rollout: projects, rollout steps, training, setup. Each on its own pages; the customer sees them once filled in ----
+  // ---- Rollout details: only rows someone wrote in, packed onto as few pages as fit ----
   const col = (label, key, w) => ({ label, w, v: r => r[key] });
+  const blocks = [];
   const rp = has('rolloutProjects') ? (d('rolloutProjects').rows || []).filter(r => r.project) : [];
   if (rp.length) {
     const g = d('rolloutProjects');
-    docTablePages('Projects and launch order', [col('Project', 'project', '20%'), col('Region', 'region', '11%'), col('Operations lead', 'ops', '14%'), col('Safety lead', 'safety', '14%'), col('Crews and languages', 'crews', '17%'), col('Launch', 'launch', '11%'), col('Status', 'status', '13%')], rp,
-      (g.gate || []).length || g.approver ? `<p class="doc-note"><b>Before a project launches:</b> ${esc((g.gate || []).join(', '))}${g.approver ? (g.gate || []).length ? '. Approved by ' + esc(g.approver) + '.' : 'Approved by ' + esc(g.approver) + '.' : ''}</p>` : '').forEach(x => pages.push(x));
+    blocks.push({ title: 'Projects and launch order', rows: rp, cols: [col('Project', 'project', '20%'), col('Region', 'region', '11%'), col('Operations lead', 'ops', '14%'), col('Safety lead', 'safety', '14%'), col('Crews and languages', 'crews', '17%'), col('Launch', 'launch', '11%'), col('Status', 'status', '13%')],
+      foot: (g.gate || []).length || g.approver ? `<p class="doc-note"><b>Before a project launches:</b> ${esc((g.gate || []).join('; '))}${g.approver ? ((g.gate || []).length ? '. ' : '') + 'Approved by ' + esc(g.approver) + '.' : ''}</p>` : '' });
   }
-  const rs = has('rolloutSteps') ? (d('rolloutSteps').rows || []).filter(r => r.item && r.status !== 'Not needed') : [];
-  if (rs.length && (!customer || rs.some(r => r.by || r.status))) docTablePages('Rollout steps', [col('Step', 'item', '36%'), col('Stage', 'phase', '14%'), col('Area', 'bucket', '10%'), col('Who owns it', 'owner', '16%'), col('By', 'by', '11%'), col('Status', 'status', '13%')], rs).forEach(x => pages.push(x));
-  const rt = has('rolloutTraining') ? (d('rolloutTraining').rows || []).filter(r => r.audience) : [];
-  if (rt.length && (!customer || rt.some(r => r.sessions || r.trainer || r.date || r.value))) {
-    const vids = d('rolloutTraining').videos || [];
-    docTablePages('Training by audience', [col('Audience', 'audience', '16%'), col('What we ask of them', 'ask', '27%'), col("Why it's good for them", 'value', '27%'), col('Sessions', 'sessions', '9%'), col('Who trains', 'trainer', '11%'), col('When', 'date', '10%')], rt,
-      vids.length ? `<p class="doc-note"><b>Leader why videos:</b> ${esc(vids.join('; '))}</p>` : '').forEach(x => pages.push(x));
-  }
-  const su = has('rolloutSetup') ? (d('rolloutSetup').rows || []).filter(r => r.item && r.need !== 'Not needed') : [];
-  if (su.length && (!customer || su.some(r => r.need || r.customer || r.factorlab || r.status))) docTablePages('Setup and access', [col('Item', 'item', '17%'), col('Needed?', 'need', '10%'), col(m.account || 'Their owner', 'customer', '14%'), col('FactorLab', 'factorlab', '13%'), col('Done looks like', 'done', '33%'), col('Status', 'status', '13%')], su,
-    d('rolloutSetup').admin ? `<p class="doc-note"><b>Their admin:</b> ${esc(d('rolloutSetup').admin)}</p>` : '').forEach(x => pages.push(x));
-
-  // ---- Readiness punch list: its own page, split by height so nothing runs off the page ----
-  const pr = (has('fcPunch') ? (d('fcPunch').rows || []) : []).filter(r => r.item);
-  if (pr.length && (!customer || pr.some(r => r.owner || r.by || r.status))) {
-    const chunks = [[]]; let used = 0;
-    pr.forEach((r, i) => {
-      const h = Math.max(Math.ceil(String(r.item).length / 26), Math.ceil(String(r.outcome || '').length / 58), 1) * 16 + 14;
-      if (used + h > 540 && chunks[chunks.length - 1].length) { chunks.push([]); used = 0; }
-      chunks[chunks.length - 1].push([i + 1, r]); used += h;
-    });
-    chunks.forEach((rows, ci) => pages.push({ title: 'Readiness punch list' + (ci ? ' (continued)' : ''), body: `<table class="doc-table doc-punch"><thead><tr><th></th><th>Item</th><th>Done looks like</th><th>Owner</th><th>By</th><th>Status</th></tr></thead><tbody>${rows.map(([n, r]) => `<tr><td class="doc-muted">${n}</td><td><b>${esc(r.item)}</b></td><td>${esc(r.outcome)}</td><td>${esc(r.owner)}</td><td>${esc(r.by)}</td><td>${r.status === 'Done' ? '<span class="doc-done">Done</span>' : esc(r.status)}</td></tr>`).join('')}</tbody></table>` }));
-  }
-
-  // ---- In full: everything that didn't fit, laid out in tidy columns ----
-  if (cut && full.length) docPaginate(full).forEach((body, i) => pages.push({ title: i ? 'In full (continued)' : 'In full', body }));
+  const rt = has('rolloutTraining') ? touchedRows(p, 'rolloutTraining', 'rows') : [];
+  if (rt.length) blocks.push({ title: 'Training by audience', rows: rt, cols: [col('Audience', 'audience', '16%'), col('What we ask of them', 'ask', '27%'), col("Why it's good for them", 'value', '27%'), col('Sessions', 'sessions', '11%'), col('Who trains', 'trainer', '10%'), col('When', 'date', '9%')] });
+  const su = has('rolloutSetup') ? touchedRows(p, 'rolloutSetup', 'rows').filter(r => r.need !== 'Not needed') : [];
+  const suDef = (fieldDef('rolloutSetup', 'rows', p).defaultRows() || []), ownDone = su.some(r => r.done && !suDef.some(x => x.item === r.item && x.done === r.done));   // the starting "done looks like" text stays in the builder
+  if (su.length) blocks.push({ title: 'Setup and access', rows: su, cols: ownDone ? [col('Item', 'item', '17%'), col('Needed?', 'need', '10%'), col(m.account || 'Their owner', 'customer', '16%'), col('FactorLab', 'factorlab', '14%'), col('Done looks like', 'done', '30%'), col('Status', 'status', '13%')]
+    : [col('Item', 'item', '26%'), col('Needed?', 'need', '12%'), col(m.account || 'Their owner', 'customer', '25%'), col('FactorLab', 'factorlab', '22%'), col('Status', 'status', '15%')],
+    foot: d('rolloutSetup').admin ? `<p class="doc-note"><b>Their admin:</b> ${esc(d('rolloutSetup').admin)}</p>` : '' });
+  if (blocks.length) docBlocksPages(blocks.length > 1 ? 'Rollout details' : blocks[0].title, blocks).forEach(x => pages.push(x));
 
   // ---- FactorLab only (internal PDF and view only) ----
   const otherInt = vis.filter(s => s.branch === 'internal' && !['economics', 'risks', 'advocacy'].includes(s.key));
