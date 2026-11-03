@@ -468,6 +468,32 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 .doc-lead ul { margin: 6px 0 0; padding-left: 18px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; font-size: 13.5px; }
 .doc-lead li { margin: 2px 0; }
 .doc-cards { display: grid; gap: 16px; margin-top: 22px; }
+.doc-shift-low { display: grid; grid-template-columns: 1.45fr 1fr; gap: 16px; margin-top: 16px; }
+.px-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+.px-list { margin: 0; padding-left: 18px; font-size: 13.5px; } .px-list li { margin: 4px 0; } .px-list li::marker { color: var(--amber); }
+.px-cap { margin: 0 0 8px; font-size: 12.5px; color: var(--muted); }
+.px-score { display: flex; align-items: center; gap: 22px; }
+.px-num { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 56px; line-height: 1; color: var(--navy); }
+.px-num.goal { color: var(--green); } .px-lab { font-size: 12px; color: var(--muted); } .px-arrow { font-size: 13px; color: var(--faint); }
+.px-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.px-chip { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-weight: 600; font-size: 14px; }
+.px-chip span { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.px-body { padding: 4px 14px 12px; font-size: 13px; } .px-body p { margin: 0; line-height: 1.4; }
+.px-body .px-list { padding: 0; gap: 4px; } .px-body .px-list li { margin: 0; }
+.px-h { margin: 10px 0 3px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: 12.5px; color: var(--amber); }
+.px-stat { display: block; margin-top: 4px; color: var(--navy); font-weight: 600; }
+.doc-panel { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.doc-panel h3 { margin: 0 0 8px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 16px; color: var(--navy); }
+.doc-tick { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; margin: 6px 0; }
+.doc-tick b { font-weight: 600; } .doc-tick span { color: var(--muted); }
+.doc-mark { flex: none; width: 17px; height: 17px; border-radius: 50%; background: var(--green); position: relative; margin-top: 1px; }
+.doc-mark::after { content: ''; position: absolute; left: 5.5px; top: 3px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.doc-tick.off .doc-mark { background: none; border: 1.5px solid var(--line); } .doc-tick.off .doc-mark::after { display: none; }
+.doc-tick.off b { color: var(--muted); font-weight: 500; }
+.doc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.doc-stat-n { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 34px; color: var(--amber); line-height: 1; }
+.doc-stat-t { font-size: 11.5px; line-height: 1.3; margin-top: 3px; }
+.doc-src { font-size: 10.5px; color: var(--faint); margin-top: 8px; }
 .doc-card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
 .doc-card-head { background: var(--navy); color: #fff; padding: 10px 14px; }
 .doc-card-head b { display: block; font-size: 15px; }
@@ -513,7 +539,7 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
   .doc.flow { padding: 12px 0 30px; }
   .doc.flow .doc-pages { width: auto; }
   .doc.flow .doc-page { width: auto; height: auto; margin: 0 10px 14px; padding: 20px 18px 16px; }
-  .doc.flow .doc-cards, .doc.flow .doc-tl, .doc.flow .doc-split { grid-template-columns: 1fr !important; }
+  .doc.flow .doc-cards, .doc.flow .doc-tl, .doc.flow .doc-split, .doc.flow .doc-shift-low, .doc.flow .px-grid, .doc.flow .px-chips { grid-template-columns: 1fr !important; }
   .doc.flow .doc-account { font-size: 21px; }
   .doc.flow .doc-table { display: block; overflow-x: auto; }
 }
@@ -775,7 +801,8 @@ const MODES = {
   grow:    { label: 'Grow',    lead: 'Lead with what moves next, the next region or unit, and trade partners.', adds: ['scope', 'trades', 'advocacy'],
              ask: { scope: GROW_ASK, fcConverge: GROW_ASK } },
   renew:   { label: 'Renew',   lead: 'Lead with proof in their numbers and what comes next.', adds: ['results', 'advocacy'], ask: {}, docLead: { sec: 'results', title: 'Where things stand' } },
-  recover: { label: 'Recover', lead: 'Lead with the failure mode, one recovery milestone and re-engaging the sponsor.', adds: [], ask: {} }
+  recover: { label: 'Recover', lead: 'Lead with the failure mode, one recovery milestone and re-engaging the sponsor.', adds: [], ask: {} },
+  prospect: { label: 'Prospecting', lead: "A complimentary 2027 plan for a company that isn't a customer yet: where their planning is today, their top three pains, and how to close the gaps.", adds: [], ask: {}, prospect: true }
 };
 const SAME_AS = { scope: 'fcConverge', trades: 'fcTrades' };   // a need skips a step when the plan already has its Flintco twin
 
@@ -1720,6 +1747,121 @@ const SECTIONS = [
   }
 ];
 
+/* ---------------- PROSPECTING (set: 'prospect') ----------------
+   A light, complimentary 2027 plan for a company that isn't a customer yet (the marketing offer, Nov 3 2026).
+   About ten questions on a discovery call: where their planning is today (Scott's questions), their top three
+   pains from PX_AREAS, and three quick questions on each. The plan is walked through at a follow-up meeting,
+   not on the call. About 80% of what they receive is standard (what the best planners do, why it matters,
+   the first step); the rest is their own answers. It doesn't depend on SmartTagIt, but it leads there.
+   PX_AREAS is a DRAFT built from the 2027 Outlook and the Daily Planning Success Guide: Gretchen and Brian
+   are drafting the final areas and questions with Trey and Scott. Change them here; keys stay the same. */
+const PX_AREAS = [
+  { key: 'pxPaper', pain: 'Paperwork instead of planning', goal: 'Planning, not paperwork',
+    qs: ['When a crew plans its day, is it mostly a form getting signed, or a real conversation?', 'How long does it take a foreman to complete one today?', 'What paperwork could your crews stop tomorrow without anyone missing it?'],
+    best: 'Talk through the day\'s work, the real hazards and who does what, then capture it in a few minutes. The form follows the conversation.',
+    why: 'Crews get time back, and the plan sticks because they said it out loud.', stat: 'Reducing administrative work is a top-three AI wish for 49% of leaders.',
+    first: 'Pick one form to simplify and one report to stop. Keep what the field uses.' },
+  { key: 'pxChange', pain: "Plans don't keep up when the work changes", goal: 'Plans that keep up with the work',
+    qs: ['When the work changes mid-shift, what happens to the plan?', 'How do crews talk about what could change today: weather, other trades, materials?', 'When something went wrong last year, had the work changed from what was planned?'],
+    best: 'Name what could change today and agree how they will adapt. When the task changes, they stop and re-plan.',
+    why: 'Change is where plans most often fall short, and where good planners stand out.', stat: 'The best planners score 3X higher when actively discussing change.',
+    first: 'Add one question to every plan: what could change today, and what will we do if it does?' },
+  { key: 'pxLate', pain: 'Leaders hear about problems too late', goal: 'Leaders see it early',
+    qs: ['How do leaders know whether this morning\'s plans were any good?', 'How many plans does a superintendent or manager actually see in a week?', 'What would you want to know before 7 a.m. that you find out later?'],
+    best: 'Leaders look at a couple of real plans every week, say something back to the crew, and spot a weak plan the same day.',
+    why: 'The plan is the earliest, cheapest place to catch risk.', stat: '59% say planning weaknesses reach leaders too late.',
+    first: 'Ask each leader to look at two plans a week and say one thing back to the crew.' },
+  { key: 'pxSilo', pain: 'Safety and operations plan separately', goal: 'One plan safety and operations both own',
+    qs: ['Who owns the morning plan today: safety, operations or both?', 'When safety and operations see a good plan differently, how does that get settled?', 'Do your operations leaders ever review plans with your safety team?'],
+    best: 'Operations sets what a good plan looks like; safety supports and coaches. They review plans together.',
+    why: 'Shared plans and joint reviews keep supervisors from balancing production and safety alone.', stat: '',
+    first: 'Agree, on one page, what a good plan sounds like, signed by an operations leader and a safety leader.' },
+  { key: 'pxLessons', pain: 'Lessons stay on the job where they happened', goal: 'Lessons that travel to the next job',
+    qs: ['When a crew finds a better way to plan, how does anyone else hear about it?', 'How do lessons from a close call get into the next plan?', 'Can you compare planning between your projects or regions today?'],
+    best: 'Share real examples of good plans across crews and regions, and carry what changed into the next project.',
+    why: 'Every job teaches something. The best companies make sure the next crew hears it.', stat: '56% want AI to find patterns across projects, the top AI use case.',
+    first: 'Pick three good plans a month and share them with every crew, with a line on why they are good.' },
+  { key: 'pxBench', pain: 'Not enough experienced leaders to go around', goal: 'A deeper bench of field leaders',
+    qs: ['How many of your foremen are new to the role in the last year or two?', 'How do you know which foremen need help planning?', 'How do your best planners help the newer ones today?'],
+    best: 'Find their best planners, recognize them, and pair them with newer leaders. Send experienced leaders where the plans show they are needed.',
+    why: 'Better leaders tend to plan better, keep their people and see more of what is coming.', stat: '69% rank frontline leadership development their top 2027 priority.',
+    first: 'Name your best planners and recognize one each month for a plan others can learn from.' }
+];
+const PX_BASE = ['pxWho', 'pxToday', 'pxTop'], PX_END = 'pxNext';
+const PX_SCALE = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+SECTIONS.push(
+  {
+    key: 'pxWho', set: 'prospect', branch: 'who', title: 'About them', short: 'about them', tiers: [],
+    intro: 'Who you talked to and the work they do. Keep it quick.',
+    ask: ['What made them take the call?', 'Who else would care about better planning there?'],
+    fields: [
+      { key: 'contact', label: 'Who you talked to', type: 'text' },
+      { key: 'role', label: 'Their role', type: 'text', placeholder: 'e.g. safety director' },
+      { key: 'type', label: 'The work they do', type: 'select', options: ['', 'General contractor', 'Trade contractor', 'Utility or energy', 'Owner'] },
+      { key: 'leaders', label: 'How many foremen or crew leaders', type: 'text', placeholder: 'e.g. about 40' }
+    ],
+    leaves: d => [d.contact && d.contact + (d.role ? ', ' + d.role : ''), d.type, d.leaders && d.leaders + ' crew leaders']
+  },
+  {
+    key: 'pxToday', set: 'prospect', branch: 'what', title: 'Where they are today', short: 'where they are today', tiers: [],
+    intro: 'How their crews plan the work today, in their own words. Ask it the way you would in conversation. These answers become the first page of their plan.',
+    ask: ['What do they like about how it works today?', 'Who looks at the plans once they are done?'],
+    fields: [
+      { key: 'doing', label: 'Are your crews talking through a plan before work today?', type: 'select', options: ['', 'Every crew, every day', 'Most crews, most days', 'Some crews', 'Not yet'] },
+      { key: 'callIt', label: 'What do you call it?', type: 'select', options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
+      { key: 'count', label: 'How many do you take part in yourself in a month?', type: 'text' },
+      { key: 'measure', label: 'How do you measure whether they work today?', type: 'textarea' },
+      { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', options: PX_SCALE },
+      { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', options: PX_SCALE },
+      { key: 'system', label: 'What do you use to capture them today?', type: 'text', placeholder: 'e.g. paper, a form app' }
+    ],
+    leaves: d => [d.doing, d.callIt && 'Calls it: ' + d.callIt, d.score && 'Today: ' + d.score + ' of 10' + (d.target ? ', goal ' + d.target : ''), d.system && 'Uses: ' + d.system]
+  },
+  {
+    key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
+    intro: 'Read them the six areas and ask which three matter most this year. Each one they pick adds three quick questions.',
+    hint: 'If none of these fit, tick Something else and write their words. Their plan is built around what they pick here.',
+    ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
+    fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.map(a => a.pain) }],
+    leaves: d => (d.areas || []).slice(0, 4)
+  },
+  ...PX_AREAS.map(a => ({
+    key: a.key, set: 'prospect', branch: 'what', title: a.pain, short: a.pain.toLowerCase(), tiers: [],
+    intro: 'Three quick questions. Write their words; the plan pairs them with what the best planners do.',
+    ask: ['Can they give an example from the last month?'],
+    fields: a.qs.map((q, i) => ({ key: 'q' + (i + 1), label: q, type: 'textarea' })),
+    leaves: d => ['q1', 'q2', 'q3'].map(k => d[k]).filter(Boolean)
+  })),
+  {
+    key: 'pxNext', set: 'prospect', branch: 'internal', title: 'The follow-up meeting', short: 'the follow-up', tiers: [],
+    intro: 'Internal only. Their plan is walked through at a second meeting, not on this call. Book it before you hang up.',
+    ask: ['Who on their side should be in the follow-up?', 'What would make the follow-up worth their time?'],
+    fields: [
+      { key: 'date', label: 'Follow-up meeting', type: 'date' },
+      { key: 'who', label: 'Who joins from FactorLab', type: 'text' },
+      { key: 'them', label: 'Who joins from their side', type: 'text' },
+      { key: 'angle', label: 'What to lead with', type: 'textarea' }
+    ],
+    leaves: d => [d.date && 'Follow-up: ' + fmtDate(d.date), d.who && 'FactorLab: ' + d.who, d.them && 'Them: ' + d.them]
+  }
+);
+const pxArea = k => PX_AREAS.find(a => a.key === k);
+/* The steps of a prospect plan: the base steps, the areas they picked (in the order picked), any other area
+   with answers in it, then the follow-up. Returns true if the steps changed. */
+function syncProspect(p) {
+  if (!p || p.meta.template !== 'prospect' || !p.meta.flow) return false;
+  const picked = ((p.data.pxTop || {}).areas || []).map(x => PX_AREAS.find(a => a.pain === x)).filter(Boolean).map(a => a.key);
+  const worked = PX_AREAS.map(a => a.key).filter(k => !picked.includes(k) && hasWork(p, SECTIONS.find(s => s.key === k)));
+  const pxKeys = new Set(PX_BASE.concat(PX_AREAS.map(a => a.key), [PX_END]));
+  const others = (p.meta.flow.steps || []).filter(x => !pxKeys.has(x.key));
+  const steps = PX_BASE.concat(picked, worked).map(k => ({ key: k })).concat(others, [{ key: PX_END }]);
+  if (JSON.stringify(steps) === JSON.stringify(p.meta.flow.steps)) return false;
+  p.meta.flow.steps = steps;
+  return true;
+}
+/* The areas their plan is built on: the first three area steps. */
+function pxChosen(p) { return ((p.meta.flow || {}).steps || []).map(x => pxArea(x.key)).filter(Boolean).slice(0, 3); }
+
 /* Starting points. Guided keeps today's setup. The others store their steps on the plan (meta.flow). */
 const FLINTCO_STEPS = ['fcObjective', 'fcSimplify', 'fcValue', 'fcConverge', 'fcStandards', 'fcTrades', 'fcIncidents', 'fcRhythm', 'fcGovern', 'fcMeasures', 'fcYearEnd', 'fcPunch', 'fcReady'];
 const GUIDED_STEPS = () => SECTIONS.filter(s => s.core).map(s => s.key);
@@ -1784,8 +1926,12 @@ function readyChecks(plan) {
     { id: 'govern', label: 'The operations sponsor and implementation owner are named', ok: !!(d('fcGovern').sponsor && d('fcGovern').impl), sec: 'fcGovern' },
     { id: 'punch', label: 'Every punch list item has an owner and a date', ok: (d('fcPunch').rows || []).filter(r => r.item).every(r => r.owner && r.by), sec: 'fcPunch' },
     { id: 'readytest', label: 'All of the ready-for-the-year questions are answered yes', ok: (d('fcReady').rows || []).filter(r => r.question).every(r => r.ready === 'Yes'), sec: 'fcReady' },
+    { id: 'pxToday', label: 'Where they are today: how their crews plan, their 1 to 10 today and the number they want', ok: !!(d('pxToday').doing && d('pxToday').score && d('pxToday').target), sec: 'pxToday' },
+    { id: 'pxTop', label: 'Their top pains are picked (up to three)', ok: pxChosen(plan).length > 0, sec: 'pxTop' },
+    ...pxChosen(plan).map(a => ({ id: 'px-' + a.key, label: 'Their answers on: ' + a.pain.toLowerCase(), ok: ['q1', 'q2', 'q3'].filter(k => (d(a.key)[k] || '').trim()).length >= 2, tip: 'Two of the three questions is enough.', sec: a.key })),
+    { id: 'pxNext', label: 'The follow-up meeting is booked', ok: !!d('pxNext').date, sec: 'pxNext' },
     { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it in Account basics)', ok: !!plan.meta.verified, sec: 'basics' }
-  ].filter(c => { const k = c.shows || c.sec; return k === 'basics' || visibleSections(plan).some(s => s.key === k); });
+  ].filter(c => { const k = c.shows || c.sec; return (plan.meta.template === 'prospect' ? c.id.startsWith('px') || c.id === 'verified' : true) && (k === 'basics' || visibleSections(plan).some(s => s.key === k)); });
 }
 
 /* =========================================================
@@ -2071,8 +2217,9 @@ function renderNav() {
   const navItem = s => `<button class="nav-item ${currentSec === s.key ? 'active' : ''} ${s.branch === 'internal' ? 'internal' : ''}" data-goto="${s.key}"><span class="dot ${leavesFor(s, p).length ? 'on' : ''}"></span>${esc(s.title)}${s.model && !p.meta.flow ? `<span class="tag dogear" title="${esc(MODEL_TIP)}"></span>` : ''}</button>`;
   if (p.meta.flow) {
     html += `<div class="nav-group"><div class="nav-group-title">${esc(planLabel(p))}</div>${vis.map(navItem).join('')}</div>`;
-    html += `<div class="nav-group"><div class="nav-group-title">Your branches</div>${p.custom.map(c => `<button class="nav-item ${currentSec === 'custom:' + c.id ? 'active' : ''}" data-goto="custom:${c.id}"><span class="dot ${(c.items || []).length ? 'on' : ''}"></span>${esc(c.title || 'Untitled branch')}</button>`).join('')}<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
-    html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item ${currentSec === 'fill' ? 'active' : ''}" data-goto="fill" style="color:var(--muted)">Fill from a call</button><button class="nav-item" data-action="edit-steps" style="color:var(--muted)">Change the steps</button></div>`;
+    const px = p.meta.template === 'prospect';
+    if (!px || p.custom.length) html += `<div class="nav-group"><div class="nav-group-title">Your branches</div>${p.custom.map(c => `<button class="nav-item ${currentSec === 'custom:' + c.id ? 'active' : ''}" data-goto="custom:${c.id}"><span class="dot ${(c.items || []).length ? 'on' : ''}"></span>${esc(c.title || 'Untitled branch')}</button>`).join('')}<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
+    html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item ${currentSec === 'fill' ? 'active' : ''}" data-goto="fill" style="color:var(--muted)">Fill from a call</button>${px ? '' : '<button class="nav-item" data-action="edit-steps" style="color:var(--muted)">Change the steps</button>'}</div>`;
     html += `<div class="nav-foot"><div class="toggle-row" style="font-size:12px">${esc(planLabel(p))}, ${vis.length + 1} steps. Dashed steps stay FactorLab only.</div></div>`;
     nav.innerHTML = html; return;
   }
@@ -2113,7 +2260,7 @@ function backTarget() {
   if (currentSec === 'addmore' || currentSec === 'sort') return order[order.length - 1];
   if (currentSec === 'fill') return 'basics';
   const i = order.indexOf(currentSec);
-  return i > 0 ? order[i - 1] : i === 0 ? '__start' : null;
+  return i > 0 ? order[i - 1] : i === 0 && p.meta.template !== 'prospect' ? '__start' : null;
 }
 function updateBackFab() {
   const b = document.getElementById('backFab'); if (!b) return;
@@ -2158,7 +2305,7 @@ function welcomeHtml() {
     <p>Name the account, then pick how you want to build the plan. The map builds itself as you go.</p>
     <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"></div>
     <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"></div>
-    <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option></select></div>
+    <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option><option value="na" hidden>N/A: not a customer yet</option></select></div>
     <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
   </div>`;
 }
@@ -2239,6 +2386,7 @@ function loadBuilds() { try { return JSON.parse(localStorage.getItem(BUILDS_KEY)
 function storeBuilds(all) { try { localStorage.setItem(BUILDS_KEY, JSON.stringify(all)); return true; } catch (e) { return false; } }
 function seedFlow(kind) {
   if (kind === 'flintco') return { name: 'Flintco Plan', steps: FLINTCO_STEPS.map(k => ({ key: k })), own: {} };
+  if (kind === 'prospect') return { name: 'Prospect plan', steps: PX_BASE.concat([PX_END]).map(k => ({ key: k })), own: {} };
   if (kind === 'empty') return { name: '', steps: [], own: {} };
   if (kind && kind.startsWith('build:')) { const b = loadBuilds()[kind.slice(6)]; if (b) return clone({ name: b.name, steps: b.steps || [], own: b.own || {} }); }
   return { name: '', steps: GUIDED_STEPS().map(k => ({ key: k })), own: {} };
@@ -2410,31 +2558,42 @@ document.addEventListener('input', builderInput);
 document.addEventListener('change', builderInput);
 document.addEventListener('click', builderClick);
 
+/* Welcome screen: the rollout size is asked for Launch and Grow, and shows N/A for Prospecting. */
+function welcomeRollout(mode) {
+  const wrap = document.getElementById('w-rolloutWrap'), sel = document.getElementById('w-rollout'); if (!wrap || !sel) return;
+  const px = mode === 'prospect';
+  wrap.style.display = ROLLOUT_MODES.includes(mode) || px ? '' : 'none';
+  sel.disabled = px;
+  if (px) sel.value = 'na'; else if (sel.value === 'na') sel.value = 'first';
+  [...sel.options].forEach(o => { if (o.value === 'na') o.hidden = !px; });
+}
 function modeFieldHtml(m) {
-  return `<div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}<option value="other" ${m.mode === 'other' ? 'selected' : ''}>${OTHER}</option></select>
+  return `<div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).filter(([k]) => k !== 'prospect' || m.template === 'prospect').map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}<option value="other" ${m.mode === 'other' ? 'selected' : ''}>${OTHER}</option></select>
     ${m.mode === 'other' ? `<input type="text" class="other-box" data-meta="modeOther" value="${esc(m.modeOther || '')}" placeholder="Type it in" aria-label="What the account needs: something else">` : ''}</div>`;
 }
 function basicsHtml(p) {
-  const m = p.meta;
+  const m = p.meta, px = m.template === 'prospect';
   return `<div class="sec-branch">Start here</div>
   <div class="sec-head"><h2>Account basics</h2></div>
-  <p class="sec-intro">Who this plan is for and what the account needs this year. Drop in anything you already know; you can shape it into the plan later.</p>
+  <p class="sec-intro">${px ? "A complimentary 2027 plan for a company that isn't a customer yet. Ask the questions on the discovery call; the plan is ready to walk through with them at the follow-up meeting." : 'Who this plan is for and what the account needs this year. Drop in anything you already know; you can shape it into the plan later.'}</p>
   ${fillDone ? `<div class="fill-ok" style="margin-bottom:16px">${esc(fillDone)}</div>` : ''}
   <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
   ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}${needKeys(p, m.mode).length ? ' Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : ''}</div>` : ''}
   <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
-  ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span><button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button></div>
+  ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span>${px ? '' : '<button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button>'}</div>
   ${modeFieldHtml(m)}`
   : `<div class="row2">
     <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} Changing it adds that size's usual sections; it never removes anything.</div></div>
     ${modeFieldHtml(m)}
   </div>`}
   ${ROLLOUT_MODES.includes(m.mode) || m.rollout === 'full' ? `<div class="field"><label>How big is the rollout?</label><div class="seg"><button class="btn ${m.rollout !== 'full' ? 'on' : ''}" data-action="rollout" data-v="first">Start with first crews</button><button class="btn ${m.rollout === 'full' ? 'on' : ''}" data-action="rollout" data-v="full">Full rollout</button></div><div class="help" style="margin-top:6px">${m.rollout === 'full' ? 'Adds the steps for every project, region and audience: projects, setup and access, leader alignment, training by audience, rollout steps and the communication plan.' : 'One project or a few crews first. Pick Full rollout to add the steps for every project, region and audience.'}</div></div>` : ''}
-  <div class="row2">
+  ${px ? `<div class="field"><label>How big is the rollout?</label><div class="help">N/A: not a customer yet. When they buy, change "What the account needs this year" and pick a starting point; their answers here are kept.</div></div>
+  <div class="field"><label>Who ran the call</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>`
+  : `<div class="row2">
     <div class="field"><label>CSM</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
     <div class="field"><label>Backup</label><input type="text" data-meta="backup" value="${esc(m.backup)}"></div>
   </div>
-  <div class="field"><label>Day 1</label><div class="help">The day the first workflow goes live. Milestone dates count from here.</div><input type="date" data-meta="day1" value="${esc(m.day1)}" style="max-width:220px"></div>
+  <div class="field"><label>Day 1</label><div class="help">The day the first workflow goes live. Milestone dates count from here.</div><input type="date" data-meta="day1" value="${esc(m.day1)}" style="max-width:220px"></div>`}
   <div class="field"><label>What you know so far</label><div class="help">Notes from calls, emails, the handover. Rough is fine.</div><textarea data-meta="context" style="min-height:140px">${esc(m.context)}</textarea></div>
   <div class="field"><label>Where it came from</label><input type="text" data-meta="sources" value="${esc(m.sources)}" placeholder="e.g. Oct 29 planning call, handover from Justin"></div>
   <div class="field"><label class="check ${m.verified ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-meta="verified" ${m.verified ? 'checked' : ''}> Every number here is confirmed. No placeholders and no unverified marketing figures.</label></div>
@@ -2546,7 +2705,8 @@ function updateRemoveLink() {
 /* ---------- Build out: add sections only where the account needs them ---------- */
 function addMoreHtml(p) {
   const flow = !!p.meta.flow;
-  const extras = flow ? SECTIONS.filter(s => !inFlow(p, s.key)) : SECTIONS.filter(s => !s.core && (!s.set || inPlan(p, s)));
+  const px = p.meta.template === 'prospect';   // a prospect plan builds out only with the other pain areas
+  const extras = px ? SECTIONS.filter(s => pxArea(s.key) && !inFlow(p, s.key)) : flow ? SECTIONS.filter(s => s.set !== 'prospect' && !inFlow(p, s.key)) : SECTIONS.filter(s => !s.core && (!s.set || inPlan(p, s)));
   const cards = extras.map(s => {
     const on = inPlan(p, s);
     const branch = BRANCHES.find(b => b.key === s.branch);
@@ -2605,7 +2765,7 @@ function footHtml(p) {
   const i = order.indexOf(currentSec);
   const prev = order[i - 1];
   const back = prev ? `<button class="btn ghost" data-goto="${prev}">Back: ${esc(secName(prev))}</button>`
-    : currentSec === 'basics' ? `<button class="btn ghost" data-action="repick">Back: Starting point</button>` : '<span></span>';
+    : currentSec === 'basics' && p.meta.template !== 'prospect' ? `<button class="btn ghost" data-action="repick">Back: Starting point</button>` : '<span></span>';
   return `<div class="sec-foot">${back}${footNextHtml(p)}</div>`;
 }
 
@@ -2704,7 +2864,7 @@ function readyHtml(p) {
   const n = checks.filter(c => c.ok).length;
   return `<p style="margin:0 0 10px;color:var(--muted)">${n} of ${checks.length} ready. A plan is ready to share when all of these are true.</p>
     <ul class="ready-list">${checks.map(c => `<li><span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '&#10003;' : ''}</span><button data-goto="${c.sec}">${esc(c.label)}${!c.ok && c.tip ? `<span class="ready-tip">${esc(c.tip)}</span>` : ''}</button></li>`).join('')}</ul>
-    ${agreedHtml(p)}`;
+    ${p.meta.template === 'prospect' ? '' : agreedHtml(p)}`;
 }
 function agreedHtml(p) {
   const a = p.meta.agreed || {};
@@ -2743,7 +2903,7 @@ function docWrap(p, customer, pages) {
   const m = p.meta, logo = docLogo(), n = pages.length;
   const foot = customer ? '' : 'FactorLab internal' + (m.csm ? ' · ' + esc(m.csm) : '') + ' · Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)));   // the customer copy carries just page numbers
   return `<div class="doc"><div class="doc-pages">${pages.map((pg, i) => `<section class="doc-page">
-    <header class="doc-head"><div><div class="doc-eyebrow">Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div>${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</header>
+    <header class="doc-head"><div><div class="doc-eyebrow">${planYear(p)} Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div>${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</header>
     ${pg.title ? `<h2 class="doc-title">${esc(pg.title)}</h2>` : ''}
     <div class="doc-body">${pg.body}</div>
     <footer class="doc-foot"><span>${foot}</span><span>Page ${i + 1} of ${n}</span></footer></section>`).join('')}</div></div>`;
@@ -2826,9 +2986,146 @@ function docNextSteps(p, has) {
   const rank = x => x.status === 'In progress' ? 0 : x.when ? 1 : 2;
   return { open: out.filter(x => x.status !== 'Done').sort((a, b) => rank(a) - rank(b)), done: out.filter(x => x.status === 'Done') };
 }
+/* The plan's year: the year it mostly covers. Day 1 (or, without one, the day the plan was started)
+   in October to December means the year ahead. */
+function planYear(p) {
+  const iso = p.meta.day1 || localIso(new Date(p.meta.created || Date.now()));
+  const y = +iso.slice(0, 4), mo = +iso.slice(5, 7);
+  return mo >= 10 ? y + 1 : y;
+}
+/* The 2027 Outlook (FactorLab's High Risk at Work survey). Early findings, Oct 2026: confirm with Gretchen
+   and update these when the full report comes out in December. They print with their source line. */
+const OUTLOOK = {
+  source: 'FactorLab 2027 Market Trends Survey, early findings, October 2026',
+  stats: [['59%', 'say planning weaknesses reach leaders too late'], ['56%', 'want AI to find patterns across projects'], ['69%', 'rank frontline leadership development their top priority']]
+};
+/* The front page: the plan in the Outlook's three shifts, and which of its four points the plan covers.
+   Only what someone wrote in counts; nothing is ticked for starting text. */
+function docShifts(p, customer) {
+  const vis = visibleSections(p), has = k => vis.some(s => s.key === k), d = k => (has(k) && p.data[k]) || {};
+  const lv = k => { if (!has(k)) return []; const s = sectionByKey(k, p); try { return (s.leaves(p.data[k] || {}, p) || []).filter(Boolean).map(String); } catch (e) { return []; } };
+  const rows = [].concat(d('targets').measures || [], d('fcValue').rows || [], d('fcMeasures').rows || []);
+  const quality = rows.find(r => /quality/i.test(r.measure || '') && (r.baseline || r.target));
+  const consist = rows.find(r => /consisten/i.test(r.measure || '') && (r.baseline || r.target));
+  const good = d('good'), sc = d('scope'), rec = d('recognition'), al = d('align'), gv = d('fcGovern');
+  const owners = (d('owners').rows || []).filter(r => r.role && r.customer);
+  const role = re => owners.find(r => re.test(r.role));
+  const touched = milestonesTouched(p), ph = (d('milestones').phases) || {};
+  const ms = re => has('milestones') && (!customer || touched) ? [].concat(ph.d30 || [], ph.d90 || []).find(m => m.text && re.test(m.text) && !msIsStarting('d30', m) && !msIsStarting('d90', m)) : null;
+  const first = sc.first === 'Other' ? sc.firstOther : sc.first;
+  const plan = [
+    quality && (quality.target ? 'Quality target: ' + quality.target : 'Quality baseline: ' + quality.baseline) + (quality.by ? ', by ' + quality.by : ''),
+    (good.planPri || []).length && 'Planning priorities: ' + good.planPri.join(', ').toLowerCase(),
+    (good.convPri || []).length && 'Conversation priorities: ' + good.convPri.join(', ').toLowerCase(),
+    first && 'Starting with ' + first.toLowerCase() + ((sc.sites || []).length ? ' at ' + sc.sites.join(', ') : ''),
+    (sc.next || []).length && 'Next: ' + sc.next.join(', '),
+    good.standard && 'The standard: ' + good.standard,
+    ...lv('fcSimplify').slice(0, 2), ...lv('fcStandards').slice(0, 2), ...lv('fcConverge').slice(0, 1)
+  ];
+  const base = ms(/baseline/i), pick = ms(/improve/i), report = ms(/report-out/i);
+  const learn = [
+    base && base.text, pick && pick.text, report && report.text,
+    (good.goodTape || []).length && 'Game tape from their own best planners',
+    ...lv('loop').slice(0, 1), ...lv('experiments').slice(0, 1), ...lv('fcIncidents').slice(0, 2), ...lv('fcYearEnd').slice(0, 1),
+    ...(d('results').next || []).map(x => 'Next year: ' + x)
+  ];
+  const lead = [
+    ...[/operations sponsor/i, /executive sponsor/i, /safety champion/i, /pro planner/i].map(role).filter(Boolean).map(r => r.role.replace(/\s*\(.*\)$/, '') + ': ' + r.customer),
+    gv.sponsor && 'Operations sponsor: ' + gv.sponsor,
+    al.good && 'Safety and operations agree: ' + al.good,
+    rec.forWhat && 'Recognition' + (rec.often ? ' (' + rec.often.toLowerCase() + ')' : '') + ': ' + rec.forWhat,
+    rec.wins && 'First wins: ' + rec.wins.toLowerCase(),
+    ...lv('trades').slice(0, 1), ...lv('fcTrades').slice(0, 1)
+  ];
+  const clean = a => { const seen = new Set(); return a.filter(x => x && !seen.has(x) && seen.add(x)).map(x => trunc(x, 120)); };
+  const pro = role(/pro planner/i);
+  const lessons = (good.goodTape || []).length ? 'Game tape from their own jobs.' : lv('loop').length ? 'Field concerns get answers and come back to the crews.' : lv('fcIncidents').length ? 'Lessons from incidents and everyday work.' : lv('experiments').length ? 'One small test at a time, kept if it works.' : report ? 'A 30-day report-out sets the next goals.' : '';
+  const commits = [
+    { label: 'Plan quality is our leading indicator.', how: quality ? (quality.baseline ? 'Quality target set from their own baseline.' : 'A quality target on the scorecard.') : (good.planPri || []).length ? 'Planning priorities set.' : '' },
+    { label: 'One plan safety and operations both own.', how: al.good ? 'Safety and operations agreed what good looks like.' : (role(/operations/i) && role(/safety/i)) || (gv.sponsor && gv.impl) ? 'Operations and safety owners named.' : '' },
+    { label: "Every job's lessons feed the next plan.", how: lessons },
+    { label: 'Experienced leaders go where support is needed.', how: pro ? 'Pro Planners named to help their peers.' : consist ? 'Closing the gap between the strongest and weakest sites.' : '' }
+  ];
+  return {
+    shifts: [
+      { label: 'Better planning', sub: 'The plan is the earliest place to catch risk', items: clean(plan) },
+      { label: 'Better learning', sub: "Each job's lessons go into the next plan", items: clean(learn) },
+      { label: 'Better leadership', sub: 'Leaders go where support is needed', items: clean(lead) }
+    ],
+    commits
+  };
+}
+/* The prospect's plan: where their planning stands, their top three with what the best planners do,
+   and a first 90 days. About 80% standard words, the rest their own answers. */
+const PX_90 = [
+  { when: 'Days 1 to 30', title: 'Set the baseline', items: ['Listen to five real planning conversations together and score them.', 'Turn your top three into three things to improve.', 'Name your best planners.'] },
+  { when: 'Days 31 to 60', title: 'Raise the standard', items: ['Share three good plans with every crew, and why they are good.', 'Leaders look at two plans a week and say one thing back to the crew.', 'Recognize one great plan in front of the team.'] },
+  { when: 'Days 61 to 90', title: 'Measure and keep going', items: ['Score five plans again and compare them with the baseline.', 'Keep what worked and drop what did not.', 'Pick the next thing to improve.'] }
+];
+function prospectPages(p, customer) {
+  const m = p.meta, d = k => p.data[k] || {}, w = d('pxWho'), t = d('pxToday'), nx = d('pxNext'), chosen = pxChosen(p), pages = [];
+  const yr = planYear(p), stats = `<div class="doc-panel"><h3>Across the industry</h3><div class="doc-stats">${OUTLOOK.stats.map(x => `<div><div class="doc-stat-n">${esc(x[0])}</div><div class="doc-stat-t">${esc(x[1])}</div></div>`).join('')}</div><div class="doc-src">Source: ${esc(OUTLOOK.source)}</div></div>`;
+  const today = [t.doing, t.callIt && 'You call it: ' + t.callIt, t.count && 'You take part in ' + t.count + ' a month', t.measure && 'How you measure it today: ' + trunc(t.measure, 200), t.system && 'Captured on: ' + t.system].filter(Boolean);
+  const extra = (d('pxTop').areas || []).filter(x => !PX_AREAS.some(a => a.pain === x));
+  if (customer && !today.length && !t.score && !chosen.length) return [{ title: 'Your ' + yr + ' plan', body: '<p class="doc-empty" style="margin-top:30px;font-size:15px">Your plan builds here as we talk it through.</p>' }];
+
+  // ---- Where your planning stands ----
+  let b1 = '';
+  const who = [w.contact && w.contact + (w.role ? ', ' + w.role : ''), w.type, w.leaders && w.leaders + ' crew leaders'].filter(Boolean);
+  if (who.length) b1 += `<p class="doc-bet" style="margin:0 0 14px">Prepared for ${esc(who.join(' · '))}</p>`;
+  b1 += `<div class="px-grid"><div class="doc-panel"><h3>How your crews plan today</h3><ul class="px-list">${today.length ? today.map(x => `<li>${esc(x)}</li>`).join('') : '<li class="doc-empty">To talk through together</li>'}</ul></div>
+    <div class="doc-panel"><h3>In your own words</h3><p class="px-cap">How effective your planning conversations are, on a scale of 1 to 10</p>
+      <div class="px-score"><div><div class="px-num">${esc(t.score || '?')}</div><div class="px-lab">today</div></div><div class="px-arrow">to</div><div><div class="px-num goal">${esc(t.target || '?')}</div><div class="px-lab">would mean success</div></div></div></div></div>`;
+  if (chosen.length) b1 += `<h3 class="doc-h3">Your top ${chosen.length === 1 ? 'pick' : chosen.length === 2 ? 'two' : 'three'} for ${yr}</h3><div class="px-chips">${chosen.map((a, i) => `<div class="px-chip"><span>${i + 1}</span>${esc(a.goal)}</div>`).join('')}</div>`;
+  b1 += `<div style="margin-top:16px">${stats}</div>`;
+  pages.push({ title: 'Where your planning stands', body: b1 });
+
+  // ---- Your top three, and how to close the gaps ----
+  if (chosen.length || !customer) {
+    const cards = chosen.map(a => {
+      const said = ['q1', 'q2', 'q3'].map(k => (d(a.key)[k] || '').trim()).filter(Boolean).slice(0, 3);
+      return `<div class="doc-card"><div class="doc-card-head"><b>${esc(a.goal)}</b></div><div class="px-body">
+        ${said.length ? `<div class="px-h">What you told us</div><ul class="px-list">${said.map(x => `<li>${esc(trunc(x, 120))}</li>`).join('')}</ul>` : ''}
+        <div class="px-h">What the best planners do</div><p>${esc(a.best)}</p>
+        <div class="px-h">Why it matters</div><p>${esc(a.why)}${a.stat ? ` <span class="px-stat">${esc(a.stat)}</span>` : ''}</p>
+        <div class="px-h">First step</div><p>${esc(a.first)}</p></div></div>`;
+    }).join('');
+    const b2 = chosen.length ? `<div class="doc-cards" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr));margin-top:0">${cards}</div>${extra.length ? `<p class="doc-note" style="margin-top:12px"><b>Also on your mind:</b> ${esc(trunc(extra.join('; '), 200))}</p>` : ''}` : '<p class="doc-empty" style="margin-top:10px">Pick their top three in the plan builder.</p>';
+    pages.push({ title: 'Your top three, and how to close the gaps', body: b2 });
+  }
+
+  // ---- Your first 90 days ----
+  let b3 = `<div class="doc-cards" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${PX_90.map(x => `<div class="doc-card"><div class="doc-card-head"><b>${esc(x.title)}</b><span>${esc(x.when)}</span></div><ul>${x.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')}</div>`;
+  b3 += `<div class="doc-panel" style="margin-top:16px"><h3>How FactorLab helps</h3><p style="margin:0;font-size:13.5px">SmartTagIt captures planning conversations on a phone, scores them and benchmarks them against the industry, so each of these steps takes minutes, not meetings.</p></div>`;
+  if (nx.date) b3 += `<p class="doc-bet" style="margin-top:16px"><b>Next:</b> we'll walk through this together on ${esc(fmtDate(nx.date))}.</p>`;
+  pages.push({ title: 'Your first 90 days', body: b3 });
+
+  // ---- FactorLab only ----
+  if (!customer) {
+    const notes = Object.keys(p.notes || {}).filter(k => (p.notes[k] || '').trim() && (k === 'basics' || sectionByKey(k, p))).map(k => [k === 'basics' ? 'Account basics' : sectionByKey(k, p).title, p.notes[k]]);
+    const rows = [['Follow-up meeting', nx.date ? fmtDate(nx.date) : 'Not booked yet'], ['From FactorLab', nx.who], ['From their side', nx.them], ['What to lead with', nx.angle], ['Who ran the call', m.csm], ['What we know so far', m.context && trunc(m.context, 700)], ['Where it came from', m.sources], ...notes.slice(0, 4).map(n => ['Notes: ' + n[0], trunc(n[1], 300)])].filter(r => r[1]);
+    pages.push({ title: 'FactorLab only', body: `<table class="doc-table doc-run"><tbody>${rows.map(r => `<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join('')}</tbody></table>` });
+  }
+  return pages;
+}
 function presentHtml(p, customer) {
   const m = p.meta, d = k => p.data[k] || {};
+  if (m.template === 'prospect') return docWrap(p, customer, prospectPages(p, customer));
   const pages = [], more = n => !customer && n > 0 ? `<div class="doc-more">+ ${n} more in the plan builder</div>` : '';
+
+  // ---- Front page: the year in the Outlook's three shifts ----
+  const yr = planYear(p), sh = docShifts(p, customer);
+  const shown = sh.shifts.filter(x => x.items.length || !customer), ticks = sh.commits.filter(c => c.how || !customer);
+  if (shown.length || sh.commits.some(c => c.how)) {
+    let b0 = `<p class="doc-bet" style="margin:0;font-size:15px">In ${yr}, success starts with skilled people and a plan.</p>`;
+    if (shown.length) b0 += `<div class="doc-cards" style="grid-template-columns:repeat(${shown.length},minmax(0,1fr));margin-top:16px">${shown.map(x => `<div class="doc-card"><div class="doc-card-head"><b>${esc(x.label)}</b><span>${esc(x.sub)}</span></div>
+      <ul>${x.items.length ? x.items.slice(0, 5).map(t => `<li>${esc(t)}</li>`).join('') : '<li class="doc-empty">Not started yet</li>'}</ul>${more(x.items.length - 5)}</div>`).join('')}</div>`;
+    b0 += `<div class="doc-shift-low">
+      <div class="doc-panel"><h3>What this plan covers for ${yr}</h3>${ticks.map(c => `<div class="doc-tick${c.how ? '' : ' off'}"><span class="doc-mark"></span><div><b>${esc(c.label)}</b> <span>${esc(c.how || 'Not in the plan yet.')}</span></div></div>`).join('')}</div>
+      <div class="doc-panel"><h3>Across the industry</h3><div class="doc-stats">${OUTLOOK.stats.map(x => `<div><div class="doc-stat-n">${esc(x[0])}</div><div class="doc-stat-t">${esc(x[1])}</div></div>`).join('')}</div><div class="doc-src">Source: ${esc(OUTLOOK.source)}</div></div>
+    </div>`;
+    pages.push({ title: 'Three shifts for ' + yr, body: b0 });
+  }
 
   // ---- Page 1: the plan at a glance ----
   const vis = visibleSections(p), has = k => vis.some(s => s.key === k);
@@ -3017,6 +3314,7 @@ function handleInput(e) {
     if (k === 'verified') t.closest('.check').classList.toggle('on', t.checked);
     saveSoon();
     if (k === 'tier') addSections(p, presetSections(t.value));
+    if (k === 'mode' && p.meta.template === 'prospect' && MODES[t.value] && t.value !== 'prospect') { saveSoon(); fadeSwap(() => { repick = true; renderAll(); }); return; }
     if (k === 'tier' || k === 'mode') { saveSoon(); renderAll(); if (k === 'mode' && t.value === 'other') { const b = document.querySelector('#work [data-meta=modeOther]'); if (b) b.focus(); } return; }
     if (k === 'account') renderPicker();
     sideSoon(); return;
@@ -3121,15 +3419,16 @@ function handleClick(e) {
   const act = a.dataset.action;
   if (act === 'create') {
     const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '', rollout: ROLLOUT_MODES.includes(document.getElementById('w-mode').value) ? document.getElementById('w-rollout').value : '' };
+    if (nw.mode === 'prospect') { fadeSwap(() => { pendingNew = null; newPlan({ account: nw.account, mode: 'prospect', rollout: '', template: 'prospect', flow: seedFlow('prospect') }); renderAll(); }); return; }   // straight into the prospecting steps
     fadeSwap(() => { pendingNew = nw; renderAll(); }); return;
   }
   if (act === 'repick') { fadeSwap(() => { repick = true; renderAll(); }); return; }
-  if (act === 'start-back' && repick) { fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); }); return; }
+  if (act === 'start-back' && repick) { if (p && p.meta.template === 'prospect' && p.meta.mode !== 'prospect') { setNeed(p, 'prospect'); saveSoon(); } fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); }); return; }
   if (act === 'start' && repick && p) { switchStart(p, a.dataset.t); return; }
   if (act === 'start-back') {
     fadeSwap(() => {
       const nw = pendingNew; pendingNew = null; renderAll();
-      if (nw) { document.getElementById('w-account').value = nw.account; document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; document.getElementById('w-rollout').value = nw.rollout || 'first'; document.getElementById('w-rolloutWrap').style.display = ROLLOUT_MODES.includes(nw.mode) ? '' : 'none'; }
+      if (nw) { document.getElementById('w-account').value = nw.account; document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; document.getElementById('w-rollout').value = nw.rollout || 'first'; welcomeRollout(nw.mode); }
     }); return;
   }
   if (act === 'start') {
@@ -3280,7 +3579,7 @@ const APP_TITLE = document.title;
 function printPlan() {
   const p = cur(); if (!p) return;
   const customer = document.getElementById('customerView').checked;
-  document.title = (p.meta.account || 'Untitled') + ' success plan' + (customer ? '' : ' (internal)');
+  document.title = (p.meta.account || 'Untitled') + ' ' + planYear(p) + ' success plan' + (customer ? '' : ' (internal)');
   setTimeout(() => window.print(), 50);
 }
 function exportPdf(customer) {
@@ -3301,6 +3600,7 @@ window.addEventListener('resize', () => { if (document.getElementById('present')
 document.addEventListener('input', handleInput);
 document.addEventListener('change', e => { if (e.target.matches('select, input[type=checkbox], input[type=date]')) handleInput(e); });
 document.addEventListener('click', handleClick);
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.sec === 'pxTop') { const p = cur(); if (syncProspect(p)) { saveSoon(); renderAll(); } } });   // their top three set the prospect steps
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.dataset && e.target.dataset.add) { e.preventDefault(); addFromInput(e.target); }
   if (e.key === 'Escape') { document.getElementById('present').classList.remove('show'); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); }
@@ -3322,7 +3622,7 @@ document.getElementById('printBtn').addEventListener('click', printPlan);
 window.addEventListener('afterprint', () => { document.title = APP_TITLE; });
 document.querySelector('.side-tabs').addEventListener('click', e => { const t = e.target.closest('.side-tab'); if (t) { sideTab = t.dataset.tab; renderSide(); } });
 document.addEventListener('change', e => {
-  if (e.target.id === 'w-mode') { document.getElementById('w-rolloutWrap').style.display = ROLLOUT_MODES.includes(e.target.value) ? '' : 'none'; const b = document.getElementById('w-modeOther'); b.style.display = e.target.value === 'other' ? '' : 'none'; if (e.target.value === 'other') b.focus(); return; }
+  if (e.target.id === 'w-mode') { welcomeRollout(e.target.value); const b = document.getElementById('w-modeOther'); b.style.display = e.target.value === 'other' ? '' : 'none'; if (e.target.value === 'other') b.focus(); return; }
   if (e.target.id !== 'mobileJump') return;
   if (e.target.value === '__branch') { const a = document.querySelector('[data-action=add-branch]'); if (a) a.click(); return; }
   go(e.target.value);
@@ -4005,7 +4305,7 @@ function initNote() {
     }
     if (t === 'm') { if (a === 'mode') setNeed(p, v); else p.meta[a] = v; delete otherOpen[nk]; }
     else { const f = noteFieldOf(p, nk), d = p.data[a] || (p.data[a] = {});
-      if (f.type === 'checks') { const arr = Array.isArray(d[f.key]) ? d[f.key] : (d[f.key] = []); const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
+      if (f.type === 'checks') { const arr = Array.isArray(d[f.key]) ? d[f.key] : (d[f.key] = []); const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); if (a === 'pxTop' && syncProspect(p)) { saveSoon(); renderNote(); return; } }
       else { d[f.key] = d[f.key] === v ? '' : v; delete otherOpen[nk]; } }
     saveSoon(); noteRefresh();
   });
@@ -4063,9 +4363,18 @@ function sortHtml(p) {
 function hubspotSummary(p) {
   const m = p.meta, d = k => p.data[k] || {}, vis = visibleSections(p).map(s => s.key), has = k => vis.includes(k);
   const L = ['Success plan: ' + (m.account || 'Untitled plan')];
-  L.push(['Needs this year: ' + modeOf(m).label, m.csm && 'CSM: ' + m.csm, m.backup && 'Backup: ' + m.backup, m.day1 && 'Day 1: ' + fmtDate(m.day1)].filter(Boolean).join(' | '));
+  L.push(['Needs this year: ' + modeOf(m).label, m.csm && (m.template === 'prospect' ? 'Call: ' : 'CSM: ') + m.csm, m.backup && 'Backup: ' + m.backup, m.day1 && 'Day 1: ' + fmtDate(m.day1)].filter(Boolean).join(' | '));
   const goal = (has('goal') && d('goal').words) || (has('fcObjective') && d('fcObjective').objective);
   if (goal) L.push('', 'Goal: ' + goal);
+  if (m.template === 'prospect') {
+    const w = d('pxWho'), t = d('pxToday'), nx = d('pxNext');
+    L.push('', 'Discovery call: complimentary 2027 plan');
+    if (w.contact) L.push('Talked to: ' + w.contact + (w.role ? ', ' + w.role : '') + (w.type ? ' (' + w.type + ')' : ''));
+    if (t.doing || t.callIt) L.push('Planning today: ' + [t.doing, t.callIt && 'calls it ' + t.callIt, t.system && 'on ' + t.system].filter(Boolean).join(', '));
+    if (t.score) L.push('Effective today: ' + t.score + ' of 10' + (t.target ? '; success would be ' + t.target : ''));
+    const top = pxChosen(p).map(a => a.pain); if (top.length) L.push('Top pains: ' + top.join('; '));
+    if (nx.date) L.push('Follow-up: ' + fmtDate(nx.date) + (nx.who ? ' with ' + nx.who : ''));
+  }
   if (has('goal') && d('goal').test30) L.push('30-day test: ' + d('goal').test30);
   const targets = [].concat(has('targets') ? d('targets').measures || [] : [], has('fcValue') ? d('fcValue').rows || [] : []).filter(r => r.target);
   if (targets.length) L.push('', 'Targets:', ...targets.map(r => '- ' + r.measure + ': ' + (r.baseline ? r.baseline + ' to ' : '') + r.target + (r.stretch ? ' (stretch ' + r.stretch + ')' : '') + (r.baseline ? '' : ', baseline to set') + (r.by ? ', by ' + r.by : '')));
@@ -4125,6 +4434,7 @@ const FILL_SKIP = ['journey'];   // checklists that never come from a call
 function fillQuestions(p) {
   const shelved = shelvedKeys(p) || new Set();
   const secs = p.meta.flow ? visibleSections(p) : SECTIONS.filter(s => !s.set && !shelved.has(s.key)).map(s => sectionByKey(s.key, p));
+  if (p.meta.template === 'prospect') PX_AREAS.forEach(a => { if (!secs.some(s => s && s.key === a.key)) secs.splice(secs.length - 1, 0, sectionByKey(a.key, p)); });   // any pain area the call covered
   const steps = [], qs = [];
   secs.filter(s => s && !FILL_SKIP.includes(s.key) && !(s.rollout && !inPlan(p, s))).forEach(s => {
     const sid = 'S' + (steps.length + 1), addOn = !inPlan(p, s);
@@ -4175,9 +4485,9 @@ function fillAbout(p) {
   return L;
 }
 function fillPrompt(p, withTranscript) {
-  const { steps, qs } = fillQuestions(p);
+  const { steps, qs } = fillQuestions(p), px = p.meta.template === 'prospect';
   const L = [
-    "You're helping a customer success manager at FactorLab fill in a customer success plan from a call they had with a customer.",
+    px ? "You're helping someone at FactorLab fill in a short 2027 planning profile from a discovery call with a company that isn't a FactorLab customer yet. Use their words." : "You're helping a customer success manager at FactorLab fill in a customer success plan from a call they had with a customer.",
     withTranscript ? 'Read the call transcript (and any documents) at the end of this message. Then answer the plan questions below.' : 'Read the call transcript (and any documents) attached to this message. Then answer the plan questions below.',
     '',
     'RULES',
@@ -4199,14 +4509,14 @@ function fillPrompt(p, withTranscript) {
     '  "other": [ { "note": "...", "quote": "..." } ]',
     '}',
     '"answer" is text, a list like ["...", "..."], or a list of rows like [{ ... }], as each question says.',
-    'For Account basics, the "id" is the word before the colon (account, mode, day1, context). In a row, leave out any part the call didn\'t cover.',
+    'For Account basics, the "id" is the word before the colon (' + (px ? 'account, context' : 'account, mode, day1, context') + '). In a row, leave out any part the call didn\'t cover.',
     '',
     ...fillAbout(p),
     'THE PLAN QUESTIONS',
     'Account basics',
-    '  account: The customer company name. Short text.',
-    '  mode: What the account needs this year. One of: ' + Object.keys(MODES).join(' | ') + '. Or your own short words.',
-    '  day1: The day the first workflow goes live, only if a date was agreed. A date, YYYY-MM-DD.',
+    '  account: The ' + (px ? '' : 'customer ') + 'company name. Short text.',
+    ...(px ? [] : ['  mode: What the account needs this year. One of: ' + Object.keys(MODES).filter(k => k !== 'prospect').join(' | ') + '. Or your own short words.',
+      '  day1: The day the first workflow goes live, only if a date was agreed. A date, YYYY-MM-DD.']),
     '  context: A short summary of the call: who was on it, what they want, what was agreed, what is still open. Text.'
   ];
   steps.forEach(st => {
@@ -4446,6 +4756,7 @@ function fillApply(p, items) {
     }
     if (!it.sure) addNote(it.sec, 'Check with them: ' + it.label + (Array.isArray(it.val) && it.val.length && it.val[0].row ? ' (' + it.val.map(c => c.row[Object.keys(c.row)[0]]).filter(Boolean).join(', ') + ')' : ''));
   });
+  syncProspect(p);   // answers about a pain area put that area in the plan
   return { n, sorted };
 }
 
