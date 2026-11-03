@@ -458,6 +458,10 @@ table.view td { border-bottom: 1px solid var(--soft); padding: 7px 8px; vertical
 .doc-foot { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 12px; }
 .doc-goal { font-size: 19px; line-height: 1.38; border-left: 3px solid var(--amber); padding: 2px 0 2px 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .doc-bet { margin: 12px 0 0; font-size: 14px; }
+.doc-lead { margin: 14px 0 0; padding: 10px 14px; border-left: 3px solid var(--navy); background: var(--navy-soft); border-radius: 0 8px 8px 0; }
+.doc-lead > b { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 16px; color: var(--navy); }
+.doc-lead ul { margin: 6px 0 0; padding-left: 18px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; font-size: 13.5px; }
+.doc-lead li { margin: 2px 0; }
 .doc-cards { display: grid; gap: 16px; margin-top: 22px; }
 .doc-card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
 .doc-card-head { background: var(--navy); color: #fff; padding: 10px 14px; }
@@ -658,7 +662,7 @@ table.grid td .other-box { margin-top: 4px; }
   .sec-head h2 { font-size: 28px; }
   .start-h, .welcome h1 { font-size: 26px; }
 }
-@media screen and (max-width: 760px) { .doc.flow .doc-account { font-size: 26px; } }
+@media screen and (max-width: 760px) { .doc.flow .doc-account { font-size: 26px; } .doc.flow .doc-lead ul { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -749,12 +753,18 @@ const TIERS = {
   enterprise: { label: 'Enterprise', help: 'Everything, for company-wide accounts.' }
 };
 
+/* What the account needs this year. Each need shapes the plan, in this one place:
+   adds:    steps it puts in the plan (taken out again only if still empty when the need changes)
+   ask:     extra curious questions on a step, { sectionKey: [...] }
+   docLead: a step whose highlights open page 1 of the plan document, { sec, title }
+   Launch is the starting shape. Grow and Renew come from what the team does today; Recover waits on John. */
 const MODES = {
-  launch:  { label: 'Launch',  lead: 'Lead with baselines, the first workflow and the 30-day milestone.' },
-  grow:    { label: 'Grow',    lead: 'Lead with what moves next, the next region or unit, and trade partners.' },
-  renew:   { label: 'Renew',   lead: 'Lead with proof in their numbers and what comes next.' },
-  recover: { label: 'Recover', lead: 'Lead with the failure mode, one recovery milestone and re-engaging the sponsor.' }
+  launch:  { label: 'Launch',  lead: 'Lead with baselines, the first workflow and the 30-day milestone.', adds: [], ask: {} },
+  grow:    { label: 'Grow',    lead: 'Lead with what moves next, the next region or unit, and trade partners.', adds: ['scope', 'trades'], ask: {} },
+  renew:   { label: 'Renew',   lead: 'Lead with proof in their numbers and what comes next.', adds: ['results'], ask: {}, docLead: { sec: 'results', title: 'Where things stand' } },
+  recover: { label: 'Recover', lead: 'Lead with the failure mode, one recovery milestone and re-engaging the sponsor.', adds: [], ask: {} }
 };
+const SAME_AS = { scope: 'fcConverge', trades: 'fcTrades' };   // a need skips a step when the plan already has its Flintco twin
 
 const BRANCHES = [
   { key: 'why',      label: 'Why',            sub: 'The purpose' },
@@ -857,6 +867,45 @@ const SECTIONS = [
     ]
   },
   {
+    key: 'results', when: 'For a renewal: what changed in their numbers this year, and what comes next.', branch: 'know', title: 'Results so far', short: 'results so far',
+    tiers: [],
+    intro: 'Proof in their own numbers: where they were a year ago, where they are now, and what they want next.',
+    hint: 'Show it by region or business unit, not just the company total, and read quality alongside volume.',
+    ask: [
+      'How has engagement trended over the last 12 months?',
+      'How many projects are loaded, and how many are active?',
+      'How many people improved after doing ten or more?',
+      'How do their regions compare with the FactorLab benchmark?',
+      'What on the roadmap matters most to them?'
+    ],
+    fields: [
+      {
+        key: 'rows', label: 'Their numbers', type: 'table',
+        columns: [
+          { key: 'measure', label: 'What we looked at', width: '30%', multi: true },
+          { key: 'before', label: 'A year ago', width: '17%' },
+          { key: 'now', label: 'Now', width: '17%' },
+          { key: 'means', label: 'What it means for them', width: '36%', multi: true }
+        ],
+        defaultRows: () => [
+          { measure: 'Engagement over the last 12 months' },
+          { measure: 'Active projects' },
+          { measure: 'People taking part' },
+          { measure: 'People who improved after doing ten or more' },
+          { measure: 'Their regions next to the FactorLab benchmark' }
+        ],
+        addLabel: 'Add a number'
+      },
+      { key: 'roadmap', label: 'What they want from the roadmap', type: 'list' },
+      { key: 'next', label: 'What comes next year', type: 'list', placeholder: 'e.g. trade partners, a second region' }
+    ],
+    leaves: d => [
+      ...(d.rows || []).filter(r => r.measure && (r.before || r.now)).map(r => r.measure + ': ' + (r.before && r.now ? r.before + ' to ' + r.now : r.now || r.before)),
+      ...(d.roadmap || []).map(x => 'Roadmap: ' + x),
+      ...(d.next || []).map(x => 'Next year: ' + x)
+    ]
+  },
+  {
     key: 'targets', core: true, branch: 'what', title: 'Targets and baselines', short: 'targets', model: true,
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'The same six measures on every plan. Fill only the ones that matter for this account. No target goes live without a baseline.',
@@ -867,15 +916,6 @@ const SECTIONS = [
       'What would "better" sound like in a morning plan?',
       "What's the number they have to hit, and what would they love to hit?"
     ],
-    modeAsk: {
-      renew: [
-        'How has engagement trended over the last 12 months?',
-        'How many projects are loaded, and how many are active?',
-        'How many people improved after doing ten or more?',
-        'How do their regions compare with the FactorLab benchmark?',
-        'What on the roadmap matters most to them?'
-      ]
-    },
     fields: [
       {
         key: 'measures', label: 'Scorecard', type: 'table',
@@ -1727,6 +1767,8 @@ function migrate(p) {
   if (!p || !p.meta) return;
   if (!TIERS[p.meta.tier]) p.meta.tier = 'growth';
   if (!Array.isArray(p.meta.sections)) p.meta.sections = presetSections(p.meta.tier);
+  if (p.data) { const fresh = blankData(); Object.keys(fresh).forEach(k => { if (!p.data[k]) p.data[k] = fresh[k]; }); }   // steps added since the plan was saved start with their usual rows
+  if (!Array.isArray(p.meta.needAdded) && p.data) setNeed(p, p.meta.mode || 'launch');   // plans saved before needs shaped the plan get their need's steps
   p.version = APP_VERSION;
 }
 function presetSections(tier) { return SECTIONS.filter(s => !s.core && s.tiers.includes(tier)).map(s => s.key); }
@@ -1816,6 +1858,7 @@ function newPlan(meta) {
     notes: {}
   };
   if (plans[id].meta.rollout === 'full') addSections(plans[id], rolloutKeys());
+  setNeed(plans[id], plans[id].meta.mode);
   currentId = id;
   currentSec = 'basics';
   saveNow();
@@ -1916,6 +1959,29 @@ function setRollout(p, v) {
   if (p.meta.flow) p.meta.flow.steps = p.meta.flow.steps.filter(x => !rolloutKeys().includes(x.key) || keep(x.key));
 }
 const ROLLOUT_MODES = ['launch', 'grow'];
+/* What the account needs this year shapes the plan (see MODES). The steps a need added are noted in
+   meta.needAdded, so changing the need takes out only those, and only while they're still empty. */
+function needKeys(p, mode) {
+  const has = k => { const s = SECTIONS.find(x => x.key === k); return !!s && inPlan(p, s); };
+  return (((MODES[mode] || {}).adds) || []).filter(k => !(SAME_AS[k] && has(SAME_AS[k])));
+}
+function setNeed(p, mode) {
+  const was = p.meta.mode;
+  p.meta.mode = mode;
+  const now = needKeys(p, mode), added = (p.meta.needAdded || []).slice();
+  if (was !== mode) {
+    const keep = k => now.includes(k) || (p.meta.rollout === 'full' && rolloutKeys().includes(k)) || (() => { const s = sectionByKey(k, p); return s && hasWork(p, s); })();
+    const drop = added.filter(k => !keep(k));
+    if (drop.length) {
+      p.meta.sections = (p.meta.sections || []).filter(k => !drop.includes(k));
+      if (p.meta.flow) p.meta.flow.steps = p.meta.flow.steps.filter(x => !drop.includes(x.key));
+    }
+    added.splice(0, added.length, ...added.filter(k => !drop.includes(k)));
+  }
+  const fresh = now.filter(k => { const s = SECTIONS.find(x => x.key === k); return !inPlan(p, s); });
+  addSections(p, fresh);
+  p.meta.needAdded = added.concat(fresh.filter(k => !added.includes(k)));
+}
 function planLabel(p) { return p.meta.flow ? (p.meta.flow.name || 'Custom Build') : 'Guided Plan'; }
 function addSections(p, keys) {
   if (p.meta.flow) { keys.forEach(k => { if (!inFlow(p, k)) p.meta.flow.steps.push({ key: k }); }); return; }
@@ -2098,6 +2164,9 @@ function switchStart(p, t) {
   if (shape.steps) { p.meta.flow = clone(shape); p.meta.sections = []; }
   else { p.meta.flow = null; p.meta.sections = (shape.sections || []).slice(); }   // null rather than delete, so a team code passes the change on
   p.meta.template = t;
+  if (p.meta.rollout === 'full') addSections(p, rolloutKeys());   // the plan keeps its rollout size and what it needs this year
+  p.meta.needAdded = [];
+  setNeed(p, p.meta.mode);
   saveSoon();
   fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); });
 }
@@ -2302,7 +2371,7 @@ function basicsHtml(p) {
   <p class="sec-intro">Who this plan is for and what the account needs this year. Drop in anything you already know; you can shape it into the plan later.</p>
   ${fillDone ? `<div class="fill-ok" style="margin-bottom:16px">${esc(fillDone)}</div>` : ''}
   <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
-  ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}</div>` : ''}
+  ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}${needKeys(p, m.mode).length ? ' Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : ''}</div>` : ''}
   <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
   ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span><button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button></div>
   ${modeFieldHtml(m)}`
@@ -2323,7 +2392,7 @@ function basicsHtml(p) {
 }
 
 /* A step's curious questions, plus any for what the account needs this year (e.g. Renew). */
-function asksFor(p, s) { return (s.ask || []).concat(((s.modeAsk || {})[p.meta.mode]) || []); }
+function asksFor(p, s) { return (s.ask || []).concat(((s.modeAsk || {})[p.meta.mode]) || [], ((((MODES[p.meta.mode] || {}).ask) || {})[s.key]) || []); }
 function sectionHtml(p, s) {
   const d = p.data[s.key] || (p.data[s.key] = {});
   const branch = BRANCHES.find(b => b.key === s.branch);
@@ -2638,11 +2707,11 @@ function touchedRows(p, sec, field, blank) {
   const f = fieldDef(sec, field, p), rows = (p.data[sec] || {})[field];
   return f && Array.isArray(rows) ? rows.filter(r => rowTouched(f, r, blank)) : [];
 }
-function docBranches(p, customer) {
+function docBranches(p, customer, skip) {
   const vis = visibleSections(p), out = [], valueLine = (p.data.fcValue || {}).line;
   BRANCHES.filter(b => !b.internal).forEach(b => {
     const lists = [];
-    vis.filter(s => s.branch === b.key && !DOC_OWN_PAGE.includes(s.key)).forEach(s => {
+    vis.filter(s => s.branch === b.key && !DOC_OWN_PAGE.includes(s.key) && s.key !== skip).forEach(s => {
       let ls = [];
       try { ls = (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
       if (s.key === 'goal') ls = ls.filter(x => !x.startsWith('"') && !x.startsWith('In 30 days: '));   // the goal and 30-day test are shown at the top
@@ -2708,12 +2777,16 @@ function presentHtml(p, customer) {
   const vis = visibleSections(p), has = k => vis.some(s => s.key === k);
   const goal = (has('goal') && d('goal').words) || (has('fcObjective') && d('fcObjective').objective), hy = has('hypothesis') ? d('hypothesis') : {};
   const t30 = has('goal') ? (d('goal').test30 || '').trim() : '', value = has('fcValue') ? (d('fcValue').line || '').trim() : '';
-  const branches = docBranches(p, customer).filter(b => b.items.length || !(b.label === 'Why' && goal));   // the goal up top already covers an empty Why
+  const dl = (MODES[m.mode] || {}).docLead, dlSec = dl && has(dl.sec) ? sectionByKey(dl.sec, p) : null;   // what this need leads with, e.g. Renew: their numbers
+  let dlItems = [];
+  if (dlSec) try { dlItems = (dlSec.leaves(p.data[dlSec.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
+  const branches = docBranches(p, customer, dlItems.length ? dl.sec : null).filter(b => b.items.length || !(b.label === 'Why' && goal));   // the goal up top already covers an empty Why
   const n = branches.length, cols = n <= 4 ? Math.max(n, 1) : n <= 6 ? 3 : 4, rows = Math.ceil(n / cols);
-  const lead = (goal ? 1 : 0) + (t30 ? 1 : 0) + (value ? 1 : 0) + (hy.improve && hy.result ? 1 : 0);
-  const per = rows === 1 ? Math.max(4, 8 - lead) : rows === 2 ? Math.max(2, 4 - Math.ceil(lead / 2)) : 2;
+  const lead = (goal ? 1 : 0) + (t30 ? 1 : 0) + (value ? 1 : 0) + (hy.improve && hy.result ? 1 : 0) + (dlItems.length ? 2 + (dlItems.length > 2 ? 1 : 0) : 0);
+  const fl = dlItems.length ? 1 : 0, per = rows === 1 ? Math.max(4 - fl, 8 - lead) : rows === 2 ? Math.max(2 - fl, 4 - Math.ceil(lead / 2)) : 2 - fl;   // the lead box takes room from the cards
   let b1 = '';
   if (goal) b1 += `<div class="doc-goal">"${esc(trunc(goal, 260))}"</div>`;
+  if (dlItems.length) b1 += `<div class="doc-lead"><b>${esc(dl.title)}</b><ul>${dlItems.slice(0, 4).map(x => `<li>${esc(trunc(x, 110))}</li>`).join('')}</ul>${more(dlItems.length - 4)}</div>`;
   if (t30) b1 += `<p class="doc-bet"><b>In 30 days:</b> ${esc(trunc(t30, 220))}</p>`;
   if (value) b1 += `<p class="doc-bet"><b>The value:</b> ${esc(trunc(value, 220))}</p>`;
   if (hy.improve && hy.result) b1 += `<p class="doc-bet"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
@@ -2876,7 +2949,8 @@ function handleInput(e) {
   if (t.dataset.fillItem != null) { if (e.type === 'change') { fill.items[+t.dataset.fillItem].on = t.checked; renderWork(); } return; }
   if (t.dataset.meta) {
     const k = t.dataset.meta;
-    p.meta[k] = t.type === 'checkbox' ? t.checked : t.value;
+    if (k === 'mode') setNeed(p, t.value);
+    else p.meta[k] = t.type === 'checkbox' ? t.checked : t.value;
     if (k === 'verified') t.closest('.check').classList.toggle('on', t.checked);
     saveSoon();
     if (k === 'tier') addSections(p, presetSections(t.value));
@@ -3639,7 +3713,7 @@ let noteBase = {};   // rows as they were when a table's note box got focus
 function noteSet(p, nk, text) {
   if (nk.startsWith('o|')) {
     const q = nk.slice(2), [qt, qa] = q.split('|'), txt = text.trim();
-    if (qt === 'm') { p.meta.mode = 'other'; p.meta.modeOther = text; return; }
+    if (qt === 'm') { setNeed(p, 'other'); p.meta.modeOther = text; return; }
     const f = noteFieldOf(p, q), d = p.data[qa] || (p.data[qa] = {}); if (!f) return;
     if (f.type === 'checks') d[f.key] = (Array.isArray(d[f.key]) ? d[f.key] : []).filter(x => f.options.includes(x)).concat(txt ? [txt] : []);
     else d[f.key] = text;
@@ -3862,11 +3936,11 @@ function initNote() {
     const nk = b.dataset.nk, v = b.dataset.v, [t, a] = nk.split('|');
     if (v === '__other') {
       const st = noteOtherState(p, nk);
-      if (st.on) { delete otherOpen[nk]; if (t === 'm') { if (p.meta.mode === 'other') p.meta.mode = 'launch'; p.meta.modeOther = ''; } else noteSet(p, 'o|' + nk, ''); }
+      if (st.on) { delete otherOpen[nk]; if (t === 'm') { if (p.meta.mode === 'other') setNeed(p, 'launch'); p.meta.modeOther = ''; } else noteSet(p, 'o|' + nk, ''); }
       else { otherOpen[nk] = true; if (t !== 'm') { const f = noteFieldOf(p, nk); if (f && f.type === 'select') (p.data[a] || (p.data[a] = {}))[f.key] = ''; } }
       saveSoon(); renderNote(); if (!st.on) noteFocus('o|' + nk); return;
     }
-    if (t === 'm') { p.meta[a] = v; delete otherOpen[nk]; }
+    if (t === 'm') { if (a === 'mode') setNeed(p, v); else p.meta[a] = v; delete otherOpen[nk]; }
     else { const f = noteFieldOf(p, nk), d = p.data[a] || (p.data[a] = {});
       if (f.type === 'checks') { const arr = Array.isArray(d[f.key]) ? d[f.key] : (d[f.key] = []); const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
       else { d[f.key] = d[f.key] === v ? '' : v; delete otherOpen[nk]; } }
@@ -3932,6 +4006,9 @@ function hubspotSummary(p) {
   if (has('goal') && d('goal').test30) L.push('30-day test: ' + d('goal').test30);
   const targets = [].concat(has('targets') ? d('targets').measures || [] : [], has('fcValue') ? d('fcValue').rows || [] : []).filter(r => r.target);
   if (targets.length) L.push('', 'Targets:', ...targets.map(r => '- ' + r.measure + ': ' + (r.baseline ? r.baseline + ' to ' : '') + r.target + (r.stretch ? ' (stretch ' + r.stretch + ')' : '') + (r.baseline ? '' : ', baseline to set') + (r.by ? ', by ' + r.by : '')));
+  let results = [];
+  try { results = has('results') ? sectionByKey('results', p).leaves(d('results'), p).filter(Boolean) : []; } catch (e) {}
+  if (results.length) L.push('', 'Results so far:', ...results.slice(0, 6).map(x => '- ' + x));
   if (has('milestones')) {
     const ph = d('milestones').phases || {}, next = [];
     PHASES.forEach(x => (ph[x.key] || []).forEach(it => { if (it.text && !it.done && next.length < 4) next.push('- ' + it.text + (it.who ? ' (' + it.who + ')' : '') + (phaseDate(p, x) ? ', ' + phaseDate(p, x).toLowerCase() : '')); }));
@@ -4016,6 +4093,22 @@ function fillDescribe(q, p) {
     default: return 'Text.';
   }
 }
+/* What the CSM picked before the call (what the account needs, how big the rollout is), so the AI knows
+   what to listen for. Built from MODES, so it changes when a need's steps or questions change. */
+function fillAbout(p) {
+  const m = p.meta, prof = MODES[m.mode] || {}, vis = visibleSections(p), L = ['ABOUT THIS ACCOUNT (what the CSM knew before the call: use it to know what to listen for, never as an answer)'];
+  L.push('- What the account needs this year: ' + modeOf(m).label + (modeOf(m).lead ? '. ' + modeOf(m).lead : ''));
+  if (ROLLOUT_MODES.includes(m.mode) || m.rollout === 'full') L.push('- How big the rollout is: ' + (m.rollout === 'full' ? 'a full rollout, every project, region and audience.' : 'starting with first crews, one project or a few crews.'));
+  const listen = [], seen = new Set(), add = q => { if (q && !seen.has(q)) { seen.add(q); listen.push(q); } };
+  const own = (prof.adds || []).map(k => vis.some(s => s.key === k) ? k : SAME_AS[k]).filter(k => k && vis.some(s => s.key === k));
+  vis.forEach(s => {
+    if (own.includes(s.key)) asksFor(p, s).forEach(add);
+    else ((((s.modeAsk || {})[m.mode]) || []).concat(((prof.ask || {})[s.key]) || [])).forEach(add);
+  });
+  if (listen.length) L.push('- Listen especially for:', ...listen.slice(0, 10).map(q => '  - ' + q));
+  L.push('');
+  return L;
+}
 function fillPrompt(p, withTranscript) {
   const { steps, qs } = fillQuestions(p);
   const L = [
@@ -4043,6 +4136,7 @@ function fillPrompt(p, withTranscript) {
     '"answer" is text, a list like ["...", "..."], or a list of rows like [{ ... }], as each question says.',
     'For Account basics, the "id" is the word before the colon (account, mode, day1, context). In a row, leave out any part the call didn\'t cover.',
     '',
+    ...fillAbout(p),
     'THE PLAN QUESTIONS',
     'Account basics',
     '  account: The customer company name. Short text.',
@@ -4263,7 +4357,7 @@ function fillApply(p, items) {
     if (it.key === 'misc' || it.key === 'n|misc') { miscOf(p).items.push({ id: uid(), q: it.key === 'misc' ? 'From the call' : 'Still to find out', a: it.val + (it.quote ? '\n"' + it.quote + '"' : ''), at: '' }); sorted++; return; }
     const [t, a, b] = it.key.split('|');
     if (t === 'm') {
-      if (a === 'mode') { if (MODES[it.val]) p.meta.mode = it.val; else { p.meta.mode = 'other'; p.meta.modeOther = it.val; } }
+      if (a === 'mode') { if (MODES[it.val]) setNeed(p, it.val); else { setNeed(p, 'other'); p.meta.modeOther = it.val; } }
       else if (a === 'context') p.meta.context = p.meta.context ? p.meta.context.replace(/\s+$/, '') + '\n\nFrom the call: ' + it.val : it.val;
       else p.meta[a] = it.val;
       return;
