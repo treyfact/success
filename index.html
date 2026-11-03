@@ -4031,7 +4031,8 @@ function fillPrompt(p, withTranscript) {
     "6. Write targets as things we'll measure together, starting from a baseline. Don't promise results (like doubling quality) and don't predict incidents or injuries.",
     '7. Anything important that fits no question goes in "other".',
     '8. Questions the CSM should still ask go in "followups", with the step they belong to.',
-    '9. Reply with only the JSON, in one code block. No other text.',
+    "9. Reply once, with only the JSON, in one code block. No other text, and don't repeat it.",
+    '10. Never write placeholders like "Not discussed", "Unknown" or "N/A". Leave the question or the part of a row out instead.',
     '',
     'REPLY IN THIS SHAPE',
     '{',
@@ -4064,11 +4065,13 @@ function fillPrompt(p, withTranscript) {
 /* ---- Reading files: plain text, Word (.docx) and Rich Text (.rtf) ---- */
 const CP1252 = { 0x85: '…', 0x91: '‘', 0x92: '’', 0x93: '“', 0x94: '”', 0x96: '–', 0x97: '—' };
 function rtfText(s) {
-  return s.replace(/\\u(-?\d+)\??/g, (m, n) => String.fromCharCode(n < 0 ? 65536 + +n : +n))
+  const L = '\uE000', R = '\uE001', B = '\uE002';   // escaped \{ \} \\ are real text: keep them through the clean-up
+  return s.replace(/\\\\/g, B).replace(/\\\{/g, L).replace(/\\\}/g, R).replace(/\\u(-?\d+)\??/g, (m, n) => String.fromCharCode(n < 0 ? 65536 + +n : +n))
     .replace(/\\'([0-9a-f]{2})/gi, (m, h) => { const c = parseInt(h, 16); return CP1252[c] || String.fromCharCode(c); })
     .replace(/\\\r?\n/g, '\n').replace(/\\par[d]?\b ?/g, '\n')
     .replace(/\{\\fonttbl(?:[^{}]|\{[^{}]*\})*\}/, '').replace(/\{\\colortbl[^}]*\}/, '').replace(/\{\\\*\\[^{}]*\}/g, '')
-    .replace(/\\[a-z]+-?\d* ?/gi, '').replace(/[{}]/g, '').replace(/\n{3,}/g, '\n\n').trim();
+    .replace(/\\[a-z]+-?\d* ?/gi, '').replace(/[{}]/g, '').replace(/\n{3,}/g, '\n\n').trim()
+    .replace(/\uE000/g, '{').replace(/\uE001/g, '}').replace(/\uE002/g, '\\');
 }
 async function docxText(buf) {
   const v = new DataView(buf), u8 = new Uint8Array(buf);
@@ -4111,21 +4114,38 @@ async function fillAddFiles(files, into) {
 }
 
 /* ---- Reading the AI's reply ---- */
-function fillParse(text) {
-  let t = String(text || '').trim();
-  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fence) t = fence[1];
-  const a = t.indexOf('{'), b = t.lastIndexOf('}');
-  if (a < 0 || b < a) throw new Error('no answers');
-  t = t.slice(a, b + 1).replace(/,\s*([}\]])/g, '$1');
-  try { return JSON.parse(t); }
-  catch (e) { return JSON.parse(t.replace(/[“”]/g, '"').replace(/[‘’]/g, "'")); }
+/* AIs wrap the answers in chatter and code-block marks, sometimes answer twice in one reply, or leave a
+   trailing comma. Find every complete { } block, keep the ones that hold answers, and use the fullest. */
+function tryJson(t) {
+  for (const f of [x => x, x => x.replace(/,\s*([}\]])/g, '$1'), x => x.replace(/,\s*([}\]])/g, '$1').replace(/[“”]/g, '"').replace(/[‘’]/g, "'")]) {
+    try { return JSON.parse(f(t)); } catch (e) {}
+  }
+  return null;
 }
+function fillParse(text) {
+  const raw = String(text || '').replace(/```[a-z]*/gi, '\n'), found = [];
+  for (let i = raw.indexOf('{'); i >= 0 && i < raw.length; i = raw.indexOf('{', i + 1)) {
+    let depth = 0, inStr = false, esc = false, j = i;
+    for (; j < raw.length; j++) {
+      const c = raw[j];
+      if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') inStr = false; continue; }
+      if (c === '"') inStr = true; else if (c === '{') depth++; else if (c === '}' && !--depth) break;
+    }
+    const obj = j < raw.length ? tryJson(raw.slice(i, j + 1)) : null;
+    if (obj && (obj.answers || obj.followups || obj.other)) { found.push(obj); i = j; }
+  }
+  if (!found.length) throw new Error(/"answers"/.test(raw) ? 'cut off' : 'no answers');
+  const count = o => Array.isArray(o.answers) ? o.answers.length : Object.keys(o.answers || {}).length;
+  return found.sort((a, b) => count(b) - count(a))[0];
+}
+/* Words an AI writes when the call didn't cover something. They count as blank. */
+const NOT_SAID = /^(not (discussed|mentioned|stated|specified|covered|given|provided|confirmed)( yet)?|unknown|n\/?a|none( stated| given)?|tbd|to be (determined|confirmed)|unclear|-+|—)\.?$/i;
 function asText(v) {
   if (v == null) return '';
   if (Array.isArray(v)) return v.map(asText).filter(Boolean).join('\n');
   if (typeof v === 'object') return Object.values(v).map(asText).filter(Boolean).join(', ');
-  return String(v).trim();
+  const t = String(v).trim();
+  return NOT_SAID.test(t) ? '' : t;
 }
 function asList(v) {
   if (Array.isArray(v)) return v.map(x => asText(x).replace(/\s*\n\s*/g, ' ')).filter(Boolean);
@@ -4328,7 +4348,7 @@ function fillClick(act, a, p) {
   }
   if (act === 'fill-check') {
     let obj;
-    try { obj = fillParse(st.reply); } catch (e) { st.err = 'That doesn’t look like the AI’s answers. Copy its whole reply, including the part in the code block, and paste it again.'; renderWork(); return; }
+    try { obj = fillParse(st.reply); } catch (e) { st.err = e.message === 'cut off' ? 'The reply looks cut off before the end. Ask your AI to send the whole answer again in one code block, then paste it here.' : 'That doesn’t look like the AI’s answers. Copy its whole reply, including the part in the code block, and paste it again.'; renderWork(); return; }
     st.err = ''; st.items = fillItems(p, obj); renderWork(); window.scrollTo(0, 0); return;
   }
   if (act === 'fill-tick') { st.items.forEach(it => it.on = !!a.dataset.on); renderWork(); return; }
