@@ -2272,8 +2272,8 @@ function backTarget() {
   return i > 0 ? order[i - 1] : i === 0 && p.meta.template !== 'prospect' ? '__start' : null;
 }
 function updateBackFab() {
-  const sf = document.getElementById('startFab');   // Start over: on every step after Account basics
-  if (sf) sf.style.display = cur() && !builder && !repick && currentSec !== 'basics' && !document.getElementById('present').classList.contains('show') ? '' : 'none';
+  const sf = document.getElementById('startFab');   // Start over: on every step of an open plan, Account basics included
+  if (sf) sf.style.display = cur() && !builder && !repick && !document.getElementById('present').classList.contains('show') ? '' : 'none';
   const b = document.getElementById('backFab'); if (!b) return;
   const t = backTarget(), presenting = document.getElementById('present').classList.contains('show');
   b.style.display = t && !presenting ? '' : 'none';
@@ -3981,6 +3981,8 @@ paintTimer();
 
 
 document.getElementById('startFab').addEventListener('click', () => {
+  const p = cur();
+  if (p && !confirm('Start over? This closes the plan for ' + (p.meta.account || 'this account') + ' and goes back to Start a success plan. The plan stays saved in your plan list.')) return;
   pendingNew = null; builder = null; repick = false;
   fadeSwap(() => { currentId = null; currentSec = 'basics'; renderAll(); });   // the plan stays saved in the plan list
 });
