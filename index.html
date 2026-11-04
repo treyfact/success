@@ -764,7 +764,7 @@ table.grid td .other-box { margin-top: 4px; }
 <button class="fab" id="mapFab" type="button">See the map</button>
 <div class="note-root" id="noteRoot" hidden></div>
 <button class="back-fab" id="backFab" type="button" style="display:none"><span aria-hidden="true">&larr;</span> Back</button>
-<button class="start-fab" id="startFab" type="button" style="display:none" title="Back to Start a success plan. This plan stays saved.">Start over</button>
+<button class="start-fab" id="startFab" type="button" style="display:none" title="Delete this plan and go back to Start a success plan.">Start over</button>
 <div class="present" id="present">
   <div class="present-bar">
     <b>Plan view</b>
@@ -2164,6 +2164,19 @@ function setRollout(p, v) {
   if (p.meta.flow) p.meta.flow.steps = p.meta.flow.steps.filter(x => !rolloutKeys().includes(x.key) || keep(x.key));
 }
 const ROLLOUT_MODES = ['launch', 'grow'];
+/* Plan size: a bigger size adds its usual sections; a smaller one takes back the ones it no longer
+   includes, only while they're empty and nothing else (the need, Full rollout) calls for them. */
+function setTier(p, v) {
+  const was = p.meta.tier; p.meta.tier = v;
+  addSections(p, presetSections(v));
+  const order = Object.keys(TIERS);
+  if (order.indexOf(v) >= order.indexOf(was)) return;
+  const now = presetSections(v), need = needKeys(p, p.meta.mode);
+  const keep = k => now.includes(k) || need.includes(k) || (p.meta.rollout === 'full' && rolloutKeys().includes(k)) || (() => { const s = sectionByKey(k, p); return s && hasWork(p, s); })();
+  const drop = presetSections(was).filter(k => !keep(k));
+  p.meta.sections = (p.meta.sections || []).filter(k => !drop.includes(k));
+  if (p.meta.flow) p.meta.flow.steps = p.meta.flow.steps.filter(x => !drop.includes(x.key));
+}
 /* What the account needs this year shapes the plan (see MODES). The steps a need added are noted in
    meta.needAdded, so changing the need takes out only those, and only while they're still empty. */
 function needKeys(p, mode) {
@@ -2594,7 +2607,7 @@ function basicsHtml(p) {
   ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span>${px ? '' : '<button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button>'}</div>
   ${modeFieldHtml(m)}`
   : `<div class="row2">
-    <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} Changing it adds that size's usual sections; it never removes anything.</div></div>
+    <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} A bigger size adds its usual sections; a smaller one takes back the empty ones.</div></div>
     ${modeFieldHtml(m)}
   </div>`}
   ${ROLLOUT_MODES.includes(m.mode) || m.rollout === 'full' ? `<div class="field"><label>How big is the rollout?</label><div class="seg"><button class="btn ${m.rollout !== 'full' ? 'on' : ''}" data-action="rollout" data-v="first">Start with first crews</button><button class="btn ${m.rollout === 'full' ? 'on' : ''}" data-action="rollout" data-v="full">Full rollout</button></div><div class="help" style="margin-top:6px">${m.rollout === 'full' ? 'Adds the steps for every project, region and audience: projects, setup and access, leader alignment, training by audience, rollout steps and the communication plan.' : 'One project or a few crews first. Pick Full rollout to add the steps for every project, region and audience.'}</div></div>` : ''}
@@ -3321,10 +3334,10 @@ function handleInput(e) {
   if (t.dataset.meta) {
     const k = t.dataset.meta;
     if (k === 'mode') setNeed(p, t.value);
+    else if (k === 'tier') setTier(p, t.value);
     else p.meta[k] = t.type === 'checkbox' ? t.checked : t.value;
     if (k === 'verified') t.closest('.check').classList.toggle('on', t.checked);
     saveSoon();
-    if (k === 'tier') addSections(p, presetSections(t.value));
     if (k === 'mode' && p.meta.template === 'prospect' && MODES[t.value] && t.value !== 'prospect') { saveSoon(); fadeSwap(() => { repick = true; renderAll(); }); return; }
     if (k === 'tier' || k === 'mode') { saveSoon(); renderAll(); if (k === 'mode' && t.value === 'other') { const b = document.querySelector('#work [data-meta=modeOther]'); if (b) b.focus(); } return; }
     if (k === 'account') renderPicker();
@@ -3982,9 +3995,10 @@ paintTimer();
 
 document.getElementById('startFab').addEventListener('click', () => {
   const p = cur();
-  if (p && !confirm('Start over? This closes the plan for ' + (p.meta.account || 'this account') + ' and goes back to Start a success plan. The plan stays saved in your plan list.')) return;
+  if (p && !confirm('Start over? This deletes the plan for ' + (p.meta.account || 'this account') + ' and goes back to Start a success plan. Export it first if you might want it back.')) return;
+  if (p) { delete plans[p.id]; saveNow(); }
   pendingNew = null; builder = null; repick = false;
-  fadeSwap(() => { currentId = null; currentSec = 'basics'; renderAll(); });   // the plan stays saved in the plan list
+  fadeSwap(() => { currentId = null; currentSec = 'basics'; renderAll(); });
 });
 /* Swipe between steps: a sideways swipe on a phone, or a two-finger sideways swipe on a trackpad.
    Left goes to the next step, right to the one before. Boxes you type in, and anything that scrolls
