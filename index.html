@@ -196,6 +196,18 @@ body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .seg .btn { padding: 7px 14px; font-size: 13.5px; }
 #timerBtn { font-variant-numeric: tabular-nums; min-width: 64px; }
 .team-panel { width: 300px; padding: 14px; }
+.hs-setup { position: fixed; inset: 0; background: rgba(15, 22, 35, .45); z-index: 60; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
+.hs-setup[hidden] { display: none; }
+.hs-card { background: var(--surface); color: var(--ink); border-radius: 14px; max-width: 760px; width: 100%; padding: 20px 22px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.hs-card h2 { margin: 0 0 4px; }
+.hs-card .help { margin-bottom: 12px; }
+.hs-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.hs-row input[type=text] { flex: 1; min-width: 180px; }
+.hs-list { border: 1px solid var(--line); border-radius: 10px; max-height: 46vh; overflow: auto; }
+.hs-list label { display: flex; gap: 10px; align-items: baseline; padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; cursor: pointer; }
+.hs-list label:last-child { border-bottom: 0; }
+.hs-list small { color: var(--faint); margin-left: auto; white-space: nowrap; }
+.hs-msg { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 .team-panel p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
 .team-panel .btn { width: 100%; text-align: center; margin-top: 4px; }
 .team-code { font-size: 24px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; margin: 2px 0 6px; }
@@ -758,6 +770,8 @@ table.grid td .other-box { margin-top: 4px; }
       <hr>
       <button data-cmd="fill">Fill from a call transcript</button>
       <button data-cmd="hubspot">Copy summary for HubSpot</button>
+      <button data-cmd="signin" id="signinCmd" hidden>Sign in with Google (HubSpot)</button>
+      <button data-cmd="hscheck" id="hscheckCmd" hidden>Check HubSpot</button>
       <hr>
       <button data-cmd="export">Export this plan (file)</button>
       <button data-cmd="import">Import a plan file</button>
@@ -4043,6 +4057,8 @@ function runCmd(c) {
   if (c === 'theme') { setTheme(!isDark()); return; }
   if (c === 'new') { welcomeLogo = null; logoMsg.welcome = ''; currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
+  if (c === 'signin') { if (auth) signOut(); else signIn(); return; }
+  if (c === 'hscheck') { openHsSetup(); return; }
   if (!p) return;
   if (c === 'fill') { go('fill'); return; }
   if (c === 'hubspot') { copyText(hubspotSummary(p)).then(ok => showToast(ok ? 'Copied. Paste it as a note on the company in HubSpot.' : 'This browser blocked copying. Try again from the hosted page.')); return; }
@@ -4284,6 +4300,117 @@ const TEAM_URL = 'https://ccsqgjxqxhijvxjidzjb.supabase.co';
 const TEAM_KEY = 'sb_publishable_b-PeSQRqJH0YAwoD9Mlykg_jHFQjouv';   // publishable: safe to be public
 let teamWsUrl = TEAM_URL.replace(/^http/, 'ws') + '/realtime/v1/websocket?apikey=' + encodeURIComponent(TEAM_KEY) + '&vsn=1.0.0';
 try { const o = localStorage.getItem('spb.teamWs'); if (o) teamWsUrl = o; } catch (e) {}   // testing only
+
+/* ---------- Sign in with Google, for HubSpot (through Supabase). Plain fetch, no library. ----------
+   Only on the live page (Google sends people back to LIVE_URL). The sign-in is kept in this browser
+   (spb.auth): sign-in tokens only, never plan data, and never shared through the team code.
+   The HubSpot helper (supabase/functions/hubspot/index.ts) is READ-ONLY: it searches and reads
+   companies, deals, contacts and owners, and posts to Slack. Nothing in this page writes to HubSpot. */
+const LIVE_URL = 'https://treyfact.github.io/success/';
+const HS_FN = TEAM_URL + '/functions/v1/hubspot';
+const HS_PORTAL = 'https://app-na2.hubspot.com/contacts/246468046/record/0-2/';   // + company ID
+function authHere() { try { return location.origin === 'https://treyfact.github.io' || !!localStorage.getItem('spb.authTest'); } catch (e) { return false; } }
+function jwtEmail(t) { try { const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return String(JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4))))).email || '').toLowerCase(); } catch (e) { return ''; } }
+let auth = null, authMsg = '';
+try { auth = JSON.parse(localStorage.getItem('spb.auth') || 'null'); } catch (e) {}
+function authSave() { try { if (auth) localStorage.setItem('spb.auth', JSON.stringify(auth)); else localStorage.removeItem('spb.auth'); } catch (e) {} authMenu(); }
+(function takeSignIn() {   // Google and Supabase send people back with the sign-in in the address (#access_token=...)
+  if (!/(^#|&)(access_token|error)=/.test(location.hash)) return;
+  const h = new URLSearchParams(location.hash.slice(1));
+  history.replaceState(null, '', location.pathname + location.search);
+  if (h.get('error')) { authMsg = "Sign-in didn't work: " + String(h.get('error_description') || h.get('error')).replace(/\+/g, ' '); return; }
+  const a = { access_token: h.get('access_token') || '', refresh_token: h.get('refresh_token') || '', expires_at: Date.now() + (+h.get('expires_in') || 3600) * 1000 };
+  a.email = jwtEmail(a.access_token);
+  if (!/@factorlab\.com$/.test(a.email)) { authMsg = 'Use your FactorLab Google account to sign in.'; return; }
+  auth = a; authMsg = 'Signed in as ' + a.email + '.';
+  try { localStorage.setItem('spb.auth', JSON.stringify(auth)); } catch (e) {}
+})();
+function authMenu() {
+  const b = document.getElementById('signinCmd'), c = document.getElementById('hscheckCmd'); if (!b || !c) return;
+  b.hidden = !authHere(); c.hidden = !auth || !authHere();
+  b.textContent = auth ? 'Sign out of HubSpot (' + auth.email + ')' : 'Sign in with Google (HubSpot)';
+}
+function signIn() {
+  try { saveNow(); } catch (e) {}
+  const back = location.origin === 'https://treyfact.github.io' ? LIVE_URL : location.origin + location.pathname;
+  location.href = TEAM_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(back) + '&hd=factorlab.com';
+}
+function signOut() {
+  const t = auth && auth.access_token; auth = null; authSave();
+  if (t) fetch(TEAM_URL + '/auth/v1/logout?scope=local', { method: 'POST', headers: { apikey: TEAM_KEY, Authorization: 'Bearer ' + t } }).catch(() => {});
+  showToast('Signed out of HubSpot. Everything else works as before.');
+}
+async function authToken() {   // a fresh sign-in token, renewed a minute before it runs out
+  if (!auth) return null;
+  try { const d = JSON.parse(localStorage.getItem('spb.auth') || 'null'); if (d && d.expires_at > auth.expires_at) auth = d; } catch (e) {}   // another tab may have renewed it
+  if (Date.now() < auth.expires_at - 60000) return auth.access_token;
+  let r;
+  try { r = await fetch(TEAM_URL + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: TEAM_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: auth.refresh_token }) }); }
+  catch (e) { return null; }   // offline: keep the sign-in, try again later
+  if (!r.ok) { auth = null; authSave(); return null; }
+  const j = await r.json();
+  auth = { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in || 3600) * 1000, email: jwtEmail(j.access_token) };
+  authSave(); return auth.access_token;
+}
+/* Ask the read-only helper for something. action is one of: searchCompanies, getCompany,
+   companyDeals, searchContacts, getOwner, listFields, slack. Throws a plain-words message. */
+async function hsCall(action, params) {
+  const t = await authToken(); if (!t) throw new Error('Sign in with Google first (More, then Sign in).');
+  let r;
+  try { r = await fetch(HS_FN, { method: 'POST', headers: { Authorization: 'Bearer ' + t, apikey: TEAM_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ action }, params || {})) }); }
+  catch (e) { throw new Error("Couldn't reach HubSpot. Type it in by hand."); }
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) throw new Error("Your sign-in wasn't accepted. Sign out and sign in again.");
+  if (!r.ok) throw new Error(j.error || "HubSpot didn't answer. Type it in by hand.");
+  return j;
+}
+/* Check HubSpot (setup, step 3): proves the connection and lists company and deal fields, so the
+   money fields to show can be picked. Read-only. Picks live in this window until copied. */
+const hsSetup = { obj: 'companies', fields: {}, picks: { companies: new Set(), deals: new Set() }, filter: '', numOnly: true, msg: '', busy: false };
+function openHsSetup() {
+  let el = document.getElementById('hsSetup');
+  if (!el) { el = document.createElement('div'); el.id = 'hsSetup'; el.className = 'hs-setup'; document.body.appendChild(el); el.addEventListener('click', hsSetupClick); el.addEventListener('input', hsSetupInput); }
+  el.hidden = false; renderHsSetup();
+  if (!hsSetup.fields[hsSetup.obj]) hsLoadFields(hsSetup.obj);
+}
+async function hsLoadFields(obj) {
+  hsSetup.busy = true; hsSetup.msg = 'Asking HubSpot...'; renderHsSetup();
+  try { const j = await hsCall('listFields', { object: obj }); hsSetup.fields[obj] = (j.results || []).sort((a, b) => String(a.label).localeCompare(b.label)); hsSetup.msg = 'Connected. HubSpot sent ' + hsSetup.fields[obj].length + ' ' + (obj === 'deals' ? 'deal' : 'company') + ' fields.'; }
+  catch (e) { hsSetup.msg = e.message + (/permission/.test(e.message) ? ' (The key may not be allowed to list fields. You can find field names in HubSpot under Settings, then Properties.)' : ''); }
+  hsSetup.busy = false; renderHsSetup();
+}
+function renderHsSetup() {
+  const el = document.getElementById('hsSetup'); if (!el || el.hidden) return;
+  const o = hsSetup.obj, all = hsSetup.fields[o] || [], f = hsSetup.filter.toLowerCase();
+  const shown = all.filter(x => (!hsSetup.numOnly || /^(number|date|datetime)$/.test(x.type)) && (!f || (x.label + ' ' + x.name).toLowerCase().includes(f)));
+  const n = hsSetup.picks.companies.size + hsSetup.picks.deals.size;
+  const keepFocus = document.activeElement && document.activeElement.id === 'hsFilter';
+  el.innerHTML = `<div class="hs-card" role="dialog" aria-label="Check HubSpot">
+    <div class="hs-row" style="justify-content:space-between"><h2>Check HubSpot</h2><button class="btn" data-hs="close">Close</button></div>
+    <div class="help">Signed in as ${esc(auth ? auth.email : '')}. This only reads from HubSpot. Tick the money fields the plan should fill in, then Copy my picks and send them to Claude.</div>
+    <div class="hs-row"><button class="btn ${o === 'companies' ? 'primary' : ''}" data-hs="obj" data-v="companies">Company fields</button><button class="btn ${o === 'deals' ? 'primary' : ''}" data-hs="obj" data-v="deals">Deal fields</button>
+      <label class="check ${hsSetup.numOnly ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-hs="num" ${hsSetup.numOnly ? 'checked' : ''}> Only numbers and dates</label></div>
+    <div class="hs-row"><input type="text" id="hsFilter" placeholder="Filter, e.g. revenue, ARR, renewal" value="${esc(hsSetup.filter)}" aria-label="Filter fields"></div>
+    <div class="hs-list">${shown.length ? shown.map(x => `<label><input type="checkbox" data-hs="pick" data-v="${esc(x.name)}" ${hsSetup.picks[o].has(x.name) ? 'checked' : ''}><span>${esc(x.label)} <span style="color:var(--faint)">(${esc(x.name)})</span></span><small>${esc(x.type)}</small></label>`).join('') : `<div class="hs-msg" style="padding:12px">${hsSetup.busy ? 'Loading...' : all.length ? 'No fields match.' : 'Nothing loaded yet.'}</div>`}</div>
+    <div class="hs-row" style="margin-top:12px"><button class="btn primary" data-hs="copy" ${n ? '' : 'disabled'}>Copy my picks (${n})</button></div>
+    ${hsSetup.msg ? `<p class="hs-msg">${esc(hsSetup.msg)}</p>` : ''}</div>`;
+  if (keepFocus) { const i = document.getElementById('hsFilter'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+}
+function hsSetupClick(e) {
+  const t = e.target.closest('[data-hs]'); if (e.target.id === 'hsSetup') { e.currentTarget.hidden = true; return; }
+  if (!t) return;
+  const k = t.dataset.hs;
+  if (k === 'close') { document.getElementById('hsSetup').hidden = true; return; }
+  if (k === 'obj') { hsSetup.obj = t.dataset.v; renderHsSetup(); if (!hsSetup.fields[hsSetup.obj]) hsLoadFields(hsSetup.obj); return; }
+  if (k === 'num') { hsSetup.numOnly = t.checked; renderHsSetup(); return; }
+  if (k === 'pick') { const s = hsSetup.picks[hsSetup.obj]; t.checked ? s.add(t.dataset.v) : s.delete(t.dataset.v); renderHsSetup(); return; }
+  if (k === 'copy') {
+    const line = o => [...hsSetup.picks[o]].map(n => { const x = (hsSetup.fields[o] || []).find(f => f.name === n); return (x ? x.label : n) + ' (' + n + ')'; }).join(', ') || 'none';
+    copyText('Money fields to show.\nCompany fields: ' + line('companies') + '\nDeal fields: ' + line('deals')).then(ok => { hsSetup.msg = ok ? 'Copied. Paste it to Claude.' : 'This browser blocked copying.'; renderHsSetup(); });
+  }
+}
+function hsSetupInput(e) { if (e.target.id === 'hsFilter') { hsSetup.filter = e.target.value; renderHsSetup(); } }
+setTimeout(() => { authMenu(); if (authMsg) showToast(authMsg); }, 300);
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 let team = null;   // { code, planId, ws, topic, me, peers, ref, joinRef, joined, snap, error, hbTimer, pingTimer, closing }
 
