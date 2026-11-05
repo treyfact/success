@@ -1,20 +1,31 @@
 # Keeps the Supabase project behind the Team code from pausing.
-# Free Supabase projects pause after about a week with no activity, and the
+#
+# Free Supabase projects pause after about 7 days with no activity, and the
 # Team code never touches the database on its own. This job reads from the
-# database twice a week so it always counts as active.
+# database once a day, so it always counts as active.
 #
-# It also keeps itself switched on: GitHub turns off scheduled jobs in a repo
-# with no changes for 60 days, so if the repo has been quiet for 45 days the
-# job records today's date in .github/keep-alive.txt and pushes that change.
+# Built so it never fails over a blip:
+# - Each run keeps trying for about 40 minutes before it gives up for the day.
+# - A day it can't get through is only noted (in .github/keep-alive.txt).
+#   The run itself still passes, so no email.
+# - It only fails (and GitHub emails) if Supabase hasn't answered for 3 days
+#   in a row. That still leaves 4 days before the project would pause, and
+#   the error says exactly what to do.
+# - It reads the project address and key from index.html each time, so if
+#   they ever change there, this follows. The values below are only a backup.
+# - It uses no add-ons from the GitHub marketplace, just curl and git, so
+#   nothing it depends on can be retired.
+# - GitHub turns off scheduled jobs in a repo with no changes for 60 days. If
+#   the repo has been quiet for 45 days, this records the date in
+#   .github/keep-alive.txt and pushes, which keeps it switched on.
 #
-# Uses only the public project URL and publishable key that index.html
-# already contains. No secrets.
+# Uses only the public project address and publishable key. No secrets.
 
 name: Keep Supabase awake
 
 on:
   schedule:
-    - cron: "17 14 * * 1,4" # Mondays and Thursdays, 14:17 UTC
+    - cron: "41 9 * * *" # every day, 09:41 UTC
   workflow_dispatch:
     inputs:
       force_keepalive:
@@ -32,43 +43,117 @@ concurrency:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    env:
-      SUPABASE_URL: https://ccsqgjxqxhijvxjidzjb.supabase.co
-      SUPABASE_KEY: sb_publishable_b-PeSQRqJH0YAwoD9Mlykg_jHFQjouv
+    timeout-minutes: 150
     steps:
-      - name: Read from the database
+      - name: Keep Supabase awake
+        shell: bash --noprofile --norc {0}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE_KEEPALIVE: ${{ inputs.force_keepalive }}
+          BACKUP_URL: https://ccsqgjxqxhijvxjidzjb.supabase.co
+          BACKUP_KEY: sb_publishable_b-PeSQRqJH0YAwoD9Mlykg_jHFQjouv
         run: |
-          hit() {
-            name="$1"; shift
-            code=$(curl -s -o /tmp/body -w '%{http_code}' -m 30 --retry 2 --retry-delay 10 \
-              -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" "$@" || echo 000)
-            echo "$name -> HTTP $code: $(head -c 200 /tmp/body)"
-            [ "$code" -ge 200 ] && [ "$code" -lt 300 ]
+          set -u
+          WAITS="${WAITS:-0 60 120 300 600 1200}"   # seconds between tries (about 40 minutes in all)
+          DOWN_DAYS_BEFORE_ALERT="${DOWN_DAYS_BEFORE_ALERT:-3}"
+          REPO_URL="${REPO_URL:-https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git}"
+          BRANCH="${GITHUB_REF_NAME:-main}"
+          STATE=repo/.github/keep-alive.txt
+
+          # 1. Get a copy of the repo (for the current address and key, and the notes file).
+          have_repo=0
+          for i in 1 2 3 4 5; do
+            if git clone -q --depth 1 --branch "$BRANCH" "$REPO_URL" repo 2>/dev/null; then have_repo=1; break; fi
+            rm -rf repo; echo "Couldn't get the repo (try $i); trying again."; sleep $((i * 30))
+          done
+
+          URL="$BACKUP_URL"; KEY="$BACKUP_KEY"
+          if [ "$have_repo" = 1 ] && [ -f repo/index.html ]; then
+            u=$(grep -oE 'https://[a-z0-9]{20}\.supabase\.co' repo/index.html | head -1)
+            k=$(grep -oE 'sb_publishable_[A-Za-z0-9_-]+' repo/index.html | head -1)
+            [ -z "$k" ] && k=$(grep -oE 'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+' repo/index.html | head -1)
+            [ -n "$u" ] && URL="$u"
+            [ -n "$k" ] && KEY="$k"
+          fi
+          echo "Project: $URL"
+
+          # 2. Read from the database, retrying for about 40 minutes.
+          call() {
+            curl -s -o /tmp/body -w '%{http_code}' -m 30 \
+              -H "apikey: $KEY" -H "Authorization: Bearer $KEY" "$@" 2>/dev/null || true
           }
-          # Extra activity on the auth service; fine if it fails.
-          hit "auth" "$SUPABASE_URL/auth/v1/health" || true
-          # The one that matters: listing storage buckets runs a query in the
-          # Postgres database (it returns [] because there are none).
-          if ! hit "database read (storage buckets)" "$SUPABASE_URL/storage/v1/bucket"; then
-            echo "::error::Supabase did not answer. The project may be paused; restore it in the Supabase dashboard."
-            exit 1
+          read_once() {
+            # Listing storage buckets runs a query in the database (returns [] when there are none).
+            code=$(call "$URL/storage/v1/bucket")
+            echo "  database read (storage): HTTP $code $(head -c 150 /tmp/body 2>/dev/null)"
+            case "$code" in 2??) return 0 ;; esac
+            # Second way in: the GraphQL endpoint also runs inside the database.
+            code=$(call -X POST -H "Content-Type: application/json" -d '{"query":"{ __typename }"}' "$URL/graphql/v1")
+            echo "  database read (graphql): HTTP $code $(head -c 150 /tmp/body 2>/dev/null)"
+            case "$code" in 2??) return 0 ;; esac
+            return 1
+          }
+          ok=0
+          for w in $WAITS; do
+            [ "$w" -gt 0 ] && { echo "Waiting ${w}s, then trying again."; sleep "$w"; }
+            if read_once; then ok=1; break; fi
+          done
+          call "$URL/auth/v1/health" >/dev/null   # a little extra activity; result doesn't matter
+
+          # 3. Update the notes file only when something changed.
+          today=$(date -u +%F)
+          down_since=""; last_update=""
+          if [ -f "$STATE" ]; then
+            down_since=$(sed -n 's/^Unreachable since: //p' "$STATE" | head -1)
+            last_update=$(sed -n 's/^Last keep-alive: //p' "$STATE" | head -1)
+          fi
+          changed=0; msg=""
+          if [ "$ok" = 1 ]; then
+            echo "Supabase answered. All good."
+            if [ -n "$down_since" ]; then down_since=""; changed=1; msg="Supabase is answering again"; fi
+          else
+            echo "::warning::Supabase didn't answer today. The job will keep trying daily; nothing to do yet."
+            if [ -z "$down_since" ]; then down_since="$today"; changed=1; msg="Note that Supabase didn't answer today"; fi
           fi
 
-      - uses: actions/checkout@v4
-
-      - name: Keep this job switched on
-        run: |
-          last=$(git log -1 --format=%ct)
-          age_days=$(( ( $(date +%s) - last ) / 86400 ))
-          echo "Last change to the repo was $age_days days ago."
-          if [ "$age_days" -lt 45 ] && [ "${{ inputs.force_keepalive }}" != "true" ]; then
-            echo "Recent enough; nothing to do."
-            exit 0
+          if [ "$have_repo" = 1 ]; then
+            age_days=$(( ( $(date +%s) - $(git -C repo log -1 --format=%ct) ) / 86400 ))
+            echo "Last change to the repo was $age_days days ago."
+            if [ "$age_days" -ge 45 ] || [ "${FORCE_KEEPALIVE:-false}" = "true" ]; then
+              last_update=$(date -u +"%Y-%m-%d %H:%M UTC"); changed=1
+              [ -z "$msg" ] && msg="Keep the Supabase keep-alive job switched on"
+            fi
+            if [ "$changed" = 1 ]; then
+              mkdir -p repo/.github
+              {
+                echo "Written by the Keep Supabase awake job (.github/workflows/keep-supabase-awake.yml). Safe to ignore."
+                [ -n "$last_update" ] && echo "Last keep-alive: $last_update"
+                [ -n "$down_since" ] && echo "Unreachable since: $down_since"
+              } > "$STATE"
+              cd repo
+              git config user.name "github-actions[bot]"
+              git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+              git add .github/keep-alive.txt
+              git commit -q -m "$msg" >/dev/null 2>&1 || true
+              pushed=0
+              for i in 1 2 3 4 5; do
+                if git push -q origin "HEAD:$BRANCH" 2>/dev/null; then pushed=1; break; fi
+                sleep $((i * 20)); git pull -q --rebase origin "$BRANCH" 2>/dev/null || true
+              done
+              cd ..
+              if [ "$pushed" = 1 ]; then echo "Saved: $msg"; else echo "::warning::Couldn't save the notes file today; will try again tomorrow."; fi
+            fi
+          else
+            echo "::warning::Couldn't reach GitHub to save notes today; will try again tomorrow."
           fi
-          date -u +"Last keep-alive: %Y-%m-%d %H:%M UTC" > .github/keep-alive.txt
-          git config user.name "github-actions[bot]"
-          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
-          git add .github/keep-alive.txt
-          git commit -m "Keep the Supabase keep-alive job switched on"
-          git push
+
+          # 4. Only a real, lasting problem fails the run (and sends an email).
+          if [ "$ok" = 0 ] && [ -n "$down_since" ]; then
+            days_down=$(( ( $(date -u +%s) - $(date -u -d "$down_since" +%s) ) / 86400 ))
+            echo "Supabase has not answered since $down_since ($days_down days)."
+            if [ "$days_down" -ge "$DOWN_DAYS_BEFORE_ALERT" ]; then
+              echo "::error::Supabase hasn't answered since $down_since, so the Team code won't connect. Most likely the project was paused. To fix: sign in at supabase.com/dashboard, open the project, and click Restore (about a minute). This job will pick back up on its own the next day."
+              exit 1
+            fi
+          fi
+          exit 0
