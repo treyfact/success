@@ -110,6 +110,12 @@ a { color: var(--navy); }
 .ask { background: var(--amber-soft); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 18px; }
 .ask-title { font-size: 12px; font-weight: 700; color: #8a4a12; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
 .ask ul { margin: 0; padding-left: 18px; }
+.ask-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.ask-head .ask-title { margin-bottom: 0; }
+.ask-more { flex: none; background: none; border: 1px solid rgba(138, 74, 18, .35); color: #8a4a12; border-radius: 999px; padding: 3px 11px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.ask-more:hover { background: rgba(138, 74, 18, .08); }
+.ask-extra { border-top: 1px dashed rgba(138, 74, 18, .3); margin-top: 10px !important; padding-top: 8px; }
+.ask-extra.alone { border-top: 0; margin-top: 0 !important; padding-top: 0; }
 .ask li { margin: 3px 0; }
 .hint { background: var(--soft); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 18px; color: var(--muted); font-size: 13px; }
 .field { margin-bottom: 18px; }
@@ -679,6 +685,9 @@ table.grid td .other-box { margin-top: 4px; }
 }
 [data-theme="dark"] .btn.primary:hover { background: #3f6aa8; }
 [data-theme="dark"] .ask-title { color: #f0a868; }
+[data-theme="dark"] .ask-more { color: #f0a868; border-color: rgba(240, 168, 104, .4); }
+[data-theme="dark"] .ask-more:hover { background: rgba(240, 168, 104, .1); }
+[data-theme="dark"] .ask-extra { border-top-color: rgba(240, 168, 104, .3); }
 [data-theme="dark"] input:focus, [data-theme="dark"] select:focus, [data-theme="dark"] textarea:focus { outline-color: #2f4a70; border-color: #4d6f9c; }
 [data-theme="dark"] .x:hover { background: #3a2220; }
 [data-theme="dark"] .cat-card.in { border-color: #2f5a42; background: #15211b; }
@@ -1867,6 +1876,345 @@ SECTIONS.push(
   }
 );
 const pxArea = k => PX_AREAS.find(a => a.key === k);
+/* More questions to get curious with, behind "More questions" on each step's orange box. Each set digs
+   into why it matters to them and what it's worth in their own numbers (time, cost, outcomes they already
+   track), so the plan can show the return in their terms. Ask for their numbers; never supply them. */
+const MORE_ASK = {
+  goal: [
+    'A year from now, if you called this a win, what would be different on your jobs?',
+    'Why is this a priority now, and not last year or next year?',
+    "What does leaving it as it is cost you today: hours, rework, or a headache you'd rather not have?",
+    'Ballpark, how many hours a week does a foreman spend on safety paperwork?',
+    'Who else wins if this works: operations, HR, your insurance broker?',
+    'Which number does your leadership look at first: recordables, your EMR, hours, or something else?',
+    'What have you already tried, and what got in the way?'
+  ],
+  hypothesis: [
+    "If your crews had better morning conversations, what's the first thing you'd expect to see change?",
+    'What do your weakest plans have in common?',
+    'Which conversation do you wish crews had more often: what could change today, who does what, or what went wrong yesterday?',
+    "Which conversation eats time without helping anyone?",
+    'If your newer foremen planned like your best ones, what would that be worth to you?',
+    'How would we know in 90 days if we had it wrong?'
+  ],
+  scope: [
+    'Which form or process do your crews complain about most?',
+    'How many places does the same information get entered today?',
+    'If one system went away tomorrow, which one would the field cheer about?',
+    "What do those systems cost you a year, in licenses and in people's time?",
+    'Who has to say yes before a system goes away?',
+    "What would need to work in the first group before you'd take it to the next?"
+  ],
+  results: [
+    'Looking back at this year, what are you proudest of?',
+    'Where did it fall short of what you hoped?',
+    'Which leaders or regions pulled ahead, and what did they do differently?',
+    'Where did the time your crews got back end up going?',
+    'If you had to explain the value to your CFO tomorrow, which number would you lead with?',
+    'What would make next year worth more than this one?'
+  ],
+  targets: [
+    'Which of these numbers would your leadership actually ask about?',
+    "What does an hour of a foreman's time cost you, all in?",
+    'What does a typical recordable cost you, all in?',
+    'Where do these numbers live today, and who pulls them?',
+    'Which number would you put in front of your boss at 90 days?',
+    'What would make a target feel too easy, or out of reach?'
+  ],
+  good: [
+    "What separates a plan you'd sign off on from one you'd send back?",
+    "When you walk up on a crew planning, what tells you in the first minute it's a good one?",
+    'Who is your best planner, and could we use one of their plans as the example?',
+    'What does a good plan sound like when the work changes mid-shift?',
+    'Do your superintendents agree on what good looks like, or does it change by job?',
+    'If every crew planned like your best one, what would that save you?'
+  ],
+  rolloutProjects: [
+    'Which project would make the best first story to tell the rest of the company?',
+    'Which projects are the toughest right now, and should they go early or later?',
+    'Which projects start in the next 90 days?',
+    "Where do you have a superintendent who'd champion this?",
+    'What would make a project not ready to launch?',
+    'How long does a typical project run, and when do crews turn over?'
+  ],
+  rolloutSetup: [
+    'How long does it take to get a new hire or trade partner into your systems today?',
+    'Who keeps your project list and your people list up to date?',
+    "What's held up a rollout for you before?",
+    'Which reports or exports does anyone else depend on?',
+    'Who in IT needs a heads-up, and how much notice do they want?'
+  ],
+  owners: [
+    'Who decides whether this renews?',
+    'If your champion moved on tomorrow, who would carry this?',
+    'Who in operations do your superintendents listen to?',
+    'Who on your side has the time to own this week to week?',
+    'Who needs to hear about wins, and how often?',
+    'Who could slow this down if they were left out early on?'
+  ],
+  align: [
+    'What would your operations leaders say a good plan is for?',
+    'Where do safety and operations pull in different directions today?',
+    "What has to be true for an operations leader to say this is worth their crews' time?",
+    'What did the field hear the last time something new came out, and how did it land?',
+    'Who should tell the field "why now": safety, operations, or both?',
+    'What would you want a superintendent to say to his crews on Day 1?'
+  ],
+  recognition: [
+    'Who in your company is great at recognizing people? What do they do?',
+    'What kind of recognition means something to your crews: a call, a mention, gear, a lunch?',
+    'How do your best foremen get noticed today?',
+    'Who would a foreman most want to hear "good job" from?',
+    "What's in the budget for recognition, if anything?",
+    "How could recognition reach trade partners' crews, not just your own?"
+  ],
+  trades: [
+    'How many trade partners are on a typical job?',
+    'How do trade partner crews plan compared with your own?',
+    'Which trade partners would welcome this, and which would push back?',
+    'What do you ask of trade partners on safety today, and how do you check it?',
+    'What would help a trade partner win more of your work?',
+    "How do you share what's working with trade partners today?"
+  ],
+  rolloutTraining: [
+    'What made the last training stick, and what made one fall flat?',
+    'How much time can you pull a foreman off the work for training?',
+    'Who do new foremen learn from on the job today?',
+    'Which crews need it in Spanish or another language?',
+    'Which superintendents would make good trainers for their peers?',
+    'How will you know a crew actually got it, a week later?'
+  ],
+  milestones: [
+    'Which dates already on your calendar should this line up with: budget season, safety week, a big job starting?',
+    "When do your leaders set next year's goals?",
+    'What would you want to show leadership at 30 days? At 90?',
+    'Which months are your busiest, when nothing new should land on the field?',
+    'Who should be in the room at each review?',
+    'What would make you call a milestone done?'
+  ],
+  rolloutSteps: [
+    "What's slowed a rollout down for you before?",
+    'Which steps need a sign-off, and how long does that usually take?',
+    "What's happening on your jobs in the next 60 days that could get in the way?",
+    'Who should hear first when a step slips?',
+    'Which step, if it went well, would build the most momentum?'
+  ],
+  loop: [
+    'What happens to a concern a crew raises, start to finish?',
+    'How long does it take today for the field to hear back?',
+    "What's a time you closed the loop well, and how did the crew react?",
+    'Who should the field hear back from: their superintendent, safety, or someone higher up?',
+    "What would make a foreman raise something he'd normally keep to himself?",
+    'How would you know people trust the loop?'
+  ],
+  comms: [
+    'Which channels do crews actually check: text, a group chat, the morning huddle, the jobsite board?',
+    "What's the one thing you'd want every crew member to understand about why this is happening?",
+    'How much notice does the field need before something new shows up?',
+    'Who should be the face of this to the field?',
+    'How will you hear what the field is saying about it?'
+  ],
+  experiments: [
+    "What's a question about your crews you've always wanted answered?",
+    "What are you doing on safety today that you're not sure is working?",
+    'If you could test one change on a couple of jobs, what would it be?',
+    "What would you do differently if the test worked? If it didn't?",
+    'Who would want to see the result?'
+  ],
+  economics: [
+    'How does your company decide whether a tool like this is worth renewing?',
+    'Who else signs off on spending, and what do they need to see?',
+    "When does next year's budget get set?",
+    "If this works in the first group, where would it go next, and what's in the way?",
+    'How do you weigh what this costs against the time and cost it saves?'
+  ],
+  risks: [
+    "What's most likely to slow this down?",
+    "What's changing in your company this year: leadership, a reorganization, a big new job?",
+    'Who has doubts about this, and what would they say if I asked?',
+    'What else is competing for your crews\' attention this year?',
+    'Have you tried something like this before? What happened?',
+    'What has to keep going right for this to work?'
+  ],
+  handoff: [
+    'What problem did they say they were solving when they signed?',
+    'What did they compare us against?',
+    'What number did they say would prove it worked?',
+    'What timeline were they given for results?',
+    "Who in the deal hasn't met us yet?",
+    'Was there a worry they raised that never got a full answer?'
+  ],
+  setup: [
+    'Who on their side changes things in the account, and how often?',
+    "Which setup choices were made on purpose and shouldn't be undone?",
+    "What's still waiting on the customer?",
+    'Which connections or exports does anyone rely on?',
+    'Where is the latest setup decision written down?'
+  ],
+  advocacy: [
+    "Who has seen a result they'd be glad to talk about?",
+    'Which of their leaders talk with peers at other companies?',
+    'What would they get out of telling their story: recognition, a speaking slot, a say in what we build next?',
+    "What's the story they'd tell, in one sentence?",
+    'Who in their network is facing the same problem they had?',
+    'When is the right moment to ask: after a win, a review, or the renewal?'
+  ],
+  journey: [
+    'Which checklist items does this plan finish today?',
+    'Which ones still need a date?',
+    'What do we need from the customer to close the rest?'
+  ],
+  fcObjective: [
+    'Why does simplifying matter to you this year: time, consistency, or getting more out of what you already collect?',
+    'What would your superintendents stop doing if this went well?',
+    'Ballpark, how much time do your people spend on safety systems each week?',
+    'Which leader would you most want to see this make a difference for?',
+    'How would you explain the goal to a foreman in one sentence?'
+  ],
+  fcSimplify: [
+    'How many systems does a new hire get added to on their first day?',
+    'How long does it take to get a trade partner set up today?',
+    'Where do mistakes come from when the same thing is entered twice?',
+    'Who spends the most time keeping lists in sync?',
+    'What would your admins do with that time back?'
+  ],
+  fcValue: [
+    "What does an hour of a foreman's time cost you, all in?",
+    'How many permits or plans do your crews complete in a week?',
+    'If each one took a few minutes less, where would that time go?',
+    'Which matters most to your leadership: less time, better information, or more people taking part?',
+    'Who would need to see these numbers to believe them?'
+  ],
+  fcConverge: [
+    'Which app does the field like least, and why?',
+    'What do you pay each year for the systems the field uses?',
+    'Which forms would be easier as a quick voice note or video?',
+    'Who decides when an old system goes away?',
+    'What has to be true before the field gives up the old way?'
+  ],
+  fcStandards: [
+    'What makes your strongest project strong: the people, the planning, or how leaders follow up?',
+    "Which standard do you have on paper that the field doesn't really follow?",
+    'Where would you most want every project to work like your best one?',
+    'How do you teach a new superintendent your standards today?',
+    "Once we find what stronger teams do differently, how would you want to roll it out?"
+  ],
+  fcTrades: [
+    'What would help a trade partner win more of your work?',
+    'How do you measure trade partners on safety today?',
+    'Which trade partners are newer to you and still learning your way?',
+    'What would you want trade partners to tell other contractors about working with you?'
+  ],
+  fcIncidents: [
+    "What's the most common kind of incident on your jobs?",
+    'What does a typical recordable cost you, all in?',
+    'Which lessons from past incidents do you worry never reach new crews?',
+    'How long does a root cause review take, and who sees the result?',
+    'What would you do if you saw the same conditions showing up on several jobs?'
+  ],
+  fcRhythm: [
+    'How much time do your leaders spend building reports each month?',
+    'What do leaders do after they look at a report?',
+    'Which meetings do you already have that this could fit into, instead of adding one?',
+    'What would a regional leader need to see to act on it the same week?',
+    'Who is missing from those meetings today?'
+  ],
+  fcGovern: [
+    'Who makes the final call when safety and operations disagree?',
+    'How often can your sponsor realistically meet?',
+    'Who on the steering group would bring the toughest questions?',
+    'How do decisions get written down and shared today?',
+    'If a workstream stalls, who should hear first?'
+  ],
+  fcMeasures: [
+    'Which of these could you put a dollar value on?',
+    'Which measure would your CFO care about? Which one would your field?',
+    'Where would a small improvement mean a lot to you?',
+    'How often do you want to look at these together?',
+    'Which number would you share with the field?'
+  ],
+  fcYearEnd: [
+    'What would make a quarterly report worth reading for a busy leader?',
+    'What decisions would you make with what we learn each quarter?',
+    'What do you want your year-end story to be, in one sentence?',
+    'How would you turn what we learn into training for new hires?',
+    'Who outside safety should hear the year-end results?'
+  ],
+  fcPunch: [
+    'Which of these has held up a start for you before?',
+    "What's the earliest your side could have each one done?",
+    'Who on your side has time for this before Day 1?',
+    'What could we take off your plate here?'
+  ],
+  fcReady: [
+    'Which of these would your leadership ask about first?',
+    'If we started tomorrow, which answer would worry you most?',
+    "Who should sign off that we're ready?",
+    'What would make you comfortable saying go?'
+  ],
+  pxWho: [
+    'How did they hear about us, and what caught their eye?',
+    'What part do they play in how crews plan?',
+    'How many jobs are running right now, and where?',
+    'Who above them cares most about safety results?',
+    "What's on their plate for 2027 that this could help with?"
+  ],
+  pxToday: [
+    'How long does a crew spend planning before work starts?',
+    'What happens to a plan after it is filled out?',
+    'When did a morning plan last help a crew avoid a problem?',
+    'What gets in the way of better plans: time, crew turnover, or buy-in?',
+    'What would a 10 out of 10 morning sound like on one of their jobs?'
+  ],
+  pxTop: [
+    "Why that one first? What's it costing them today?",
+    'Who else in the company feels that one most?',
+    'What have they tried on it already?',
+    'If it were fixed by next year, what would be different on their jobs?'
+  ],
+  pxPaper: [
+    'How many forms does a foreman fill out in a week?',
+    'Who reads them once they are done?',
+    'If a foreman got that time back, where would it go?',
+    'Across all their foremen, what does that time add up to?'
+  ],
+  pxChange: [
+    'How often does the plan change after the crew starts?',
+    'Who decides when to stop and re-plan?',
+    'How do crews tell each other when something has changed?',
+    'What did the last change that caught a crew off guard cost them?'
+  ],
+  pxLate: [
+    'What did they find out last month that they wish they had known that morning?',
+    'How long does it take for a problem on a job to reach them?',
+    'What would they do differently if they saw it the same day?',
+    'Who is their early warning today?'
+  ],
+  pxSilo: [
+    'What does operations care most about in a morning plan? What does safety?',
+    'Who does the field listen to more?',
+    'When did safety and operations last review a plan together?',
+    'What would change if they owned the plan together?'
+  ],
+  pxLessons: [
+    'What lesson did one job learn the hard way that another job repeated?',
+    'How do new crews find out how the work was done last time?',
+    'Who carries the know-how from job to job today?',
+    'What would it be worth if a lesson reached every job within a week?'
+  ],
+  pxBench: [
+    'How long does it take a new foreman to plan like their best ones?',
+    'What happens to a job when a strong foreman retires or leaves?',
+    'Who coaches new foremen today, and how much time do they have for it?',
+    'What does it cost them to replace a foreman?'
+  ],
+  pxNext: [
+    'Who on their side has to say yes to try something new?',
+    'What would they need to see at the follow-up to take a next step?',
+    'What else is going on for them before year end that could affect timing?',
+    'Which of their top three should we lead with?'
+  ]
+};
 /* The steps of a prospect plan: the base steps, the areas they picked (in the order picked), any other area
    with answers in it, then the follow-up. Returns true if the steps changed. */
 function syncProspect(p) {
@@ -2642,6 +2990,16 @@ function basicsHtml(p) {
 }
 
 /* A step's curious questions, plus any for what the account needs this year (e.g. Renew). */
+/* The orange box: the step's questions, and "More questions" at the far right, which opens MORE_ASK
+   below them. Open boxes stay open while you move between steps (this window only). */
+let askOpen = {};
+function askBoxHtml(p, s) {
+  const asks = asksFor(p, s), more = MORE_ASK[s.key] || [], open = !!askOpen[s.key];
+  if (!asks.length && !more.length) return '';
+  return `<div class="ask" id="ask-${esc(s.key)}"><div class="ask-head"><div class="ask-title">Questions to get curious with</div>${more.length ? `<button class="ask-more" data-action="ask-more" data-key="${esc(s.key)}" aria-expanded="${open}">${open ? 'Fewer questions' : 'More questions'}</button>` : ''}</div>
+    ${asks.length ? `<ul>${asks.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
+    ${open ? `<ul class="ask-extra${asks.length ? '' : ' alone'}">${more.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}</div>`;
+}
 function asksFor(p, s) { return (s.ask || []).concat(((s.modeAsk || {})[p.meta.mode]) || [], ((((MODES[p.meta.mode] || {}).ask) || {})[s.key]) || []); }
 function sectionHtml(p, s) {
   const d = p.data[s.key] || (p.data[s.key] = {});
@@ -2649,8 +3007,7 @@ function sectionHtml(p, s) {
   let html = `<div class="sec-branch">${esc(branch.label)}${branch.internal ? ' (not shown to the customer)' : ''}</div>
     <div class="sec-head"><h2>${esc(s.title)}</h2>${s.model ? `<span class="dogear" title="${esc(MODEL_TIP)}" style="margin-top:9px"></span>` : ''}${(p.meta.flow || !s.core) && !leavesFor(s, p).length && !(p.notes || {})[s.key] ? `<button class="qs-more" data-action="remove-section" data-key="${s.key}">Remove from this plan</button>` : ''}</div>
     ${s.intro ? `<p class="sec-intro">${esc(s.intro)}</p>` : ''}`;
-  const asks = asksFor(p, s);
-  if (asks.length) html += `<div class="ask"><div class="ask-title">Questions to get curious with</div><ul>${asks.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>`;
+  html += askBoxHtml(p, s);
   if (s.hint) html += `<div class="hint">${esc(s.hint)}</div>`;
   if (s.key === 'milestones') {
     const phases = d.phases || {};
@@ -3576,6 +3933,12 @@ function handleClick(e) {
   if (!a) return;
   const p = cur();
   const act = a.dataset.action;
+  if (act === 'ask-more') {
+    const k = a.dataset.key; askOpen[k] = !askOpen[k];
+    const box = document.getElementById('ask-' + k), s = sectionByKey(k, p);
+    if (box && s) box.outerHTML = askBoxHtml(p, s);
+    return;
+  }
   if (act === 'logo-clear') { logoSet(a.dataset.scope, null, ''); return; }
   if (act === 'create') {
     const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '', rollout: ROLLOUT_MODES.includes(document.getElementById('w-mode').value) ? document.getElementById('w-rollout').value : '' };

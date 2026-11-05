@@ -103,6 +103,8 @@ Field types:
 
 `showIf: d => d.first === 'Other'` hides a field until it applies.
 
+**More questions.** Every step's orange box has a **More questions** button at the far right that opens a second set below the step's own questions (`MORE_ASK`, keyed by section key, rendered by `askBoxHtml()`; open boxes stay open while moving between steps, in this window only). Steps with no questions of their own still get the box with just the button. These questions dig into why it matters to the customer and what it's worth in their own numbers (time, cost, the outcomes they already track), so the plan can show the return in their terms. They ask for the customer's numbers and never supply or promise one. Keep the step's own `ask` list short and put extra questions in `MORE_ASK`; a new section gets its own `MORE_ASK` entry. They stay out of the AI prompt for Fill from a call, the Note, the customer view and the PDFs.
+
 `modeAsk: { renew: [...] }` on a section adds curious questions when the account needs that (`asksFor()`). Prefer `MODES[need].ask` so everything a need does stays in one place.
 
 **Milestones: baseline first, and who does it.** New plans start with Barry's order in the first 30 days (Day 1, set the baseline together, they pick three things to improve, Day 30 report-out; we measure whether they're working by day 90), and every milestone has a "Who does it" choice. Pre-filled milestones and rhythm lines show a "Starting text: keep it" tag until the CSM edits, ticks or keeps them; the ready check lists what's still starting text. Plans saved before Nov 2026 have the old starting milestones (`MS_OLD_DEFAULT`) and are read the same way, so the customer view still hides them until touched.
