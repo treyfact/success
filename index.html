@@ -196,18 +196,19 @@ body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .seg .btn { padding: 7px 14px; font-size: 13.5px; }
 #timerBtn { font-variant-numeric: tabular-nums; min-width: 64px; }
 .team-panel { width: 300px; padding: 14px; }
-.hs-setup { position: fixed; inset: 0; background: rgba(15, 22, 35, .45); z-index: 60; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
-.hs-setup[hidden] { display: none; }
-.hs-card { background: var(--surface); color: var(--ink); border-radius: 14px; max-width: 760px; width: 100%; padding: 20px 22px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
-.hs-card h2 { margin: 0 0 4px; }
-.hs-card .help { margin-bottom: 12px; }
-.hs-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-.hs-row input[type=text] { flex: 1; min-width: 180px; }
-.hs-list { border: 1px solid var(--line); border-radius: 10px; max-height: 46vh; overflow: auto; }
-.hs-list label { display: flex; gap: 10px; align-items: baseline; padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; cursor: pointer; }
-.hs-list label:last-child { border-bottom: 0; }
-.hs-list small { color: var(--faint); margin-left: auto; white-space: nowrap; }
-.hs-msg { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+.hs-signin { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); margin: 0 0 18px; }
+.hs-signin .btn { font-weight: 600; }
+.hs-signin span { font-size: 13px; color: var(--muted); }
+.hs-signed { font-size: 13px; color: var(--muted); margin: 0 0 16px; }
+.hs-signed .qs-more { margin: 0 0 0 6px; }
+.hs-link { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.hs-link b { color: var(--ink); }
+.ta-list { position: fixed; z-index: 70; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 28px rgba(20, 30, 50, .16); max-height: 300px; overflow: auto; padding: 4px; }
+.ta-item { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 7px; font: inherit; font-size: 14px; color: var(--ink); cursor: pointer; }
+.ta-item small { display: block; color: var(--faint); font-size: 12px; }
+.ta-item.on, .ta-item:hover { background: var(--soft); }
+.ta-foot { font-size: 11.5px; color: var(--faint); padding: 4px 10px 2px; }
+
 .team-panel p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
 .team-panel .btn { width: 100%; text-align: center; margin-top: 4px; }
 .team-code { font-size: 24px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; margin: 2px 0 6px; }
@@ -771,7 +772,6 @@ table.grid td .other-box { margin-top: 4px; }
       <button data-cmd="fill">Fill from a call transcript</button>
       <button data-cmd="hubspot">Copy summary for HubSpot</button>
       <button data-cmd="signin" id="signinCmd" hidden>Sign in with Google (HubSpot)</button>
-      <button data-cmd="hscheck" id="hscheckCmd" hidden>Check HubSpot</button>
       <hr>
       <button data-cmd="export">Export this plan (file)</button>
       <button data-cmd="import">Import a plan file</button>
@@ -2437,6 +2437,7 @@ function newPlan(meta) {
   };
   if (welcomeLogo && !plans[id].meta.logo) { plans[id].meta.logo = welcomeLogo.src; plans[id].meta.logoRatio = welcomeLogo.ratio || 0; }
   welcomeLogo = null; logoMsg.welcome = '';
+  if (welcomeHs) { const np = plans[id]; np.meta.hubspot = welcomeHs; welcomeHs = null; setTimeout(() => hsFillCompany(np), 0); }
   if (plans[id].meta.rollout === 'full') addSections(plans[id], rolloutKeys());
   setNeed(plans[id], plans[id].meta.mode);
   currentId = id;
@@ -2703,7 +2704,8 @@ function welcomeHtml() {
   return `<div class="welcome">
     <h1>Start a success plan</h1>
     <p>Name the account, then pick how you want to build the plan. The map builds itself as you go.</p>
-    <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"><a class="logo-search" id="w-logoSearch" target="_blank" rel="noopener" hidden>(Get Company's Logo)</a></div>
+    <div id="hsBar-welcome">${hsBarHtml()}</div>
+    <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name" autocomplete="off"><a class="logo-search" id="w-logoSearch" target="_blank" rel="noopener" hidden>(Get Company's Logo)</a><div id="hsLink-welcome">${hsLinkHtml(welcomeHs)}</div></div>
     <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"><div class="help" id="w-modeHelp" style="margin-top:6px">${esc(MODES[Object.keys(MODES)[0]].lead)}</div></div>
     <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option><option value="na" hidden>N/A: not a customer yet</option></select></div>
     ${logoFieldHtml(welcomeLogo, 'welcome')}
@@ -2981,7 +2983,9 @@ function basicsHtml(p) {
   ${fillDone ? `<div class="fill-ok" style="margin-bottom:16px">${esc(fillDone)}</div>` : ''}
   <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
   ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}${needKeys(p, m.mode).length ? ' Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : ''}</div>` : ''}
-  <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"><a class="logo-search" id="b-logoSearch" target="_blank" rel="noopener" ${(m.account || '').trim() ? `href="${esc(logoSearchUrl(m.account))}"` : 'hidden'}>(Get Company's Logo)</a></div>
+  <div id="hsBar-plan">${hsBarHtml()}</div>
+  <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}" autocomplete="off"><a class="logo-search" id="b-logoSearch" target="_blank" rel="noopener" ${(m.account || '').trim() ? `href="${esc(logoSearchUrl(m.account))}"` : 'hidden'}>(Get Company's Logo)</a><div id="hsLink-plan">${hsLinkHtml(m.hubspot)}</div></div>
+  <div class="field"><label>Who I'm working with</label><input type="text" data-meta="contact" value="${esc(m.contact || '')}" autocomplete="off" placeholder="${auth && m.hubspot ? 'Start typing, or click to see their contacts' : 'Name and role'}"></div>
   ${logoFieldHtml(m.logo ? { src: m.logo, ratio: m.logoRatio } : null, 'plan')}
   ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span>${px ? '' : '<button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button>'}</div>
   ${modeFieldHtml(m)}`
@@ -4055,10 +4059,9 @@ function runCmd(c) {
   const p = cur();
   if (c === 'team') { openTeamPanel(); return; }
   if (c === 'theme') { setTheme(!isDark()); return; }
-  if (c === 'new') { welcomeLogo = null; logoMsg.welcome = ''; currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
+  if (c === 'new') { welcomeHs = null; welcomeLogo = null; logoMsg.welcome = ''; currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (c === 'signin') { if (auth) signOut(); else signIn(); return; }
-  if (c === 'hscheck') { openHsSetup(); return; }
   if (!p) return;
   if (c === 'fill') { go('fill'); return; }
   if (c === 'hubspot') { copyText(hubspotSummary(p)).then(ok => showToast(ok ? 'Copied. Paste it as a note on the company in HubSpot.' : 'This browser blocked copying. Try again from the hosted page.')); return; }
@@ -4311,9 +4314,9 @@ const HS_FN = TEAM_URL + '/functions/v1/hubspot';
 const HS_PORTAL = 'https://app-na2.hubspot.com/contacts/246468046/record/0-2/';   // + company ID
 function authHere() { try { return location.origin === 'https://treyfact.github.io' || !!localStorage.getItem('spb.authTest'); } catch (e) { return false; } }
 function jwtEmail(t) { try { const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return String(JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4))))).email || '').toLowerCase(); } catch (e) { return ''; } }
-let auth = null, authMsg = '';
+var auth = null, authMsg = '';   // var: the first render runs before this line
 try { auth = JSON.parse(localStorage.getItem('spb.auth') || 'null'); } catch (e) {}
-function authSave() { try { if (auth) localStorage.setItem('spb.auth', JSON.stringify(auth)); else localStorage.removeItem('spb.auth'); } catch (e) {} authMenu(); }
+function authSave() { try { if (auth) localStorage.setItem('spb.auth', JSON.stringify(auth)); else localStorage.removeItem('spb.auth'); } catch (e) {} authMenu(); hsBarsRefresh(); }
 (function takeSignIn() {   // Google and Supabase send people back with the sign-in in the address (#access_token=...)
   if (!/(^#|&)(access_token|error)=/.test(location.hash)) return;
   const h = new URLSearchParams(location.hash.slice(1));
@@ -4326,8 +4329,8 @@ function authSave() { try { if (auth) localStorage.setItem('spb.auth', JSON.stri
   try { localStorage.setItem('spb.auth', JSON.stringify(auth)); } catch (e) {}
 })();
 function authMenu() {
-  const b = document.getElementById('signinCmd'), c = document.getElementById('hscheckCmd'); if (!b || !c) return;
-  b.hidden = !authHere(); c.hidden = !auth || !authHere();
+  const b = document.getElementById('signinCmd'); if (!b) return;
+  b.hidden = !authHere();
   b.textContent = auth ? 'Sign out of HubSpot (' + auth.email + ')' : 'Sign in with Google (HubSpot)';
 }
 function signIn() {
@@ -4364,53 +4367,139 @@ async function hsCall(action, params) {
   if (!r.ok) throw new Error(j.error || "HubSpot didn't answer. Type it in by hand.");
   return j;
 }
-/* Check HubSpot (setup, step 3): proves the connection and lists company and deal fields, so the
-   money fields to show can be picked. Read-only. Picks live in this window until copied. */
-const hsSetup = { obj: 'companies', fields: {}, picks: { companies: new Set(), deals: new Set() }, filter: '', numOnly: true, msg: '', busy: false };
-function openHsSetup() {
-  let el = document.getElementById('hsSetup');
-  if (!el) { el = document.createElement('div'); el.id = 'hsSetup'; el.className = 'hs-setup'; document.body.appendChild(el); el.addEventListener('click', hsSetupClick); el.addEventListener('input', hsSetupInput); }
-  el.hidden = false; renderHsSetup();
-  if (!hsSetup.fields[hsSetup.obj]) hsLoadFields(hsSetup.obj);
+
+/* ---------- HubSpot as you type (read-only) ----------
+   Signed in, the Account name box lists matching HubSpot companies as you type; picking one links the
+   plan to that company's exact HubSpot ID (meta.hubspot: { id, name, domain, city, state }) and fills
+   the blanks it can. Editing the name afterward unlinks it until a company is picked again. Who I'm
+   working with then lists only that company's contacts. Not signed in, offline, or HubSpot asleep:
+   no list appears and everything is typed by hand, as before. */
+var welcomeHs = null;   // the company picked on the welcome screen, before the plan exists
+function hsBarHtml() {
+  if (!authHere()) return '';
+  if (!auth) return `<div class="hs-signin"><button class="btn primary" data-cmd="signin">Sign in with Google</button><span>Fills in the account from HubSpot as you type. Optional.</span></div>`;
+  return `<p class="hs-signed">Signed in as ${esc(auth.email)}. Company names and contacts come from HubSpot as you type.<button class="qs-more" data-cmd="signin">Sign out</button></p>`;
 }
-async function hsLoadFields(obj) {
-  hsSetup.busy = true; hsSetup.msg = 'Asking HubSpot...'; renderHsSetup();
-  try { const j = await hsCall('listFields', { object: obj }); hsSetup.fields[obj] = (j.results || []).sort((a, b) => String(a.label).localeCompare(b.label)); hsSetup.msg = 'Connected. HubSpot sent ' + hsSetup.fields[obj].length + ' ' + (obj === 'deals' ? 'deal' : 'company') + ' fields.'; }
-  catch (e) { hsSetup.msg = e.message + (/permission/.test(e.message) ? ' (The key may not be allowed to list fields. You can find field names in HubSpot under Settings, then Properties.)' : ''); }
-  hsSetup.busy = false; renderHsSetup();
+function hsLinkHtml(h) {
+  if (!auth || !authHere()) return '';
+  if (!h || !h.id) return `<div class="hs-link">Not linked to HubSpot yet. Pick the company from the list as you type.</div>`;
+  const where = [h.domain, [h.city, h.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+  return `<div class="hs-link">Linked to HubSpot: <b>${esc(h.name)}</b>${where ? ' · ' + esc(where) : ''} · <a href="${HS_PORTAL + encodeURIComponent(h.id)}" target="_blank" rel="noopener">Open in HubSpot</a></div>`;
 }
-function renderHsSetup() {
-  const el = document.getElementById('hsSetup'); if (!el || el.hidden) return;
-  const o = hsSetup.obj, all = hsSetup.fields[o] || [], f = hsSetup.filter.toLowerCase();
-  const shown = all.filter(x => (!hsSetup.numOnly || /^(number|date|datetime)$/.test(x.type)) && (!f || (x.label + ' ' + x.name).toLowerCase().includes(f)));
-  const n = hsSetup.picks.companies.size + hsSetup.picks.deals.size;
-  const keepFocus = document.activeElement && document.activeElement.id === 'hsFilter';
-  el.innerHTML = `<div class="hs-card" role="dialog" aria-label="Check HubSpot">
-    <div class="hs-row" style="justify-content:space-between"><h2>Check HubSpot</h2><button class="btn" data-hs="close">Close</button></div>
-    <div class="help">Signed in as ${esc(auth ? auth.email : '')}. This only reads from HubSpot. Tick the money fields the plan should fill in, then Copy my picks and send them to Claude.</div>
-    <div class="hs-row"><button class="btn ${o === 'companies' ? 'primary' : ''}" data-hs="obj" data-v="companies">Company fields</button><button class="btn ${o === 'deals' ? 'primary' : ''}" data-hs="obj" data-v="deals">Deal fields</button>
-      <label class="check ${hsSetup.numOnly ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-hs="num" ${hsSetup.numOnly ? 'checked' : ''}> Only numbers and dates</label></div>
-    <div class="hs-row"><input type="text" id="hsFilter" placeholder="Filter, e.g. revenue, ARR, renewal" value="${esc(hsSetup.filter)}" aria-label="Filter fields"></div>
-    <div class="hs-list">${shown.length ? shown.map(x => `<label><input type="checkbox" data-hs="pick" data-v="${esc(x.name)}" ${hsSetup.picks[o].has(x.name) ? 'checked' : ''}><span>${esc(x.label)} <span style="color:var(--faint)">(${esc(x.name)})</span></span><small>${esc(x.type)}</small></label>`).join('') : `<div class="hs-msg" style="padding:12px">${hsSetup.busy ? 'Loading...' : all.length ? 'No fields match.' : 'Nothing loaded yet.'}</div>`}</div>
-    <div class="hs-row" style="margin-top:12px"><button class="btn primary" data-hs="copy" ${n ? '' : 'disabled'}>Copy my picks (${n})</button></div>
-    ${hsSetup.msg ? `<p class="hs-msg">${esc(hsSetup.msg)}</p>` : ''}</div>`;
-  if (keepFocus) { const i = document.getElementById('hsFilter'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+function hsBarsRefresh() {
+  ['welcome', 'plan'].forEach(k => { const el = document.getElementById('hsBar-' + k); if (el) el.innerHTML = hsBarHtml(); });
+  hsLinkRefresh();
 }
-function hsSetupClick(e) {
-  const t = e.target.closest('[data-hs]'); if (e.target.id === 'hsSetup') { e.currentTarget.hidden = true; return; }
-  if (!t) return;
-  const k = t.dataset.hs;
-  if (k === 'close') { document.getElementById('hsSetup').hidden = true; return; }
-  if (k === 'obj') { hsSetup.obj = t.dataset.v; renderHsSetup(); if (!hsSetup.fields[hsSetup.obj]) hsLoadFields(hsSetup.obj); return; }
-  if (k === 'num') { hsSetup.numOnly = t.checked; renderHsSetup(); return; }
-  if (k === 'pick') { const s = hsSetup.picks[hsSetup.obj]; t.checked ? s.add(t.dataset.v) : s.delete(t.dataset.v); renderHsSetup(); return; }
-  if (k === 'copy') {
-    const line = o => [...hsSetup.picks[o]].map(n => { const x = (hsSetup.fields[o] || []).find(f => f.name === n); return (x ? x.label : n) + ' (' + n + ')'; }).join(', ') || 'none';
-    copyText('Money fields to show.\nCompany fields: ' + line('companies') + '\nDeal fields: ' + line('deals')).then(ok => { hsSetup.msg = ok ? 'Copied. Paste it to Claude.' : 'This browser blocked copying.'; renderHsSetup(); });
+function hsLinkRefresh() {
+  const w = document.getElementById('hsLink-welcome'); if (w) w.innerHTML = hsLinkHtml(welcomeHs);
+  const b = document.getElementById('hsLink-plan'), p = cur(); if (b && p) b.innerHTML = hsLinkHtml(p.meta.hubspot);
+}
+/* Fill the blanks from the linked company. Only empty answers are filled; nothing typed is replaced. */
+async function hsFillCompany(p) {
+  const h = p && p.meta.hubspot; if (!h || !h.id) return;
+  let c;
+  try { c = await hsCall('getCompany', { id: h.id }); } catch (e) { showToast(e.message); return; }
+  if (!p.meta.hubspot || p.meta.hubspot.id !== h.id) return;   // unlinked or changed meanwhile
+  Object.assign(p.meta.hubspot, { name: c.name || h.name, domain: c.domain || '', city: c.city || '', state: c.state || '' });
+  let owner = '';
+  if (c.hubspot_owner_id) { try { owner = (await hsCall('getOwner', { id: c.hubspot_owner_id })).name || ''; } catch (e) {} }
+  if (!p.meta.hubspot || p.meta.hubspot.id !== h.id) return;
+  p.meta.hubspot.owner = owner;
+  const set = (k, v) => { p.meta[k] = v; const el = document.querySelector(`#work [data-meta="${k}"]`); if (el && el !== document.activeElement) el.value = v; };
+  // The HubSpot company owner is usually the CSM (Trey, Nov 5 2026): fill CSM when it's empty, or still
+  // holds what an earlier pick filled in (meta.csmAuto). Prospects skip it: their box is "Who ran the call".
+  let ownerUsed = false;
+  if (owner && p.meta.template !== 'prospect' && (!(p.meta.csm || '').trim() || (p.meta.csmAuto && p.meta.csm === p.meta.csmAuto))) { set('csm', owner); p.meta.csmAuto = owner; ownerUsed = true; }
+  else if (owner && p.meta.csm === owner) ownerUsed = true;
+  const facts = [c.domain, [c.city, c.state].filter(Boolean).join(', '), owner && !ownerUsed && 'HubSpot owner: ' + owner].filter(Boolean).join(' · ');
+  if (facts) {   // one "From HubSpot:" line, swapped for the new company's if the pick changes
+    const rest = (p.meta.context || '').split('\n').filter(l => !/^From HubSpot:/.test(l)).join('\n').trim();
+    set('context', (rest ? rest + '\n' : '') + 'From HubSpot: ' + facts);
   }
+  if (!(p.meta.sources || '').trim()) set('sources', 'HubSpot');
+  saveSoon(); sideSoon(); hsLinkRefresh();
 }
-function hsSetupInput(e) { if (e.target.id === 'hsFilter') { hsSetup.filter = e.target.value; renderHsSetup(); } }
-setTimeout(() => { authMenu(); if (authMsg) showToast(authMsg); }, 300);
+function hsContactLine(c) { return [[c.firstname, c.lastname].filter(Boolean).join(' '), c.jobtitle].filter(Boolean).join(', '); }
+function hsPickContact(p, c) {
+  const name = [c.firstname, c.lastname].filter(Boolean).join(' ') || c.email || '';
+  p.meta.contact = hsContactLine(c) || name;
+  if (p.meta.template === 'prospect') {   // prospects: also the About them answers, when they're still empty
+    const w = p.data.pxWho || (p.data.pxWho = {});
+    if (!w.contact) w.contact = name;
+    if (!w.role && c.jobtitle) w.role = c.jobtitle;
+  }
+  saveSoon(); sideSoon();
+}
+/* The list under a box: one at a time, fixed under the box, keyboard and mouse. */
+const ta = { el: null, input: null, kind: '', items: [], i: -1, seq: 0, timer: 0 };
+function taBox() { if (!ta.el) { ta.el = document.createElement('div'); ta.el.className = 'ta-list'; ta.el.setAttribute('role', 'listbox'); ta.el.hidden = true; document.body.appendChild(ta.el); ta.el.addEventListener('mousedown', taMouse); } return ta.el; }
+function taClose() { if (ta.el) ta.el.hidden = true; ta.items = []; ta.i = -1; ta.input = null; }
+function taKind(t) {
+  if (!t || !auth || !authHere()) return '';
+  if (t.id === 'w-account' || (t.dataset && t.dataset.meta === 'account')) return 'company';
+  if (t.dataset && t.dataset.meta === 'contact') { const p = cur(); return p && p.meta.hubspot && p.meta.hubspot.id ? 'contact' : ''; }
+  return '';
+}
+function taAsk(t, soon) {
+  const kind = taKind(t); if (!kind) return;
+  clearTimeout(ta.timer);
+  const q = t.value.trim();
+  if (kind === 'company' && q.length < 2) { taClose(); return; }
+  ta.timer = setTimeout(async () => {   // wait a moment after typing stops, so HubSpot isn't flooded
+    const seq = ++ta.seq;
+    let r;
+    try { r = kind === 'company' ? await hsCall('searchCompanies', { q }) : await hsCall('searchContacts', { companyId: cur().meta.hubspot.id, q }); }
+    catch (e) { if (seq === ta.seq) taClose(); return; }   // can't reach it: just type by hand
+    if (seq !== ta.seq || document.activeElement !== t) return;
+    ta.input = t; ta.kind = kind; ta.items = r.results || []; ta.i = -1; taDraw();
+  }, soon ? 0 : 350);
+}
+function taDraw() {
+  const el = taBox(), t = ta.input;
+  if (!t || !ta.items.length) { el.hidden = true; return; }
+  const r = t.getBoundingClientRect();
+  Object.assign(el.style, { left: r.left + 'px', top: (r.bottom + 4) + 'px', width: r.width + 'px' });
+  el.innerHTML = ta.items.map((x, i) => ta.kind === 'company'
+    ? `<button type="button" class="ta-item ${i === ta.i ? 'on' : ''}" data-i="${i}" role="option">${esc(x.name || '(no name)')}<small>${esc([x.domain, [x.city, x.state].filter(Boolean).join(', ')].filter(Boolean).join(' · '))}</small></button>`
+    : `<button type="button" class="ta-item ${i === ta.i ? 'on' : ''}" data-i="${i}" role="option">${esc([x.firstname, x.lastname].filter(Boolean).join(' ') || x.email || '(no name)')}<small>${esc([x.jobtitle, x.email].filter(Boolean).join(' · '))}</small></button>`).join('') + '<div class="ta-foot">From HubSpot</div>';
+  el.hidden = false;
+}
+function taPick(i) {
+  const x = ta.items[i], t = ta.input, kind = ta.kind; if (!x || !t) return;
+  taClose();
+  if (kind === 'company') {
+    const h = { id: String(x.id), name: x.name || '', domain: x.domain || '', city: x.city || '', state: x.state || '' };
+    t.value = h.name;
+    if (t.id === 'w-account') { welcomeHs = h; logoSearchSync(); hsLinkRefresh(); return; }
+    const p = cur(); if (!p) return;
+    p.meta.account = h.name; p.meta.hubspot = h;
+    logoSearchSync(t, document.getElementById('b-logoSearch'));
+    saveSoon(); sideSoon(); hsLinkRefresh();
+    const c = document.querySelector('#work [data-meta="contact"]'); if (c) c.placeholder = 'Start typing, or click to see their contacts';
+    hsFillCompany(p);
+    return;
+  }
+  const p = cur(); if (!p) return;
+  hsPickContact(p, x); t.value = p.meta.contact;
+}
+function taMouse(e) { const b = e.target.closest('.ta-item'); if (!b) return; e.preventDefault(); taPick(+b.dataset.i); }
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'w-account' && welcomeHs && t.value.trim() !== welcomeHs.name) { welcomeHs = null; hsLinkRefresh(); }
+  if (t.dataset && t.dataset.meta === 'account') { const p = cur(); if (p && p.meta.hubspot && t.value.trim() !== p.meta.hubspot.name) { p.meta.hubspot = null; saveSoon(); hsLinkRefresh(); } }
+  taAsk(t);
+});
+document.addEventListener('focusin', e => { if (taKind(e.target) === 'contact') taAsk(e.target, true); });
+document.addEventListener('focusout', e => { if (e.target === ta.input) setTimeout(() => { if (document.activeElement !== ta.input) taClose(); }, 120); });
+document.addEventListener('keydown', e => {
+  if (!ta.input || e.target !== ta.input || !ta.el || ta.el.hidden) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = ta.items.length; ta.i = (ta.i + (e.key === 'ArrowDown' ? 1 : n - 1) + (ta.i < 0 && e.key === 'ArrowUp' ? 1 : 0)) % n; taDraw(); }
+  else if (e.key === 'Enter' && ta.i >= 0) { e.preventDefault(); e.stopPropagation(); taPick(ta.i); }
+  else if (e.key === 'Escape') taClose();
+}, true);
+window.addEventListener('scroll', () => { if (ta.el && !ta.el.hidden) taDraw(); }, true);
+window.addEventListener('resize', () => { if (ta.el && !ta.el.hidden) taDraw(); });
+setTimeout(() => { authMenu(); hsBarsRefresh(); if (authMsg) showToast(authMsg); }, 300);
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 let team = null;   // { code, planId, ws, topic, me, peers, ref, joinRef, joined, snap, error, hbTimer, pingTimer, closing }
 
@@ -4623,7 +4712,7 @@ document.getElementById('startFab').addEventListener('click', () => {
   const p = cur();
   if (p && !confirm('Start over? This deletes the plan for ' + (p.meta.account || 'this account') + ' and goes back to Start a success plan. Export it first if you might want it back.')) return;
   if (p) { delete plans[p.id]; saveNow(); }
-  pendingNew = null; builder = null; repick = false; welcomeLogo = null; logoMsg.welcome = '';
+  pendingNew = null; builder = null; repick = false; welcomeLogo = null; welcomeHs = null; logoMsg.welcome = '';
   fadeSwap(() => { currentId = null; currentSec = 'basics'; renderAll(); });
 });
 /* Swipe between steps: a sideways swipe on a phone, or a two-finger sideways swipe on a trackpad.
@@ -4692,7 +4781,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') setTimeout(u
    End a line with ? and press Enter to add a question of your own. If it matches a question in the
    plan, the answer goes there; if not, it waits in "Notes to sort" (never in the customer view).
    ========================================================= */
-const META_Q = [['account', 'Account name', 'text'], ['mode', 'What the account needs this year', 'mode'], ['csm', 'CSM', 'text'], ['backup', 'Backup', 'text'], ['day1', 'Day 1', 'date'], ['context', 'What you know so far', 'textarea'], ['sources', 'Where it came from', 'text']];
+const META_Q = [['account', 'Account name', 'text'], ['contact', "Who I'm working with", 'text'], ['mode', 'What the account needs this year', 'mode'], ['csm', 'CSM', 'text'], ['backup', 'Backup', 'text'], ['day1', 'Day 1', 'date'], ['context', 'What you know so far', 'textarea'], ['sources', 'Where it came from', 'text']];
 function miscOf(p) { const m = p.data.misc || (p.data.misc = { items: [], end: '' }); if (!Array.isArray(m.items)) m.items = []; return m; }
 function miscCount(p) { const m = (p && p.data && p.data.misc) || {}; return (m.items || []).filter(it => (it.q || '').trim() || (it.a || '').trim()).length + ((m.end || '').trim() ? 1 : 0); }
 function noteCols(f) { return f.noteCols ? f.columns.filter(c => f.noteCols.includes(c.key)) : f.columns; }
