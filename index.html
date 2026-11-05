@@ -2342,7 +2342,7 @@ function welcomeHtml() {
     <h1>Start a success plan</h1>
     <p>Name the account, then pick how you want to build the plan. The map builds itself as you go.</p>
     <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"><a class="logo-search" id="w-logoSearch" target="_blank" rel="noopener" hidden>(Get Company's Logo)</a></div>
-    <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"></div>
+    <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"><div class="help" id="w-modeHelp" style="margin-top:6px">${esc(MODES[Object.keys(MODES)[0]].lead)}</div></div>
     <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option><option value="na" hidden>N/A: not a customer yet</option></select></div>
     ${logoFieldHtml(welcomeLogo, 'welcome')}
     <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
@@ -2600,7 +2600,8 @@ document.addEventListener('click', builderClick);
 /* Welcome screen: the rollout size is asked for Launch and Grow, and shows N/A for Prospecting. */
 function welcomeRollout(mode) {
   const wrap = document.getElementById('w-rolloutWrap'), sel = document.getElementById('w-rollout'); if (!wrap || !sel) return;
-  const px = mode === 'prospect';
+  const px = mode === 'prospect', help = document.getElementById('w-modeHelp');
+  if (help) { help.textContent = (MODES[mode] || {}).lead || ''; help.hidden = !help.textContent; }   // what the picked need means, under the list
   wrap.style.display = ROLLOUT_MODES.includes(mode) || px ? '' : 'none';
   sel.disabled = px;
   if (px) sel.value = 'na'; else if (sel.value === 'na') sel.value = 'first';
