@@ -470,6 +470,8 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .doc-their { display: block; object-fit: contain; }
 .doc-logo-sep { width: 1px; height: 30px; background: var(--line); flex: none; }
 .logo-pick { display: grid; gap: 8px; }
+.logo-search { display: block; text-align: center; margin-top: 6px; font-size: 13px; color: var(--navy); }
+.logo-search[hidden] { display: none; }
 .logo-pick .fill-drop { margin: 0; }
 .logo-prev { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
 .logo-prev img { max-height: 44px; max-width: 190px; object-fit: contain; display: block; }
@@ -2339,7 +2341,7 @@ function welcomeHtml() {
   return `<div class="welcome">
     <h1>Start a success plan</h1>
     <p>Name the account, then pick how you want to build the plan. The map builds itself as you go.</p>
-    <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"></div>
+    <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"><a class="logo-search" id="w-logoSearch" target="_blank" rel="noopener" hidden>(Get Company's Logo)</a></div>
     <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"></div>
     <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option><option value="na" hidden>N/A: not a customer yet</option></select></div>
     ${logoFieldHtml(welcomeLogo, 'welcome')}
@@ -2616,7 +2618,7 @@ function basicsHtml(p) {
   ${fillDone ? `<div class="fill-ok" style="margin-bottom:16px">${esc(fillDone)}</div>` : ''}
   <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
   ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}${needKeys(p, m.mode).length ? ' Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : ''}</div>` : ''}
-  <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
+  <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"><a class="logo-search" id="b-logoSearch" target="_blank" rel="noopener" ${(m.account || '').trim() ? `href="${esc(logoSearchUrl(m.account))}"` : 'hidden'}>(Get Company's Logo)</a></div>
   ${logoFieldHtml(m.logo ? { src: m.logo, ratio: m.logoRatio } : null, 'plan')}
   ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span>${px ? '' : '<button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button>'}</div>
   ${modeFieldHtml(m)}`
@@ -2962,6 +2964,17 @@ function logoFieldHtml(lg, scope) {
       ${msg ? `<div class="logo-msg ${/^(That|Couldn)/.test(msg) ? 'bad' : ''}">${esc(msg)}</div>` : ''}
     </div></div>`;
 }
+/* Under Account name on the welcome screen: a Google Images search for "<name> logo", once a name is typed. */
+function logoSearchUrl(name) { return 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(String(name).trim() + ' Logo'); }
+function logoSearchSync(i, a) {   // the welcome screen's name box, or Account basics' one
+  i = i || document.getElementById('w-account'); a = a || document.getElementById('w-logoSearch'); if (!i || !a) return;
+  const n = i.value.trim(); a.hidden = !n;
+  if (n) a.href = logoSearchUrl(n); else a.removeAttribute('href');
+}
+document.addEventListener('input', e => {
+  if (e.target.id === 'w-account') logoSearchSync();
+  else if (e.target.dataset && e.target.dataset.meta === 'account') logoSearchSync(e.target, document.getElementById('b-logoSearch'));
+});
 function logoRefresh(scope) {
   const el = document.getElementById('logoField-' + scope); if (!el) return;
   const p = cur();
@@ -3574,7 +3587,7 @@ function handleClick(e) {
   if (act === 'start-back') {
     fadeSwap(() => {
       const nw = pendingNew; pendingNew = null; renderAll();
-      if (nw) { document.getElementById('w-account').value = nw.account; document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; document.getElementById('w-rollout').value = nw.rollout || 'first'; welcomeRollout(nw.mode); }
+      if (nw) { document.getElementById('w-account').value = nw.account; logoSearchSync(); document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; document.getElementById('w-rollout').value = nw.rollout || 'first'; welcomeRollout(nw.mode); }
     }); return;
   }
   if (act === 'start') {
