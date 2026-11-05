@@ -1,0 +1,74 @@
+# Keeps the Supabase project behind the Team code from pausing.
+# Free Supabase projects pause after about a week with no activity, and the
+# Team code never touches the database on its own. This job reads from the
+# database twice a week so it always counts as active.
+#
+# It also keeps itself switched on: GitHub turns off scheduled jobs in a repo
+# with no changes for 60 days, so if the repo has been quiet for 45 days the
+# job records today's date in .github/keep-alive.txt and pushes that change.
+#
+# Uses only the public project URL and publishable key that index.html
+# already contains. No secrets.
+
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: "17 14 * * 1,4" # Mondays and Thursdays, 14:17 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keep-supabase-awake
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: https://ccsqgjxqxhijvxjidzjb.supabase.co
+      SUPABASE_KEY: sb_publishable_b-PeSQRqJH0YAwoD9Mlykg_jHFQjouv
+    steps:
+      - name: Read from the database
+        run: |
+          ok=0
+          hit() {
+            name="$1"; shift
+            code=$(curl -s -o /tmp/body -w '%{http_code}' -m 30 --retry 2 --retry-delay 10 \
+              -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" "$@" || echo 000)
+            echo "$name -> HTTP $code: $(head -c 200 /tmp/body)"
+            if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then ok=$((ok+1)); fi
+          }
+          # Each of these runs a query inside the Postgres database.
+          hit "storage buckets" "$SUPABASE_URL/storage/v1/bucket"
+          hit "graphql" -X POST -H "Content-Type: application/json" \
+            -d '{"query":"{ __typename }"}' "$SUPABASE_URL/graphql/v1"
+          hit "rest api" "$SUPABASE_URL/rest/v1/"
+          # Auth service check (no database query, but still project activity).
+          hit "auth" "$SUPABASE_URL/auth/v1/health"
+          echo "$ok of 4 answered"
+          if [ "$ok" -eq 0 ]; then
+            echo "::error::Supabase did not answer. The project may be paused; restore it in the Supabase dashboard."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Keep this job switched on
+        run: |
+          last=$(git log -1 --format=%ct)
+          age_days=$(( ( $(date +%s) - last ) / 86400 ))
+          echo "Last change to the repo was $age_days days ago."
+          if [ "$age_days" -lt 45 ]; then
+            echo "Recent enough; nothing to do."
+            exit 0
+          fi
+          date -u +"Last keep-alive: %Y-%m-%d %H:%M UTC" > .github/keep-alive.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add .github/keep-alive.txt
+          git commit -m "Keep the Supabase keep-alive job switched on"
+          git push
