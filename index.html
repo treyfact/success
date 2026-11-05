@@ -465,7 +465,17 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 1.5px solid var(--line); padding-bottom: 14px; }
 .doc-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
 .doc-account { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-top: 2px; }
-.doc-logo { height: 28px; width: auto; margin-top: 4px; }
+.doc-logo { height: 28px; width: auto; display: block; }
+.doc-logos { display: flex; align-items: center; gap: 16px; flex: none; min-height: 44px; }
+.doc-their { display: block; object-fit: contain; }
+.doc-logo-sep { width: 1px; height: 30px; background: var(--line); flex: none; }
+.logo-pick { display: grid; gap: 8px; }
+.logo-pick .fill-drop { margin: 0; }
+.logo-prev { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.logo-prev img { max-height: 44px; max-width: 190px; object-fit: contain; display: block; }
+.logo-prev .qs-more { margin: 0 0 0 auto; }
+.logo-msg { font-size: 12.5px; color: var(--muted); }
+.logo-msg.bad { color: var(--red, #b3261e); }
 .doc-title { font-size: 17px; font-weight: 700; margin: 20px 0 14px; }
 .doc-body { flex: 1; min-height: 0; overflow: hidden; }
 .doc-foot { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 12px; }
@@ -701,7 +711,7 @@ table.grid td .other-box { margin-top: 4px; }
   .sec-head h2 { font-size: 28px; }
   .start-h, .welcome h1 { font-size: 26px; }
 }
-@media screen and (max-width: 760px) { .doc.flow .doc-account { font-size: 26px; } .doc.flow .doc-lead ul { grid-template-columns: 1fr; } }
+@media screen and (max-width: 760px) { .doc.flow .doc-head { flex-wrap: wrap; } .doc.flow .doc-logos { gap: 10px; min-height: 0; } .doc.flow .doc-their { max-height: 30px !important; } .doc.flow .doc-logo { height: 22px; } .doc.flow .doc-account { font-size: 26px; } .doc.flow .doc-lead ul { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -2061,6 +2071,8 @@ function newPlan(meta) {
     custom: [],
     notes: {}
   };
+  if (welcomeLogo && !plans[id].meta.logo) { plans[id].meta.logo = welcomeLogo.src; plans[id].meta.logoRatio = welcomeLogo.ratio || 0; }
+  welcomeLogo = null; logoMsg.welcome = '';
   if (plans[id].meta.rollout === 'full') addSections(plans[id], rolloutKeys());
   setNeed(plans[id], plans[id].meta.mode);
   currentId = id;
@@ -2330,6 +2342,7 @@ function welcomeHtml() {
     <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name"></div>
     <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}: ${esc(m.lead)}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"></div>
     <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option><option value="na" hidden>N/A: not a customer yet</option></select></div>
+    ${logoFieldHtml(welcomeLogo, 'welcome')}
     <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
   </div>`;
 }
@@ -2604,6 +2617,7 @@ function basicsHtml(p) {
   <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
   ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}${needKeys(p, m.mode).length ? ' Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : ''}</div>` : ''}
   <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}"></div>
+  ${logoFieldHtml(m.logo ? { src: m.logo, ratio: m.logoRatio } : null, 'plan')}
   ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span>${px ? '' : '<button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button>'}</div>
   ${modeFieldHtml(m)}`
   : `<div class="row2">
@@ -2920,14 +2934,121 @@ function renderSide() {
    ========================================================= */
 const DOC_W = 1056;   // 11in at 96 dpi
 function docLogo() { const l = document.querySelector('.brand-logo'); return l ? l.src : ''; }
+/* Their logo sits beside ours in the page header, sized to look about as big as ours: ours is a 6:1
+   wordmark 28px tall, so a squarer logo gets a little taller (up to 44px) and a very wide one a little
+   shorter, and nothing is wider than 190px. */
+function logoBox(ratio) {
+  if (!ratio) return 'max-height:40px;max-width:190px;width:auto;height:auto';
+  let h = Math.max(20, Math.min(44, 28 * Math.sqrt(6 / ratio))), w = h * ratio;
+  if (w > 190) { w = 190; h = w / ratio; }
+  return 'width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px';
+}
+/* ---------- Their logo: picked on the welcome screen (or Account basics), saved in meta.logo ----------
+   Any picture the browser can open (PNG, JPG, SVG, GIF, WebP, HEIC on Apple devices) is trimmed of the
+   empty border around it, shrunk, and saved inside the plan, so it works offline, in the plan file and
+   in the PDF. A link is copied in the same way when the site allows it; otherwise the link itself is
+   saved, and the logo shows when the page is online. */
+let welcomeLogo = null;                       // { src, ratio } picked before the plan exists
+const logoMsg = { welcome: '', plan: '' };    // the line under the logo box: what happened
+let logoBusy = '';
+function logoFieldHtml(lg, scope) {
+  const msg = logoBusy === scope ? 'Getting the logo...' : logoMsg[scope] || '';
+  return `<div class="field" id="logoField-${scope}"><label>Their logo <span style="font-weight:400;color:var(--faint)">(optional)</span></label>
+    <div class="help">Shows next to ours at the top of every page of their plan. Any picture file, or a link to one.</div>
+    <div class="logo-pick">
+      ${lg && lg.src ? `<div class="logo-prev"><img src="${esc(lg.src)}" alt="Their logo"><button class="qs-more" data-action="logo-clear" data-scope="${scope}">Remove</button></div>` : ''}
+      <label class="fill-drop small" data-drop="logo-${scope}"><input type="file" data-logo-file="${scope}" hidden>${lg && lg.src ? 'Drop a different file here, or <u>choose one</u>' : 'Drop their logo here, or <u>choose a file</u>'}</label>
+      <input type="text" data-logo-url="${scope}" placeholder="Or paste a link to the logo (or the picture itself) here" aria-label="Link to their logo">
+      ${msg ? `<div class="logo-msg ${/^(That|Couldn)/.test(msg) ? 'bad' : ''}">${esc(msg)}</div>` : ''}
+    </div></div>`;
+}
+function logoRefresh(scope) {
+  const el = document.getElementById('logoField-' + scope); if (!el) return;
+  const p = cur();
+  el.outerHTML = logoFieldHtml(scope === 'welcome' ? welcomeLogo : p && p.meta.logo ? { src: p.meta.logo, ratio: p.meta.logoRatio } : null, scope);
+}
+function logoSet(scope, lg, msg) {
+  logoBusy = ''; logoMsg[scope] = msg || '';
+  if (scope === 'welcome') welcomeLogo = lg;
+  else { const p = cur(); if (p) { p.meta.logo = lg ? lg.src : ''; p.meta.logoRatio = lg ? lg.ratio || 0 : 0; saveSoon(); sideSoon(); } }
+  logoRefresh(scope);
+}
+function logoLoad(src, cors) {
+  return new Promise((ok, no) => { const i = new Image(); if (cors) i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = no; i.src = src; });
+}
+function logoTidy(img) {
+  let w = img.naturalWidth, h = img.naturalHeight;
+  if (!w || !h) { w = 600; h = 200; }                                   // an SVG with no size of its own
+  const k = Math.min(1, 1600 / w, 800 / h); w = Math.max(1, Math.round(w * k)); h = Math.max(1, Math.round(h * k));
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+  const px = x.getImageData(0, 0, w, h).data;                           // throws if the site doesn't allow copying
+  const at = (i, j) => { const o = (j * w + i) * 4; return [px[o], px[o + 1], px[o + 2], px[o + 3]]; };
+  const bg = at(0, 0), corners = [at(w - 1, 0), at(0, h - 1), at(w - 1, h - 1)];
+  const same = (a, b) => (a[3] < 16 && b[3] < 16) || (a[3] >= 16 && b[3] >= 16 && Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) < 48);
+  let x0 = 0, y0 = 0, x1 = w - 1, y1 = h - 1;
+  if (corners.every(cn => same(cn, bg))) {                              // an even border all round: trim it
+    x0 = w; y0 = h; x1 = -1; y1 = -1;
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (!same(at(i, j), bg)) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (j < y0) y0 = j; if (j > y1) y1 = j; }
+    if (x1 < 0) { x0 = 0; y0 = 0; x1 = w - 1; y1 = h - 1; }
+  }
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, s = Math.min(1, 640 / cw, 200 / ch);
+  const o = document.createElement('canvas'); o.width = Math.max(1, Math.round(cw * s)); o.height = Math.max(1, Math.round(ch * s));
+  const ox = o.getContext('2d'); ox.imageSmoothingQuality = 'high'; ox.drawImage(c, x0, y0, cw, ch, 0, 0, o.width, o.height);
+  let src = o.toDataURL('image/png');
+  if (src.length > 160000) {                                            // a photo-like logo: a JPEG on white is far smaller
+    const j = document.createElement('canvas'); j.width = o.width; j.height = o.height;
+    const jx = j.getContext('2d'); jx.fillStyle = '#fff'; jx.fillRect(0, 0, j.width, j.height); jx.drawImage(o, 0, 0);
+    src = j.toDataURL('image/jpeg', 0.9);
+  }
+  return { src, ratio: o.width / o.height };
+}
+const LOGO_NOT_PICTURE = "That file isn't a picture this page can open. Save their logo as a PNG, JPG or SVG (or take a screenshot of it) and drop that in.";
+async function logoFromFile(file, scope) {
+  logoBusy = scope; logoMsg[scope] = ''; logoRefresh(scope);
+  try {
+    const url = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(file); });
+    const img = await logoLoad(url);
+    logoSet(scope, logoTidy(img), '');
+  } catch (e) { logoBusy = ''; logoMsg[scope] = LOGO_NOT_PICTURE; logoRefresh(scope); }
+}
+async function logoFromUrl(raw, scope) {
+  let u = String(raw || '').trim(); if (!u) return;
+  if (!/^(https?:|data:image\/)/i.test(u)) {
+    if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(u)) u = 'https://' + u;
+    else { logoMsg[scope] = "That doesn't look like a link. It should start with https://"; logoRefresh(scope); return; }
+  }
+  logoBusy = scope; logoMsg[scope] = ''; logoRefresh(scope);
+  try {                                                                 // 1. copy it in, if the site allows
+    const r = await fetch(u, { mode: 'cors' });
+    if (r.ok) { const b = await r.blob(); if (/^image\//.test(b.type)) { const url = await new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(b); }); logoSet(scope, logoTidy(await logoLoad(url)), ''); return; } }
+  } catch (e) { /* the site doesn't share it; try the next way */ }
+  try { logoSet(scope, logoTidy(await logoLoad(u, true)), ''); return; } catch (e) { /* not allowed to copy */ }
+  try {                                                                 // 2. keep the link itself
+    const img = await logoLoad(u);
+    logoSet(scope, { src: u, ratio: img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 0 }, "Their site doesn't let us keep a copy, so the plan links to it. It shows whenever you're online. To keep a copy, save the picture and drop the file in instead.");
+  } catch (e) { logoBusy = ''; logoMsg[scope] = "That link isn't a picture. On their website, right-click the logo, choose Copy Image Address, and paste that here."; logoRefresh(scope); }
+}
+document.addEventListener('change', e => {
+  const t = e.target; if (!t.dataset) return;
+  if (t.dataset.logoFile && t.files && t.files[0]) { logoFromFile(t.files[0], t.dataset.logoFile); t.value = ''; }
+  else if (t.dataset.logoUrl && t.value.trim()) logoFromUrl(t.value, t.dataset.logoUrl);
+});
+document.addEventListener('keydown', e => { const t = e.target; if (e.key === 'Enter' && t.dataset && t.dataset.logoUrl) { e.preventDefault(); t.blur(); } });
+document.addEventListener('paste', e => {                              // a copied picture pastes straight in
+  const t = e.target; if (!t.dataset || !t.dataset.logoUrl) return;
+  const f = [...((e.clipboardData || {}).files || [])].find(x => /^image\//.test(x.type));
+  if (f) { e.preventDefault(); logoFromFile(f, t.dataset.logoUrl); }
+});
 function docPage(p, customer, title, body) {
   return { title, body };
 }
 function docWrap(p, customer, pages) {
   const m = p.meta, logo = docLogo(), n = pages.length;
+  const their = m.logo ? `<img class="doc-their" alt="${esc(m.account || 'Their logo')}" src="${esc(m.logo)}" style="${logoBox(m.logoRatio)}"><span class="doc-logo-sep"></span>` : '';
   const foot = customer ? '' : 'FactorLab internal' + (m.csm ? ' · ' + esc(m.csm) : '') + ' · Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)));   // the customer copy carries just page numbers
   return `<div class="doc"><div class="doc-pages">${pages.map((pg, i) => `<section class="doc-page">
-    <header class="doc-head"><div><div class="doc-eyebrow">${planYear(p)} Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div>${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</header>
+    <header class="doc-head"><div><div class="doc-eyebrow">${planYear(p)} Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div><div class="doc-logos">${their}${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</div></header>
     ${pg.title ? `<h2 class="doc-title">${esc(pg.title)}</h2>` : ''}
     <div class="doc-body">${pg.body}</div>
     <footer class="doc-foot"><span>${foot}</span><span>Page ${i + 1} of ${n}</span></footer></section>`).join('')}</div></div>`;
@@ -3441,6 +3562,7 @@ function handleClick(e) {
   if (!a) return;
   const p = cur();
   const act = a.dataset.action;
+  if (act === 'logo-clear') { logoSet(a.dataset.scope, null, ''); return; }
   if (act === 'create') {
     const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '', rollout: ROLLOUT_MODES.includes(document.getElementById('w-mode').value) ? document.getElementById('w-rollout').value : '' };
     if (nw.mode === 'prospect') { fadeSwap(() => { pendingNew = null; newPlan({ account: nw.account, mode: 'prospect', rollout: '', template: 'prospect', flow: seedFlow('prospect') }); renderAll(); }); return; }   // straight into the prospecting steps
@@ -3542,7 +3664,7 @@ function runCmd(c) {
   const p = cur();
   if (c === 'team') { openTeamPanel(); return; }
   if (c === 'theme') { setTheme(!isDark()); return; }
-  if (c === 'new') { currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
+  if (c === 'new') { welcomeLogo = null; logoMsg.welcome = ''; currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (!p) return;
   if (c === 'fill') { go('fill'); return; }
@@ -3997,7 +4119,7 @@ document.getElementById('startFab').addEventListener('click', () => {
   const p = cur();
   if (p && !confirm('Start over? This deletes the plan for ' + (p.meta.account || 'this account') + ' and goes back to Start a success plan. Export it first if you might want it back.')) return;
   if (p) { delete plans[p.id]; saveNow(); }
-  pendingNew = null; builder = null; repick = false;
+  pendingNew = null; builder = null; repick = false; welcomeLogo = null; logoMsg.welcome = '';
   fadeSwap(() => { currentId = null; currentSec = 'basics'; renderAll(); });
 });
 /* Swipe between steps: a sideways swipe on a phone, or a two-finger sideways swipe on a trackpad.
@@ -4904,7 +5026,7 @@ function fillClick(act, a, p) {
 document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.fillFile && t.files && t.files.length) { fillAddFiles(t.files, t.dataset.fillFile); t.value = ''; } });
 document.addEventListener('dragover', e => { const z = e.target.closest && e.target.closest('[data-drop]'); if (z) { e.preventDefault(); z.classList.add('over'); } });
 document.addEventListener('dragleave', e => { const z = e.target.closest && e.target.closest('[data-drop]'); if (z) z.classList.remove('over'); });
-document.addEventListener('drop', e => { const z = e.target.closest && e.target.closest('[data-drop]'); if (z) { e.preventDefault(); z.classList.remove('over'); fillAddFiles(e.dataTransfer.files, z.dataset.drop); } });
+document.addEventListener('drop', e => { const z = e.target.closest && e.target.closest('[data-drop]'); if (z) { e.preventDefault(); z.classList.remove('over'); if (/^logo-/.test(z.dataset.drop)) { const f = e.dataTransfer.files[0]; if (f) logoFromFile(f, z.dataset.drop.slice(5)); return; } fillAddFiles(e.dataTransfer.files, z.dataset.drop); } });
 
 /* ---------- Dark mode: More, then Dark mode. Remembered in this browser; open windows follow along. ---------- */
 function isDark() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
