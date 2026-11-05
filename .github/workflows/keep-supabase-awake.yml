@@ -15,7 +15,12 @@ name: Keep Supabase awake
 on:
   schedule:
     - cron: "17 14 * * 1,4" # Mondays and Thursdays, 14:17 UTC
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force_keepalive:
+        description: "Record the date now, even if the repo changed recently (for testing)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -34,23 +39,18 @@ jobs:
     steps:
       - name: Read from the database
         run: |
-          ok=0
           hit() {
             name="$1"; shift
             code=$(curl -s -o /tmp/body -w '%{http_code}' -m 30 --retry 2 --retry-delay 10 \
               -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" "$@" || echo 000)
             echo "$name -> HTTP $code: $(head -c 200 /tmp/body)"
-            if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then ok=$((ok+1)); fi
+            [ "$code" -ge 200 ] && [ "$code" -lt 300 ]
           }
-          # Each of these runs a query inside the Postgres database.
-          hit "storage buckets" "$SUPABASE_URL/storage/v1/bucket"
-          hit "graphql" -X POST -H "Content-Type: application/json" \
-            -d '{"query":"{ __typename }"}' "$SUPABASE_URL/graphql/v1"
-          hit "rest api" "$SUPABASE_URL/rest/v1/"
-          # Auth service check (no database query, but still project activity).
-          hit "auth" "$SUPABASE_URL/auth/v1/health"
-          echo "$ok of 4 answered"
-          if [ "$ok" -eq 0 ]; then
+          # Extra activity on the auth service; fine if it fails.
+          hit "auth" "$SUPABASE_URL/auth/v1/health" || true
+          # The one that matters: listing storage buckets runs a query in the
+          # Postgres database (it returns [] because there are none).
+          if ! hit "database read (storage buckets)" "$SUPABASE_URL/storage/v1/bucket"; then
             echo "::error::Supabase did not answer. The project may be paused; restore it in the Supabase dashboard."
             exit 1
           fi
@@ -62,7 +62,7 @@ jobs:
           last=$(git log -1 --format=%ct)
           age_days=$(( ( $(date +%s) - last ) / 86400 ))
           echo "Last change to the repo was $age_days days ago."
-          if [ "$age_days" -lt 45 ]; then
+          if [ "$age_days" -lt 45 ] && [ "${{ inputs.force_keepalive }}" != "true" ]; then
             echo "Recent enough; nothing to do."
             exit 0
           fi
