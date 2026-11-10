@@ -548,6 +548,10 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .px-score { display: flex; align-items: center; gap: 22px; }
 .px-num { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 56px; line-height: 1; color: var(--navy); }
 .px-num.goal { color: var(--green); } .px-lab { font-size: 12px; color: var(--muted); } .px-arrow { font-size: 13px; color: var(--faint); }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+.hs-confirm { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 6px 0 4px; }
+.hs-confirm span { color: var(--muted); font-size: 13px; }
+.hs-done { display: inline-block; margin-left: 8px; font-size: 11.5px; font-weight: 600; color: #1f7a45; background: #e6f4ec; border-radius: 999px; padding: 1px 8px; vertical-align: 1px; }
 .px-get { margin: 2px 0 8px; font-size: 13px; line-height: 1.45; color: #1f3352; background: #eef3fa; border-radius: 6px; padding: 7px 9px; }
 .px-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .px-chip { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-weight: 600; font-size: 14px; }
@@ -814,6 +818,7 @@ table.grid td .other-box { margin-top: 4px; }
       <button data-cmd="duplicate">Duplicate this plan</button>
       <hr>
       <button data-cmd="fill">Fill from a call transcript</button>
+      <button data-cmd="hssave">Save to HubSpot</button>
       <button data-cmd="hubspot">Copy summary for HubSpot</button>
       <button data-cmd="signin" id="signinCmd" hidden>Sign in with Google (HubSpot)</button>
       <hr>
@@ -2723,7 +2728,7 @@ function backTarget() {
   if (!p || builder || repick) return null;
   const order = navOrder(p);
   if (currentSec === 'addmore' || currentSec === 'sort') return order[order.length - 1];
-  if (currentSec === 'fill') return 'basics';
+  if (currentSec === 'fill' || currentSec === 'hssave') return 'basics';
   const i = order.indexOf(currentSec);
   return i > 0 ? order[i - 1] : i === 0 && p.meta.template !== 'prospect' ? '__start' : null;
 }
@@ -2741,11 +2746,12 @@ function renderWorkInner() {
   const p = cur();
   if (!p) { work.innerHTML = pendingNew ? startHtml() : welcomeHtml(); if (!pendingNew) welcomeAudApply(); return; }
   if (repick) { work.innerHTML = startHtml(); return; }
-  if (!['basics', 'addmore', 'sort', 'fill'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
+  if (!['basics', 'addmore', 'sort', 'fill', 'hssave'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
   const jump = stepBarHtml(p) + mobileJumpHtml(p);
   if (currentSec === 'addmore') { work.innerHTML = jump + addMoreHtml(p); return; }
   if (currentSec === 'sort') { work.innerHTML = jump + sortHtml(p); return; }
   if (currentSec === 'fill') { work.innerHTML = jump + fillHtml(p); return; }
+  if (currentSec === 'hssave') { work.innerHTML = jump + hsSaveHtml(p); return; }
   if (currentSec === 'basics') { work.innerHTML = jump + basicsHtml(p); return; }
   const c = customByKey(currentSec);
   if (c) { work.innerHTML = jump + customHtml(p, c); return; }
@@ -2756,6 +2762,7 @@ function secName(k) {
   if (k === 'addmore') return 'Build out this plan';
   if (k === 'sort') return 'Notes to sort';
   if (k === 'fill') return 'Fill from a call';
+  if (k === 'hssave') return 'Save to HubSpot';
   if (k === 'basics') return 'Account basics';
   const c = customByKey(k);
   if (c) return c.title || 'Your branch';
@@ -3936,7 +3943,8 @@ function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { re
 function go(sec) {
   builder = null; repick = false; fillDone = '';
   currentSec = sec;
-  if (sec !== 'fill') rememberStep(currentId, sec);
+  if (sec !== 'fill' && sec !== 'hssave') rememberStep(currentId, sec);
+  if (sec === 'hssave') hsSave = { ok: false, done: {} };
   setTimeout(() => renderShare(), 0);
   renderNav(); renderWork();
   document.getElementById('work').scrollIntoView({ block: 'start' });
@@ -4059,7 +4067,7 @@ function handleClick(e) {
   const g = e.target.closest('[data-goto]');
   if (g) { e.preventDefault(); go(g.dataset.goto); return; }
   const cmd = e.target.closest('[data-cmd]');
-  if (cmd) { topMenu(''); runCmd(cmd.dataset.cmd); return; }
+  if (cmd) { if (cmd.tagName === 'A') e.preventDefault(); topMenu(''); runCmd(cmd.dataset.cmd); return; }
   const a = e.target.closest('[data-action]');
   if (!a) return;
   const p = cur();
@@ -4076,6 +4084,7 @@ function handleClick(e) {
     return;
   }
   if (act === 'toggle-map') { setFocus(!focusOn); return; }
+  if (act === 'hs-yes' || act === 'hs-step' || act === 'hs-finish') { if (a.tagName !== 'A') e.preventDefault(); hsSaveAction(act, a.dataset.k); return; }
   if (act === 'table-all') { foldOpen[a.dataset.k] = !foldOpen[a.dataset.k]; renderWork(); return; }
   if (act === 'logo-clear') { logoSet(a.dataset.scope, null, ''); return; }
   if (act === 'create') {
@@ -4185,6 +4194,7 @@ function runCmd(c) {
   if (c === 'signin') { if (auth) signOut(); else signIn(); return; }
   if (!p) return;
   if (c === 'fill') { go('fill'); return; }
+  if (c === 'hssave') { go('hssave'); return; }
   if (c === 'hubspot') { copyText(hubspotSummary(p)).then(ok => showToast(ok ? 'Copied. Paste it as a note on the company in HubSpot.' : 'This browser blocked copying. Try again from the hosted page.')); return; }
   if (c === 'pdf-customer') { exportPdf(true); return; }
   if (c === 'pdf-internal') { exportPdf(false); return; }
@@ -4519,7 +4529,7 @@ function hsLinkHtml(h) {
   if (!auth || !authHere()) return '';
   if (!h || !h.id) return `<div class="hs-link">Not linked to HubSpot yet. Pick the company from the list as you type.</div>`;
   const where = [h.domain, [h.city, h.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
-  return `<div class="hs-link">Linked to HubSpot: <b>${esc(h.name)}</b>${where ? ' · ' + esc(where) : ''} · <a href="${HS_PORTAL + encodeURIComponent(h.id)}" target="_blank" rel="noopener">Open in HubSpot</a></div>`;
+  return `<div class="hs-link">Linked to HubSpot: <b>${esc(h.name)}</b>${where ? ' · ' + esc(where) : ''} · <a href="${HS_PORTAL + encodeURIComponent(h.id)}" target="_blank" rel="noopener">Open in HubSpot</a>${cur() && h === cur().meta.hubspot ? ' · <a href="#" data-cmd="hssave">Save to HubSpot</a>' : ''}</div>`;
 }
 function hsBarsRefresh() {
   ['welcome', 'plan'].forEach(k => { const el = document.getElementById('hsBar-' + k); if (el) el.innerHTML = hsBarHtml(); });
@@ -5282,6 +5292,56 @@ function sortHtml(p) {
 }
 
 /* ---------- Copy summary for HubSpot: a short plain-text snapshot to paste as a note ---------- */
+/* ---------- Save to HubSpot (READ-ONLY: nothing is written to HubSpot from here) ----------
+   Trey's steps: confirm the company (name, website, city), download the plan file, save the internal PDF,
+   copy the note, open the company in HubSpot by its ID, then paste and drag the files in by hand. "Done"
+   posts one line to Slack the first time (account, who built it, the HubSpot link; never money), through the
+   helper, which skips it until the SLACK_WEBHOOK_URL secret exists. Works by hand when HubSpot or Supabase
+   can't be reached: only the Open in HubSpot link and the Slack line need the link or the helper. */
+var hsSave = { ok: false, done: {} };   // this window only
+function hsSaveHtml(p) {
+  const h = p.meta.hubspot, linked = !!(h && h.id), where = linked ? [h.domain, [h.city, h.state].filter(Boolean).join(', ')].filter(Boolean) : [];
+  const head = `<div class="sec-branch">FactorLab only</div><div class="sec-head"><h2>Save to HubSpot</h2></div>
+    <p class="sec-intro">Put this plan on the company in HubSpot in about a minute. Nothing is sent to HubSpot from here: you paste the note and drag the files in yourself.</p>
+    ${p.meta.hsSaved ? `<p class="help" style="margin:-6px 0 14px">Last put in HubSpot on ${esc(fmtDate(p.meta.hsSaved))}.</p>` : ''}`;
+  const tick = k => hsSave.done[k] ? '<span class="hs-done">Done</span>' : '';
+  if (!hsSave.ok) return head + `<div class="fill-step-card"><div class="fill-num">?</div><div class="fill-main">
+      <div class="field-label">${linked ? 'Is this the right company?' : 'Which company in HubSpot?'}</div>
+      ${linked ? `<div class="hs-confirm"><b>${esc(h.name)}</b>${where.length ? `<span>${esc(where.join(' · '))}</span>` : ''}</div>
+        <div class="fill-actions"><button class="btn primary" data-action="hs-yes">Yes, that's them</button><button class="btn" data-goto="basics">Not them: pick again</button></div>`
+      : `<div class="help">This plan isn't linked to a HubSpot company yet. To link it, sign in with Google and pick the company from the list under Account name on Account basics. You can still save it by hand: you'll find the company in HubSpot yourself.</div>
+        <div class="fill-actions"><button class="btn" data-goto="basics">Link it on Account basics</button><button class="btn" data-action="hs-yes">Save it by hand</button></div>`}
+    </div></div>`;
+  return head + `
+    <div class="fill-step-card"><div class="fill-num">1</div><div class="fill-main"><div class="field-label">Download the plan file ${tick('file')}</div>
+      <div class="help">So the plan can be opened and edited again later.</div><div class="fill-actions"><button class="btn primary" data-action="hs-step" data-k="file">Download the plan file</button></div></div></div>
+    <div class="fill-step-card"><div class="fill-num">2</div><div class="fill-main"><div class="field-label">Save the internal PDF ${tick('pdf')}</div>
+      <div class="help">The full plan, FactorLab only pages included. In the print window, choose Save as PDF.</div><div class="fill-actions"><button class="btn primary" data-action="hs-step" data-k="pdf">Save the internal PDF</button></div></div></div>
+    <div class="fill-step-card"><div class="fill-num">3</div><div class="fill-main"><div class="field-label">Copy the note ${tick('note')}</div>
+      <div class="help">A short summary: goal, 30-day test, targets, next milestones, owners, risks, renewal.</div><div class="fill-actions"><button class="btn primary" data-action="hs-step" data-k="note">Copy the note</button></div></div></div>
+    <div class="fill-step-card"><div class="fill-num">4</div><div class="fill-main"><div class="field-label">Open the company in HubSpot ${tick('open')}</div>
+      ${linked ? `<div class="fill-actions"><a class="btn primary" href="${HS_PORTAL + encodeURIComponent(h.id)}" target="_blank" rel="noopener" data-action="hs-step" data-k="open">Open ${esc(h.name)} in HubSpot</a></div>` : '<div class="help">Find the company in HubSpot yourself.</div>'}
+      <div class="hint" style="margin:10px 0 0">In HubSpot: paste the note as a new note on the company, then drag the plan file and the PDF onto it.</div></div></div>
+    <div class="sec-foot"><button class="btn ghost" data-goto="basics">Back</button><button class="btn primary" data-action="hs-finish">Done, it's in HubSpot</button></div>`;
+}
+async function hsSaveAction(act, k) {
+  const p = cur(); if (!p) return;
+  if (act === 'hs-yes') { hsSave.ok = true; renderWork(); return; }
+  if (act === 'hs-step') {
+    hsSave.done[k] = true;
+    if (k === 'file') runCmd('export');
+    if (k === 'pdf') exportPdf(false);
+    if (k === 'note') { const ok = await copyText(hubspotSummary(p)); showToast(ok ? 'Copied. Paste it as a new note on the company in HubSpot.' : 'This browser blocked copying. Try again from the hosted page.'); }
+    setTimeout(renderWork, 0); return;   // after the link has opened
+  }
+  if (act === 'hs-finish') {
+    const first = !p.meta.hsSaved, h = p.meta.hubspot;
+    p.meta.hsSaved = new Date().toISOString().slice(0, 10); saveSoon();
+    if (first && auth && authHere()) hsCall('slack', { account: p.meta.account || (h && h.name) || '', by: p.meta.csm || auth.email, companyId: h && h.id || '' }).catch(() => {});
+    showToast('Saved. It now says when it was last put in HubSpot.');
+    hsSave = { ok: false, done: {} }; go('basics'); return;
+  }
+}
 function hubspotSummary(p) {
   const m = p.meta, d = k => p.data[k] || {}, vis = visibleSections(p).map(s => s.key), has = k => vis.includes(k);
   const L = ['Success plan: ' + (m.account || 'Untitled plan')];
