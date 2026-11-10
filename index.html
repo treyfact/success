@@ -188,9 +188,11 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 .step-seg.done { background: #a7d0b6; }
 .step-seg.current { background: var(--navy); }
 .step-seg:hover { outline: 2px solid #b9cbe4; outline-offset: 1px; }
-body.focus .nav, body.focus .side, body.focus .fab { display: none !important; }
-body.focus .app { grid-template-columns: minmax(0, 1fr); }
-body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
+@media (min-width: 761px) {   /* phones already show one thing at a time, with See the map */
+  body.focus .nav, body.focus .side, body.focus .fab { display: none !important; }
+  body.focus .app { grid-template-columns: minmax(0, 1fr); }
+  body.focus .work { width: 100%; max-width: 860px; margin: 0 auto; }
+}
 .btn.on { background: var(--navy-soft); border-color: #8fa8c9; color: var(--navy); }
 .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .seg .btn { padding: 7px 14px; font-size: 13.5px; }
@@ -228,6 +230,28 @@ body.focus .work { width: 100%; max-width: 900px; margin: 0 auto; }
 .welcome h1 { margin: 0 0 6px; font-size: 24px; }
 .welcome p { color: var(--muted); margin: 0 0 18px; }
 .welcome .actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+.aud-q { font-weight: 600; color: var(--ink) !important; margin: 4px 0 10px !important; font-size: 15px; }
+.aud-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.aud { text-align: left; border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 16px 16px 14px; cursor: pointer; font: inherit; color: var(--ink); }
+.aud b { display: block; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 22px; margin-bottom: 4px; }
+.aud span { display: block; font-size: 13px; color: var(--muted); line-height: 1.4; }
+.aud:hover { border-color: var(--navy); }
+.aud.on { border-color: var(--navy); box-shadow: 0 0 0 2px var(--navy) inset; background: var(--soft); }
+@media (max-width: 480px) { .aud-pick { grid-template-columns: 1fr; } }
+.w-import { font-size: 13px; color: var(--faint) !important; margin: 18px 0 0 !important; }
+.w-import .qs-more { margin: 0 0 0 4px; }
+.more-details { border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; margin: 4px 0 18px; background: var(--surface); }
+.more-details > summary { cursor: pointer; padding: 12px 0; font-weight: 600; font-size: 14px; list-style: none; }
+.more-details > summary::-webkit-details-marker { display: none; }
+.more-details > summary::before { content: '+'; display: inline-block; width: 16px; color: var(--navy); font-weight: 700; }
+.more-details[open] > summary::before { content: '\2212'; }
+.more-details > summary span { font-weight: 400; color: var(--faint); margin-left: 6px; font-size: 13px; }
+.more-details[open] { padding-bottom: 4px; }
+.btn.moved { display: none !important; }
+#callMenu .menu-list { min-width: 250px; }
+#callMenu .menu-list button small { display: block; color: var(--faint); font-size: 12px; margin-top: 1px; }
+.map-toggle { margin-left: auto; background: none; border: 0; padding: 2px 0; font: inherit; font-size: 13px; color: var(--navy); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+@media (max-width: 760px) { .map-toggle { display: none; } }
 
 /* ---------- Starting point: three choices in condensed caps ----------
    Barlow and Barlow Condensed, (c) 2017 The Barlow Project Authors, SIL Open Font License 1.1.
@@ -437,8 +461,8 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
   .brand { order: 0; flex: 1 1 0; min-width: 0; margin-right: 0; }   /* the logo gives way so Note, Timer and More always share its row */
   .brand-logo { width: 100%; max-width: 150px; height: auto; }
   .brand-sub { max-width: 100%; overflow: hidden; }
-  #moreMenu { order: 1; }
-  #noteBtn, #timerBtn, #moreBtn { padding: 6px 10px; }
+  #moreMenu, #callMenu { order: 1; }
+  #noteBtn, #timerBtn, #moreBtn, #callBtn { padding: 6px 10px; }
   #timerBtn { min-width: 0; }
   .menu-list { max-width: calc(100vw - 28px); }
   .plan-picker { order: 2; flex: 1 1 100%; max-width: none; }
@@ -745,14 +769,23 @@ table.grid td .other-box { margin-top: 4px; }
   <select class="plan-picker" id="planPicker" aria-label="Choose a plan"></select>
   <div class="spacer"></div>
   <span class="saved" id="savedNote"></span>
+  <div class="menu" id="callMenu">
+    <button class="btn" id="callBtn" aria-haspopup="true">During a call</button>
+    <div class="menu-list">
+      <button data-click="shareBtn">Customer window<small>A clean window to share on screen</small></button>
+      <button data-click="noteBtn">Note<small>The whole plan as one simple note</small></button>
+      <button data-click="timerBtn">Timer<small>A small meeting timer</small></button>
+      <button data-cmd="team">Team code<small>Build this plan with a teammate</small></button>
+    </div>
+  </div>
   <div class="menu" id="teamMenu">
-    <button class="btn" id="teamBtn" title="Build this plan together with a teammate on a call">Team code</button>
+    <button class="btn moved" id="teamBtn" title="Build this plan together with a teammate on a call">Team code</button>
     <div class="menu-list team-panel" id="teamPanel"></div>
   </div>
-  <button class="btn" id="noteBtn" title="Fill in the whole plan as one simple note, in its own window">Note</button>
-  <button class="btn" id="timerBtn" title="Pop out a meeting timer">Timer</button>
-  <button class="btn" id="focusBtn" title="Hide the side panels while you work through the plan">Focus</button>
-  <button class="btn" id="shareBtn" title="Opens a clean window to share on screen. It shows only what the customer should see and updates as you type.">Customer window</button>
+  <button class="btn moved" id="noteBtn" title="Fill in the whole plan as one simple note, in its own window">Note</button>
+  <button class="btn moved" id="timerBtn" title="Pop out a meeting timer">Timer</button>
+  <button class="btn moved" id="focusBtn" title="Hide the side panels while you work through the plan">Focus</button>
+  <button class="btn moved" id="shareBtn" title="Opens a clean window to share on screen. It shows only what the customer should see and updates as you type.">Customer window</button>
   <button class="btn primary" id="presentBtn">View plan</button>
   <div class="menu" id="pdfMenu">
     <button class="btn" id="pdfBtn" aria-haspopup="true">Export PDF</button>
@@ -2313,7 +2346,7 @@ function readyChecks(plan) {
     { id: 'pxTop', label: 'Their top pains are picked (up to three)', ok: pxChosen(plan).length > 0, sec: 'pxTop' },
     ...pxChosen(plan).map(a => ({ id: 'px-' + a.key, label: 'Their answers on: ' + a.pain.toLowerCase(), ok: ['q1', 'q2', 'q3'].filter(k => (d(a.key)[k] || '').trim()).length >= 2, tip: 'Two of the three questions is enough.', sec: a.key })),
     { id: 'pxNext', label: 'The follow-up meeting is booked', ok: !!d('pxNext').date, sec: 'pxNext' },
-    { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it in Account basics)', ok: !!plan.meta.verified, sec: 'basics' }
+    { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it under More details in Account basics)', ok: !!plan.meta.verified, sec: 'basics' }
   ].filter(c => { const k = c.shows || c.sec; return (plan.meta.template === 'prospect' ? c.id.startsWith('px') || c.id === 'verified' : true) && (k === 'basics' || visibleSections(plan).some(s => s.key === k)); });
 }
 
@@ -2673,7 +2706,7 @@ function renderWorkInner() {
   const work = document.getElementById('work');
   if (builder && (!builder.forPlan || builder.forPlan === currentId)) { work.innerHTML = builderHtml(); return; }
   const p = cur();
-  if (!p) { work.innerHTML = pendingNew ? startHtml() : welcomeHtml(); return; }
+  if (!p) { work.innerHTML = pendingNew ? startHtml() : welcomeHtml(); if (!pendingNew) welcomeAudApply(); return; }
   if (repick) { work.innerHTML = startHtml(); return; }
   if (!['basics', 'addmore', 'sort', 'fill'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
   const jump = stepBarHtml(p) + mobileJumpHtml(p);
@@ -2700,17 +2733,36 @@ function mobileJumpHtml(p) {
   return `<select class="mobile-jump" id="mobileJump" aria-label="Jump to a section">${navOrder(p).map(k => `<option value="${esc(k)}" ${k === currentSec ? 'selected' : ''}>${esc(secName(k))}</option>`).join('')}${miscCount(p) ? `<option value="sort" ${currentSec === 'sort' ? 'selected' : ''}>Notes to sort (${miscCount(p)})</option>` : ''}<option value="addmore" ${currentSec === 'addmore' ? 'selected' : ''}>+ Build out this plan</option><option value="fill" ${currentSec === 'fill' ? 'selected' : ''}>Fill from a call</option><option value="__branch">+ Add your own branch</option></select>`;
 }
 
+/* Start a success plan: first, who you're talking to (Gretchen looked for Prospecting up front). A prospect
+   gets a short discovery conversation; a customer gets the full plan. The rest of the screen appears after. */
+var welcomeAud = '';   // 'prospect' | 'customer' | '' until picked (this window only)
 function welcomeHtml() {
   return `<div class="welcome">
     <h1>Start a success plan</h1>
-    <p>Name the account, then pick how you want to build the plan. The map builds itself as you go.</p>
     <div id="hsBar-welcome">${hsBarHtml()}</div>
-    <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name" autocomplete="off"><a class="logo-search" id="w-logoSearch" target="_blank" rel="noopener" hidden>(Get Company's Logo)</a><div id="hsLink-welcome">${hsLinkHtml(welcomeHs)}</div></div>
-    <div class="field"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"><div class="help" id="w-modeHelp" style="margin-top:6px">${esc(MODES[Object.keys(MODES)[0]].lead)}</div></div>
-    <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option><option value="na" hidden>N/A: not a customer yet</option></select></div>
-    ${logoFieldHtml(welcomeLogo, 'welcome')}
-    <div class="actions"><button class="btn primary" data-action="create">Create plan</button><span style="color:var(--faint)">or</span><button class="btn" data-cmd="import">Import a plan file</button></div>
+    <p class="aud-q">Who are you talking to?</p>
+    <div class="aud-pick">
+      <button class="aud" data-action="aud" data-v="prospect"><b>A prospect</b><span>Not a customer yet. A short discovery conversation.</span></button>
+      <button class="aud" data-action="aud" data-v="customer"><b>A customer</b><span>Plan their year with them.</span></button>
+    </div>
+    <div id="w-rest" hidden>
+      <div class="field"><label for="w-account">Account name</label><input type="text" id="w-account" placeholder="Customer name" autocomplete="off"><a class="logo-search" id="w-logoSearch" target="_blank" rel="noopener" hidden>(Get Company's Logo)</a><div id="hsLink-welcome">${hsLinkHtml(welcomeHs)}</div></div>
+      <div class="field" id="w-modeWrap"><label for="w-mode">What the account needs this year</label><select id="w-mode">${Object.entries(MODES).map(([k, m]) => `<option value="${k}" ${k === 'prospect' ? 'hidden' : ''}>${m.label}</option>`).join('')}<option value="other">${OTHER}</option></select><input type="text" class="other-box" id="w-modeOther" placeholder="Type it in" aria-label="What the account needs: something else" style="display:none"><div class="help" id="w-modeHelp" style="margin-top:6px">${esc(MODES[Object.keys(MODES)[0]].lead)}</div></div>
+      <div class="field" id="w-rolloutWrap"><label for="w-rollout">How big is the rollout?</label><select id="w-rollout"><option value="first">Start with first crews: one project or a few crews</option><option value="full">Full rollout: every project, region and audience</option><option value="na" hidden>N/A: not a customer yet</option></select></div>
+      <details class="more-details" ${welcomeLogo ? 'open' : ''}><summary>Their logo <span>optional</span></summary>${logoFieldHtml(welcomeLogo, 'welcome')}</details>
+      <div class="actions"><button class="btn primary" data-action="create">Create plan</button></div>
+    </div>
+    <p class="w-import">Have a plan file? <button class="qs-more" data-cmd="import">Import it</button></p>
   </div>`;
+}
+function welcomeAudApply() {
+  const rest = document.getElementById('w-rest'), sel = document.getElementById('w-mode'); if (!rest || !sel) return;
+  rest.hidden = !welcomeAud;
+  document.querySelectorAll('.aud').forEach(b => b.classList.toggle('on', b.dataset.v === welcomeAud));
+  if (welcomeAud === 'prospect') sel.value = 'prospect'; else if (sel.value === 'prospect') sel.value = 'launch';
+  document.getElementById('w-modeWrap').hidden = welcomeAud === 'prospect';
+  welcomeRollout(sel.value);
+  const acc = document.getElementById('w-account'); if (acc) acc.placeholder = welcomeAud === 'prospect' ? 'Company name' : 'Customer name';
 }
 
 /* ---------- Starting point: picked once, right after Create plan ---------- */
@@ -2966,7 +3018,7 @@ function welcomeRollout(mode) {
   const wrap = document.getElementById('w-rolloutWrap'), sel = document.getElementById('w-rollout'); if (!wrap || !sel) return;
   const px = mode === 'prospect', help = document.getElementById('w-modeHelp');
   if (help) { help.textContent = (MODES[mode] || {}).lead || ''; help.hidden = !help.textContent; }   // what the picked need means, under the list
-  wrap.style.display = ROLLOUT_MODES.includes(mode) || px ? '' : 'none';
+  wrap.style.display = ROLLOUT_MODES.includes(mode) && !px ? '' : 'none';   // prospects: the Prospect button already says they aren't a customer yet
   sel.disabled = px;
   if (px) sel.value = 'na'; else if (sel.value === 'na') sel.value = 'first';
   [...sel.options].forEach(o => { if (o.value === 'na') o.hidden = !px; });
@@ -2975,37 +3027,41 @@ function modeFieldHtml(m) {
   return `<div class="field"><label>What the account needs this year</label><select data-meta="mode">${Object.entries(MODES).filter(([k]) => k !== 'prospect' || m.template === 'prospect').map(([k, x]) => `<option value="${k}" ${k === m.mode ? 'selected' : ''}>${x.label}</option>`).join('')}<option value="other" ${m.mode === 'other' ? 'selected' : ''}>${OTHER}</option></select>
     ${m.mode === 'other' ? `<input type="text" class="other-box" data-meta="modeOther" value="${esc(m.modeOther || '')}" placeholder="Type it in" aria-label="What the account needs: something else">` : ''}</div>`;
 }
+/* Account basics: the few answers that shape the plan up top; everything else (plan size, logo, CSM and
+   backup, notes, sources, the numbers check) waits under "More details" until someone wants it. */
+var basicsMoreOpen = false;   // this window only
 function basicsHtml(p) {
   const m = p.meta, px = m.template === 'prospect';
+  const moreFilled = [m.logo, m.csm, !px && m.backup, m.context, m.sources, m.verified, !px && !m.flow && m.tier && m.tier !== 'starter'].filter(Boolean).length;
+  const more = `
+    ${logoFieldHtml(m.logo ? { src: m.logo, ratio: m.logoRatio } : null, 'plan')}
+    ${px ? `<div class="field"><label>Who ran the call</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
+    <div class="field"><label>How big is the rollout?</label><div class="help">N/A: not a customer yet. When they buy, change "What the account needs this year" and pick a starting point; their answers here are kept.</div></div>`
+    : `<div class="row2">
+      <div class="field"><label>CSM</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
+      <div class="field"><label>Backup</label><input type="text" data-meta="backup" value="${esc(m.backup)}"></div>
+    </div>`}
+    ${!px && !m.flow ? `<div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} A bigger size adds its usual sections; a smaller one takes back the empty ones.</div></div>` : ''}
+    <div class="field"><label>What you know so far</label><div class="help">Notes from calls, emails, the handover. Rough is fine.</div><textarea data-meta="context" style="min-height:120px">${esc(m.context)}</textarea></div>
+    <div class="field"><label>Where it came from</label><input type="text" data-meta="sources" value="${esc(m.sources)}" placeholder="e.g. Oct 29 planning call, handover from Justin"></div>
+    <div class="field"><label class="check ${m.verified ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-meta="verified" ${m.verified ? 'checked' : ''}> Every number here is confirmed. No placeholders and no unverified marketing figures.</label></div>`;
   return `<div class="sec-branch">Start here</div>
   <div class="sec-head"><h2>Account basics</h2></div>
-  <p class="sec-intro">${px ? "A complimentary 2027 plan for a company that isn't a customer yet. Ask the questions on the discovery call; the plan is ready to walk through with them at the follow-up meeting." : 'Who this plan is for and what the account needs this year. Drop in anything you already know; you can shape it into the plan later.'}</p>
+  <p class="sec-intro">${px ? "A short discovery conversation with a company that isn't a customer yet. Their plan is ready to walk through at the follow-up meeting." : 'Who this plan is for and what the account needs this year.'}</p>
   ${fillDone ? `<div class="fill-ok" style="margin-bottom:16px">${esc(fillDone)}</div>` : ''}
-  <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
-  ${modeOf(m).lead ? `<div class="hint"><b>${esc(modeOf(m).label)}:</b> ${esc(modeOf(m).lead)}${needKeys(p, m.mode).length ? ' Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : ''}</div>` : ''}
   <div id="hsBar-plan">${hsBarHtml()}</div>
   <div class="field"><label>Account name</label><input type="text" data-meta="account" value="${esc(m.account)}" autocomplete="off"><a class="logo-search" id="b-logoSearch" target="_blank" rel="noopener" ${(m.account || '').trim() ? `href="${esc(logoSearchUrl(m.account))}"` : 'hidden'}>(Get Company's Logo)</a><div id="hsLink-plan">${hsLinkHtml(m.hubspot)}</div></div>
   <div class="field"><label>Who I'm working with</label><input type="text" data-meta="contact" value="${esc(m.contact || '')}" autocomplete="off" placeholder="${auth && m.hubspot ? 'Start typing, or click to see their contacts' : 'Name and role'}"></div>
-  ${logoFieldHtml(m.logo ? { src: m.logo, ratio: m.logoRatio } : null, 'plan')}
-  ${m.flow ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span>${px ? '' : '<button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button>'}</div>
-  ${modeFieldHtml(m)}`
-  : `<div class="row2">
-    <div class="field"><label>Plan size</label><select data-meta="tier">${Object.entries(TIERS).map(([k, t]) => `<option value="${k}" ${k === m.tier ? 'selected' : ''}>${t.label}</option>`).join('')}</select><div class="help" style="margin-top:4px">${esc(TIERS[m.tier].help)} A bigger size adds its usual sections; a smaller one takes back the empty ones.</div></div>
-    ${modeFieldHtml(m)}
-  </div>`}
+  ${m.flow && !px ? `<div class="flow-note"><span><b>${esc(planLabel(p))}</b> · ${navOrder(p).length} steps, this one first</span><button class="qs-more" data-action="edit-steps" style="margin:0">Change the steps</button></div>` : ''}
+  ${modeFieldHtml(m)}
+  ${modeOf(m).lead ? `<div class="help" style="margin:-8px 0 16px">${needKeys(p, m.mode).length ? 'Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : esc(modeOf(m).lead)}</div>` : ''}
   ${ROLLOUT_MODES.includes(m.mode) || m.rollout === 'full' ? `<div class="field"><label>How big is the rollout?</label><div class="seg"><button class="btn ${m.rollout !== 'full' ? 'on' : ''}" data-action="rollout" data-v="first">Start with first crews</button><button class="btn ${m.rollout === 'full' ? 'on' : ''}" data-action="rollout" data-v="full">Full rollout</button></div><div class="help" style="margin-top:6px">${m.rollout === 'full' ? 'Adds the steps for every project, region and audience: projects, setup and access, leader alignment, training by audience, rollout steps and the communication plan.' : 'One project or a few crews first. Pick Full rollout to add the steps for every project, region and audience.'}</div></div>` : ''}
-  ${px ? `<div class="field"><label>How big is the rollout?</label><div class="help">N/A: not a customer yet. When they buy, change "What the account needs this year" and pick a starting point; their answers here are kept.</div></div>
-  <div class="field"><label>Who ran the call</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>`
-  : `<div class="row2">
-    <div class="field"><label>CSM</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
-    <div class="field"><label>Backup</label><input type="text" data-meta="backup" value="${esc(m.backup)}"></div>
-  </div>
-  <div class="field"><label>Day 1</label><div class="help">The day the first workflow goes live. Milestone dates count from here.</div><input type="date" data-meta="day1" value="${esc(m.day1)}" style="max-width:220px"></div>`}
-  <div class="field"><label>What you know so far</label><div class="help">Notes from calls, emails, the handover. Rough is fine.</div><textarea data-meta="context" style="min-height:140px">${esc(m.context)}</textarea></div>
-  <div class="field"><label>Where it came from</label><input type="text" data-meta="sources" value="${esc(m.sources)}" placeholder="e.g. Oct 29 planning call, handover from Justin"></div>
-  <div class="field"><label class="check ${m.verified ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-meta="verified" ${m.verified ? 'checked' : ''}> Every number here is confirmed. No placeholders and no unverified marketing figures.</label></div>
+  ${px ? '' : `<div class="field"><label>Day 1</label><div class="help">The day the first workflow goes live. Milestone dates count from here.</div><input type="date" data-meta="day1" value="${esc(m.day1)}" style="max-width:220px"></div>`}
+  <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
+  <details class="more-details" id="basicsMore" ${basicsMoreOpen ? 'open' : ''}><summary>More details <span>${px ? 'who ran the call, logo, notes' : 'CSM and backup, logo, plan size, notes'}${moreFilled ? ' · ' + moreFilled + ' filled in' : ''}</span></summary>${more}</details>
   ${footHtml(p)}`;
 }
+document.addEventListener('toggle', e => { if (e.target.id === 'basicsMore') basicsMoreOpen = e.target.open; }, true);
 
 /* A step's curious questions, plus any for what the account needs this year (e.g. Renew). */
 /* The orange box: the step's questions, and "More questions" at the far right, which opens MORE_ASK
@@ -3152,7 +3208,7 @@ function stepDone(p, k) {
 function stepBarHtml(p) {
   const order = navOrder(p), i = order.indexOf(currentSec);
   const count = i >= 0 ? `Step ${i + 1} of ${order.length}` : `${order.length} steps in this plan`;
-  return `<div class="stepbar"><div class="step-top"><span class="step-count">${count}</span><span class="step-name">${esc(secName(currentSec))}</span></div>
+  return `<div class="stepbar"><div class="step-top"><span class="step-count">${count}</span><span class="step-name">${esc(secName(currentSec))}</span><button class="map-toggle" data-action="toggle-map">${focusOn ? 'Show map' : 'Hide map'}</button></div>
     <div class="step-segs">${order.map((k, j) => `<button class="step-seg ${stepDone(p, k) ? 'done' : ''} ${j === i ? 'current' : ''}" data-goto="${esc(k)}" title="${j + 1}. ${esc(secName(k))}" aria-label="Step ${j + 1}: ${esc(secName(k))}"></button>`).join('')}</div></div>`;
 }
 function updateStepBar() {
@@ -3946,7 +4002,7 @@ function handleClick(e) {
   const g = e.target.closest('[data-goto]');
   if (g) { e.preventDefault(); go(g.dataset.goto); return; }
   const cmd = e.target.closest('[data-cmd]');
-  if (cmd) { document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); runCmd(cmd.dataset.cmd); return; }
+  if (cmd) { topMenu(''); runCmd(cmd.dataset.cmd); return; }
   const a = e.target.closest('[data-action]');
   if (!a) return;
   const p = cur();
@@ -3957,6 +4013,12 @@ function handleClick(e) {
     if (box && s) box.outerHTML = askBoxHtml(p, s);
     return;
   }
+  if (act === 'aud') {
+    welcomeAud = a.dataset.v; welcomeAudApply();
+    const acc = document.getElementById('w-account'); if (acc && !acc.value) acc.focus();
+    return;
+  }
+  if (act === 'toggle-map') { setFocus(!focusOn); return; }
   if (act === 'logo-clear') { logoSet(a.dataset.scope, null, ''); return; }
   if (act === 'create') {
     const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '', rollout: ROLLOUT_MODES.includes(document.getElementById('w-mode').value) ? document.getElementById('w-rollout').value : '' };
@@ -3969,7 +4031,7 @@ function handleClick(e) {
   if (act === 'start-back') {
     fadeSwap(() => {
       const nw = pendingNew; pendingNew = null; renderAll();
-      if (nw) { document.getElementById('w-account').value = nw.account; logoSearchSync(); document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; document.getElementById('w-rollout').value = nw.rollout || 'first'; welcomeRollout(nw.mode); }
+      if (nw) { welcomeAud = nw.mode === 'prospect' ? 'prospect' : 'customer'; welcomeAudApply(); document.getElementById('w-account').value = nw.account; logoSearchSync(); document.getElementById('w-mode').value = nw.mode; const b = document.getElementById('w-modeOther'); b.value = nw.modeOther || ''; b.style.display = nw.mode === 'other' ? '' : 'none'; document.getElementById('w-rollout').value = nw.rollout || 'first'; welcomeRollout(nw.mode); }
     }); return;
   }
   if (act === 'start') {
@@ -4059,7 +4121,7 @@ function runCmd(c) {
   const p = cur();
   if (c === 'team') { openTeamPanel(); return; }
   if (c === 'theme') { setTheme(!isDark()); return; }
-  if (c === 'new') { welcomeHs = null; welcomeLogo = null; logoMsg.welcome = ''; currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
+  if (c === 'new') { welcomeAud = ''; welcomeHs = null; welcomeLogo = null; logoMsg.welcome = ''; currentId = null; currentSec = 'basics'; pendingNew = null; builder = null; repick = false; renderAll(); return; }
   if (c === 'import') { document.getElementById('importFile').click(); return; }
   if (c === 'signin') { if (auth) signOut(); else signIn(); return; }
   if (!p) return;
@@ -4153,9 +4215,23 @@ document.getElementById('planPicker').addEventListener('change', e => {
   if (v === '__new') { currentId = null; currentSec = 'basics'; renderAll(); return; }
   if (plans[v]) { currentId = v; currentSec = 'basics'; saveNow(); renderAll(); }
 });
-document.getElementById('moreBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('pdfMenu').classList.remove('open'); document.getElementById('moreMenu').classList.toggle('open'); });
-document.getElementById('pdfBtn').addEventListener('click', e => { e.stopPropagation(); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.toggle('open'); });
-document.addEventListener('click', e => { if (!e.target.closest('#moreMenu')) document.getElementById('moreMenu').classList.remove('open'); if (!e.target.closest('#pdfMenu')) document.getElementById('pdfMenu').classList.remove('open'); });
+const TOP_MENUS = ['moreMenu', 'pdfMenu', 'callMenu'];
+function topMenu(id) { TOP_MENUS.forEach(m => { const el = document.getElementById(m); if (m === id) { el.classList.toggle('open'); menuFit(el); } else el.classList.remove('open'); }); }
+/* Keep an open menu on screen: right-aligned under its button, nudged in when that would run off either edge. */
+function menuFit(menu) {
+  const list = menu.querySelector('.menu-list'); if (!list) return;
+  list.style.left = ''; list.style.right = '';
+  if (!menu.classList.contains('open')) return;
+  const r = list.getBoundingClientRect(), box = menu.getBoundingClientRect();
+  const want = Math.min(Math.max(8, r.left), innerWidth - 8 - r.width);
+  if (Math.abs(want - r.left) > 1) { list.style.right = 'auto'; list.style.left = Math.round(want - box.left) + 'px'; }
+}
+document.getElementById('moreBtn').addEventListener('click', e => { e.stopPropagation(); topMenu('moreMenu'); });
+document.getElementById('pdfBtn').addEventListener('click', e => { e.stopPropagation(); topMenu('pdfMenu'); });
+document.getElementById('callBtn').addEventListener('click', e => { e.stopPropagation(); topMenu('callMenu'); });
+document.addEventListener('click', e => { TOP_MENUS.forEach(m => { if (!e.target.closest('#' + m)) document.getElementById(m).classList.remove('open'); }); });
+/* The call tools live in "During a call"; each item presses the original (hidden) button, so they work exactly as before. */
+document.getElementById('callMenu').addEventListener('click', e => { const b = e.target.closest('[data-click]'); if (!b) return; topMenu(''); document.getElementById(b.dataset.click).click(); });
 document.getElementById('importFile').addEventListener('change', e => { if (e.target.files[0]) importFile(e.target.files[0]); e.target.value = ''; });
 document.getElementById('presentBtn').addEventListener('click', openPresent);
 document.getElementById('closePresent').addEventListener('click', () => document.getElementById('present').classList.remove('show'));
@@ -4185,19 +4261,19 @@ window.addEventListener('focus', () => { if (mergeDisk()) onDiskChange(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && mergeDisk()) onDiskChange(); });
 
 /* ---------- Focus mode: just the step you're on ---------- */
-let focusOn = false;
-try { focusOn = localStorage.getItem('spb.focus') === '1'; } catch (e) {}
+/* Simple by default (Nov 10 2026 feedback: "cut the fluff"): only the step you're on. "Show map" brings back
+   the side menu and the map, timeline and ready check; the choice is remembered per browser (spb.focus). */
+var focusOn = true;   // var: the first render (step bar) runs before this line
+try { const f = localStorage.getItem('spb.focus'); if (f !== null) focusOn = f === '1'; } catch (e) {}
 function applyFocus() {
   document.body.classList.toggle('focus', focusOn);
   const b = document.getElementById('focusBtn');
   b.classList.toggle('on', focusOn);
   b.textContent = focusOn ? 'Exit focus' : 'Focus';
+  document.querySelectorAll('.map-toggle').forEach(t => { t.textContent = focusOn ? 'Show map' : 'Hide map'; });
 }
-document.getElementById('focusBtn').addEventListener('click', () => {
-  focusOn = !focusOn;
-  try { localStorage.setItem('spb.focus', focusOn ? '1' : '0'); } catch (e) {}
-  applyFocus();
-});
+function setFocus(v) { focusOn = v; try { localStorage.setItem('spb.focus', focusOn ? '1' : '0'); } catch (e) {} applyFocus(); }
+document.getElementById('focusBtn').addEventListener('click', () => setFocus(!focusOn));
 applyFocus();
 
 /* ---------- Meeting timer: pops out a small window with Start, Pause and Reset ----------
@@ -4712,7 +4788,7 @@ document.getElementById('startFab').addEventListener('click', () => {
   const p = cur();
   if (p && !confirm('Start over? This deletes the plan for ' + (p.meta.account || 'this account') + ' and goes back to Start a success plan. Export it first if you might want it back.')) return;
   if (p) { delete plans[p.id]; saveNow(); }
-  pendingNew = null; builder = null; repick = false; welcomeLogo = null; welcomeHs = null; logoMsg.welcome = '';
+  pendingNew = null; builder = null; repick = false; welcomeLogo = null; welcomeHs = null; welcomeAud = ''; logoMsg.welcome = '';
   fadeSwap(() => { currentId = null; currentSec = 'basics'; renderAll(); });
 });
 /* Swipe between steps: a sideways swipe on a phone, or a two-finger sideways swipe on a trackpad.
