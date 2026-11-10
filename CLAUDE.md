@@ -109,7 +109,13 @@ Field types:
 
 `showIf: d => d.first === 'Other'` hides a field until it applies.
 
-**More questions.** Every step's orange box has a **More questions** button at the far right that opens a second set below the step's own questions (`MORE_ASK`, keyed by section key, rendered by `askBoxHtml()`; open boxes stay open while moving between steps, in this window only). Steps with no questions of their own still get the box with just the button. These questions dig into why it matters to the customer and what it's worth in their own numbers (time, cost, the outcomes they already track), so the plan can show the return in their terms. They ask for the customer's numbers and never supply or promise one. Keep the step's own `ask` list short and put extra questions in `MORE_ASK`; a new section gets its own `MORE_ASK` entry. They stay out of the AI prompt for Fill from a call, the Note, the customer view and the PDFs.
+**A few things at a time.** From the Nov 10, 2026 feedback (Ben got lost, "cut the fluff") and Barry's rule of no more than five questions at a time. Nothing is removed and saved plans are unchanged; what's open is kept in this window only (`foldOpen`):
+- A step shows its first five questions (`STEP_SHOW`); the rest fold under **More on this step**, with how many are filled in. A step with six shows all six. Today only Account economics folds; put the questions that matter most first in `fields`.
+- **Milestones** open only the phase you're in (the first with anything not done); the other phases show one line each with "x of y done" and open with a click.
+- A table longer than ten rows shows its first eight (`TABLE_SHOW`) and "Show the other N". Adding a row opens it in full.
+- A step with no curious questions of its own shows a small "Questions to get curious with" button instead of an empty orange box; it opens the More questions.
+
+**More questions.** Every step's orange box has a **More questions** button at the far right that opens a second set below the step's own questions (`MORE_ASK`, keyed by section key, rendered by `askBoxHtml()`; open boxes stay open while moving between steps, in this window only). Steps with no questions of their own get a small "Questions to get curious with" button that opens them. These questions dig into why it matters to the customer and what it's worth in their own numbers (time, cost, the outcomes they already track), so the plan can show the return in their terms. They ask for the customer's numbers and never supply or promise one. Keep the step's own `ask` list short and put extra questions in `MORE_ASK`; a new section gets its own `MORE_ASK` entry. They stay out of the AI prompt for Fill from a call, the Note, the customer view and the PDFs.
 
 `modeAsk: { renew: [...] }` on a section adds curious questions when the account needs that (`asksFor()`). Prefer `MODES[need].ask` so everything a need does stays in one place.
 

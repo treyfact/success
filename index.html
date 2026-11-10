@@ -151,8 +151,18 @@ table.grid td.act { width: 30px; text-align: center; vertical-align: middle; }
 .check input { margin: 0; }
 .check.on { border-color: var(--navy); background: var(--navy-soft); }
 
-.phase { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; background: var(--surface); }
-.phase-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.phase { border: 1px solid var(--line); border-radius: var(--radius); padding: 0 14px; margin-bottom: 10px; background: var(--surface); }
+.phase[open] { padding-bottom: 12px; }
+.phase-head { display: flex; align-items: baseline; gap: 10px; padding: 12px 0; cursor: pointer; list-style: none; }
+.phase-head::-webkit-details-marker { display: none; }
+.phase-head::before { content: '+'; width: 12px; color: var(--navy); font-weight: 700; }
+.phase[open] > .phase-head::before { content: '\2212'; }
+.phase[open] > .phase-head { padding-bottom: 8px; }
+.phase-head .phase-count { margin-left: auto; white-space: nowrap; }
+.phase-keep { margin: -2px 0 8px; }
+.phase-keep .qs-more { margin: 0; }
+.ask-slim { margin-bottom: 14px; }
+.table-more { display: block; background: none; border: 0; padding: 8px 2px 2px; font: inherit; font-size: 13px; color: var(--navy); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .phase-head b { font-size: 14.5px; }
 .phase-head span { color: var(--muted); font-size: 12.5px; }
 .ms { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
@@ -3061,7 +3071,13 @@ function basicsHtml(p) {
   <details class="more-details" id="basicsMore" ${basicsMoreOpen ? 'open' : ''}><summary>More details <span>${px ? 'who ran the call, logo, notes' : 'CSM and backup, logo, plan size, notes'}${moreFilled ? ' · ' + moreFilled + ' filled in' : ''}</span></summary>${more}</details>
   ${footHtml(p)}`;
 }
-document.addEventListener('toggle', e => { if (e.target.id === 'basicsMore') basicsMoreOpen = e.target.open; }, true);
+document.addEventListener('toggle', e => { if (e.target.id === 'basicsMore') basicsMoreOpen = e.target.open; if (e.target.dataset && e.target.dataset.fold) foldOpen[e.target.dataset.fold] = e.target.open; }, true);
+/* A few things at a time (Nov 10 2026 feedback, and Barry's "no more than five questions at a time"): a step shows
+   its first five questions and folds the rest under "More on this step"; milestones open only the phase you're
+   in; long tables show their first rows. Nothing is removed, and what's open is kept in this window only. */
+var foldOpen = {};
+const STEP_SHOW = 5, TABLE_SHOW = 8;
+function hasAnswer(v) { return Array.isArray(v) ? v.some(x => x && (typeof x !== 'object' || Object.values(x).some(Boolean))) : !!(v && String(v).trim()); }
 
 /* A step's curious questions, plus any for what the account needs this year (e.g. Renew). */
 /* The orange box: the step's questions, and "More questions" at the far right, which opens MORE_ASK
@@ -3070,6 +3086,7 @@ let askOpen = {};
 function askBoxHtml(p, s) {
   const asks = asksFor(p, s), more = MORE_ASK[s.key] || [], open = !!askOpen[s.key];
   if (!asks.length && !more.length) return '';
+  if (!asks.length && !open) return `<div class="ask-slim" id="ask-${esc(s.key)}"><button class="ask-more" data-action="ask-more" data-key="${esc(s.key)}" aria-expanded="false">Questions to get curious with</button></div>`;
   return `<div class="ask" id="ask-${esc(s.key)}"><div class="ask-head"><div class="ask-title">Questions to get curious with</div>${more.length ? `<button class="ask-more" data-action="ask-more" data-key="${esc(s.key)}" aria-expanded="${open}">${open ? 'Fewer questions' : 'More questions'}</button>` : ''}</div>
     ${asks.length ? `<ul>${asks.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
     ${open ? `<ul class="ask-extra${asks.length ? '' : ' alone'}">${more.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}</div>`;
@@ -3085,7 +3102,8 @@ function sectionHtml(p, s) {
   if (s.hint) html += `<div class="hint">${esc(s.hint)}</div>`;
   if (s.key === 'milestones') {
     const phases = d.phases || {};
-    html += `<div class="field"><div class="field-label">Milestones</div>${PHASES.map((ph, i) => phaseHtml(p, ph, phases[ph.key] || [], i)).join('')}</div>`;
+    const now = PHASES.findIndex(ph => (phases[ph.key] || []).some(m => !m.done));
+    html += `<div class="field"><div class="field-label">Milestones</div>${PHASES.map((ph, i) => phaseHtml(p, ph, phases[ph.key] || [], i, i === now)).join('')}</div>`;
     html += `<div class="field-label" style="margin-top:18px">The rhythm underneath</div>`;
     ['weekly', 'monthly', 'quarterly'].forEach(k => {
       const fh = fieldHtml(s, s.fields.find(f => f.key === k), d);
@@ -3093,7 +3111,13 @@ function sectionHtml(p, s) {
     });
     html += fieldHtml(s, s.fields.find(f => f.key === 'workbooks'), d);
   } else {
-    s.fields.forEach(f => { if (!f.showIf || f.showIf(d)) html += fieldHtml(s, f, d); });
+    const shown = s.fields.filter(f => !f.showIf || f.showIf(d));
+    const fold = shown.length > STEP_SHOW + 1 ? shown.slice(STEP_SHOW) : [];
+    shown.slice(0, shown.length - fold.length).forEach(f => { html += fieldHtml(s, f, d); });
+    if (fold.length) {
+      const filled = fold.filter(f => hasAnswer(d[f.key])).length, k = 'step|' + s.key;
+      html += `<details class="more-details" data-fold="${k}" ${foldOpen[k] ? 'open' : ''}><summary>More on this step <span>${fold.length} more question${fold.length > 1 ? 's' : ''}${filled ? ' · ' + filled + ' filled in' : ''}</span></summary>${fold.map(f => fieldHtml(s, f, d)).join('')}</details>`;
+    }
   }
   html += `<div class="notes field"><label>Notes and open questions</label><div class="help">What you still need to find out, and who might know.</div><textarea data-note="${s.key}">${esc(p.notes[s.key] || '')}</textarea></div>`;
   html += footHtml(p);
@@ -3145,22 +3169,25 @@ function tableHtml(s, f, rows, opts) {
   opts = opts || {};
   const attr = `data-sec="${s.key}" data-field="${f.key}"`;
   const cols = opts.cols ? f.columns.filter(c => opts.cols.includes(c.key)) : f.columns;
+  const tk = 'tbl|' + s.key + '|' + f.key, cut = !opts.fixed && !foldOpen[tk] && rows.length > TABLE_SHOW + 2 ? TABLE_SHOW : rows.length;
   return `<div class="field">${opts.noLabel ? '' : `<div class="field-label">${esc(f.label)}</div>`}<div class="table-wrap"><table class="grid"><thead><tr>${cols.map(c => `<th ${c.width && !opts.cols ? `style="width:${c.width}"` : ''}>${esc(c.label)}</th>`).join('')}${opts.fixed ? '' : '<th></th>'}</tr></thead><tbody>
-    ${rows.map((r, i) => `<tr>${cols.map((c, ci) => `<td data-label="${esc(c.label)}" class="${c.multi || ci === 0 ? 'full' : ''}">${c.type === 'select'
+    ${rows.slice(0, cut).map((r, i) => `<tr>${cols.map((c, ci) => `<td data-label="${esc(c.label)}" class="${c.multi || ci === 0 ? 'full' : ''}">${c.type === 'select'
       ? (() => { const cv = r[c.key] || '', custom = !!cv && !c.options.includes(cv), other = custom || otherOpen[s.key + '|' + f.key + '|' + i + '|' + c.key];
           return `<select ${attr} data-row="${i}" data-col="${c.key}" data-other-sel="1">${c.options.map(o => `<option value="${esc(o)}" ${!other && o === cv ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}<option value="__other" ${other ? 'selected' : ''}>${OTHER}</option></select>${other ? `<input type="text" class="other-box" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(custom ? cv : '')}" placeholder="Type it in" aria-label="${esc(c.label)}: something else">` : ''}`; })()
       : c.multi ? `<textarea rows="${Math.min(4, Math.max(2, Math.ceil(String(r[c.key] || '').length / 30)))}" ${attr} data-row="${i}" data-col="${c.key}">${esc(r[c.key])}</textarea>` : `<input type="text" ${attr} data-row="${i}" data-col="${c.key}" value="${esc(r[c.key])}">`}</td>`).join('')}${opts.fixed ? '' : `<td class="act"><button class="x" title="Remove row" data-action="remove-row" ${attr} data-row="${i}">&times;</button></td>`}</tr>`).join('')}
     ${rows.length ? '' : `<tr><td colspan="${cols.length + 1}" class="empty-note" style="padding:10px">Nothing yet.</td></tr>`}
-    </tbody></table></div>${opts.fixed ? '' : `<button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button>`}${s.rollout && !opts.fixed ? `<button class="btn small ghost add-row" data-action="copy-rows" ${attr} title="Copies the table so you can paste it into a spreadsheet">Copy for a spreadsheet</button>` : ''}</div>`;
+    </tbody></table></div>${cut < rows.length ? `<button class="table-more" data-action="table-all" data-k="${tk}">Show the other ${rows.length - cut}</button>` : !opts.fixed && rows.length > TABLE_SHOW + 2 ? `<button class="table-more" data-action="table-all" data-k="${tk}">Show fewer</button>` : ''}${opts.fixed ? '' : `<button class="btn small add-row" data-action="add-row" ${attr}>+ ${esc(f.addLabel || 'Add a row')}</button>`}${s.rollout && !opts.fixed ? `<button class="btn small ghost add-row" data-action="copy-rows" ${attr} title="Copies the table so you can paste it into a spreadsheet">Copy for a spreadsheet</button>` : ''}</div>`;
 }
 
-function phaseHtml(p, ph, items, i) {
+function phaseHtml(p, ph, items, i, isNow) {
   const date = phaseDate(p, ph);
-  const starting = items.filter(m => msIsStarting(ph.key, m)).length;
-  return `<div class="phase"><div class="phase-head"><b>${i + 1}. ${esc(ph.label)}</b><span>${esc(ph.when)}${date ? ' · ' + esc(date) : ''}</span>${starting > 1 ? `<button class="qs-more" data-action="keep-phase" data-ms="${ph.key}">Keep all ${starting} as they are</button>` : ''}</div>
+  const starting = items.filter(m => msIsStarting(ph.key, m)).length, done = items.filter(m => m.done).length, k = 'ph|' + ph.key;
+  const open = k in foldOpen ? foldOpen[k] : isNow;
+  return `<details class="phase" data-fold="${k}" ${open ? 'open' : ''}><summary class="phase-head"><b>${i + 1}. ${esc(ph.label)}</b><span>${esc(ph.when)}${date ? ' · ' + esc(date) : ''}</span><span class="phase-count">${items.length ? done + ' of ' + items.length + ' done' : 'None yet'}</span></summary>
+    ${starting > 1 ? `<div class="phase-keep"><button class="qs-more" data-action="keep-phase" data-ms="${ph.key}">Keep all ${starting} as they are</button></div>` : ''}
     ${items.map((m, j) => `<div class="ms ${m.done ? 'done' : ''}"><input type="checkbox" data-ms="${ph.key}" data-idx="${j}" data-mkey="done" ${m.done ? 'checked' : ''} title="Done"><input type="text" data-ms="${ph.key}" data-idx="${j}" data-mkey="text" value="${esc(m.text)}" aria-label="Milestone">${msWhoHtml(ph.key, j, m)}${msIsStarting(ph.key, m) ? `<button class="start-tag" data-action="keep-ms" data-ms="${ph.key}" data-idx="${j}" title="This is the starting text. Edit it, or keep it as it is.">Starting text: keep it</button>` : ''}<button class="x" title="Remove" data-action="remove-ms" data-ms="${ph.key}" data-idx="${j}">&times;</button></div>`).join('')}
     <button class="btn small ghost" data-action="add-ms" data-ms="${ph.key}">+ Add a milestone</button>
-    <div style="margin-top:6px"><span class="tl-gate">${esc(ph.gate)}</span></div></div>`;
+    <div style="margin-top:6px"><span class="tl-gate">${esc(ph.gate)}</span></div></details>`;
 }
 
 function msWhoHtml(phKey, j, m) {
@@ -4019,6 +4046,7 @@ function handleClick(e) {
     return;
   }
   if (act === 'toggle-map') { setFocus(!focusOn); return; }
+  if (act === 'table-all') { foldOpen[a.dataset.k] = !foldOpen[a.dataset.k]; renderWork(); return; }
   if (act === 'logo-clear') { logoSet(a.dataset.scope, null, ''); return; }
   if (act === 'create') {
     const nw = { account: document.getElementById('w-account').value.trim(), mode: document.getElementById('w-mode').value, modeOther: (document.getElementById('w-modeOther') || {}).value || '', rollout: ROLLOUT_MODES.includes(document.getElementById('w-mode').value) ? document.getElementById('w-rollout').value : '' };
@@ -4078,6 +4106,7 @@ function handleClick(e) {
     const row = {}; f.columns.forEach(c => row[c.key] = '');
     const sd = p.data[s.key] || (p.data[s.key] = {});
     (sd[f.key] = sd[f.key] || []).push(row);
+    foldOpen['tbl|' + s.key + '|' + f.key] = true;   // a long table opens in full so the new row shows
     saveSoon(); renderWork(); sideSoon();
     const inputs = document.querySelectorAll(`#work [data-sec="${s.key}"][data-field="${f.key}"][data-row="${p.data[s.key][f.key].length - 1}"]`);
     if (inputs[0]) inputs[0].focus();
