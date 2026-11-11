@@ -580,6 +580,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .px-chip span { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; }
 .px-body { padding: 4px 14px 12px; font-size: 13px; } .px-body p { margin: 0; line-height: 1.4; }
 .px-body .px-list { padding: 0; gap: 4px; } .px-body .px-list li { margin: 0; }
+.px-new { margin-top: 10px; background: #eef3fa; border-left: 3px solid #1f3a5f; border-radius: 6px; padding: 7px 10px; } .px-new .px-h { color: #1f3a5f; }
 .px-first { margin-top: 10px; background: #fdf3e7; border-left: 3px solid #e08a3c; border-radius: 6px; padding: 7px 10px; }
 .px-first-h { margin: 8px 14px 0; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #c4661f; font-size: 12.5px; }
 .px-first-li b { color: #1f3a5f; }
@@ -3842,8 +3843,8 @@ function prospectPages(p, customer) {
       const said = ['q1', 'q2', 'q3'].map(k => (d(a.key)[k] || '').trim()).filter(Boolean).slice(0, 3);
       return `<div class="doc-card"><div class="doc-card-head"><b>${esc(a.goal)}</b></div><div class="px-body">
         ${said.length ? `<div class="px-h">What you told us</div><ul class="px-list">${said.map(x => `<li>${esc(trunc(x, 120))}</li>`).join('')}</ul>` : ''}
-        <div class="px-h">What the best planners do</div><p>${esc(a.best)}</p>
-        <div class="px-h">Why it matters</div><p>${esc(a.why)}${a.stat && (a.src || !customer) ? ` <span class="px-stat">${esc(a.stat)}${a.src ? '' : ' (source to confirm)'}</span>` : ''}</p>
+        <div class="px-new"><div class="px-h" style="margin-top:0">What the best planners do</div><p>${esc(a.best)}</p>
+        <div class="px-h">Why it matters</div><p>${esc(a.why)}${a.stat && (a.src || !customer) ? ` <span class="px-stat">${esc(a.stat)}${a.src ? '' : ' (source to confirm)'}</span>` : ''}</p></div>
         <div class="px-first"><div class="px-h" style="margin-top:0">Your first step</div><p>${esc(a.first)}</p></div></div></div>`;
     }).join('');
     const b2 = chosen.length ? `<div class="doc-cards" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr));margin-top:0">${cards}</div>${extra.length ? `<p class="doc-note" style="margin-top:12px"><b>Also on your mind:</b> ${esc(trunc(extra.join('; '), 200))}</p>` : ''}` : '<p class="doc-empty" style="margin-top:10px">Pick their top three in the plan builder.</p>';
