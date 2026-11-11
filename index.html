@@ -583,6 +583,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .px-first { margin-top: 10px; background: #fdf3e7; border-left: 3px solid #e08a3c; border-radius: 6px; padding: 7px 10px; }
 .px-first-h { margin: 8px 14px 0; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #c4661f; font-size: 12.5px; }
 .px-first-li b { color: #1f3a5f; }
+.px-p3 .doc-card ul { gap: 6px; padding: 9px 14px; } .px-p3 .px-get { margin-bottom: 4px; }
 .px-helps { margin: 0; padding-left: 18px; } .px-helps li { font-size: 13px; line-height: 1.45; margin-bottom: 3px; }
 .px-h { margin: 10px 0 3px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: 12.5px; color: var(--amber); }
 .px-stat { display: block; margin-top: 4px; color: var(--navy); font-weight: 600; }
@@ -3852,7 +3853,7 @@ function prospectPages(p, customer) {
 
   // ---- Your first 90 days ----
   const firsts = chosen.map(a => `<li class="px-first-li"><b>${esc(a.goal)}:</b> ${esc(trunc(a.first.split('. ')[0].replace(/\.$/, ''), 120))}.</li>`).join('');
-  let b3 = `<div class="doc-cards" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${PX_90.map(x => `<div class="doc-card"><div class="doc-card-head"><b>${esc(x.title)}</b><span>${esc(x.when)}</span></div>${x.get ? `<p class="px-get"><b>What you get:</b> ${esc(x.get)}</p>` : ''}<ul>${x.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${x.firstSteps && firsts ? `<p class="px-first-h">Your first steps, from page 2</p><ul>${firsts}</ul>` : ''}</div>`).join('')}</div>`;
+  let b3 = `<div class="doc-cards px-p3" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${PX_90.map(x => `<div class="doc-card"><div class="doc-card-head"><b>${esc(x.title)}</b><span>${esc(x.when)}</span></div>${x.get ? `<p class="px-get"><b>What you get:</b> ${esc(x.get)}</p>` : ''}<ul>${x.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${x.firstSteps && firsts ? `<p class="px-first-h">Your first steps, from page 2</p><ul>${firsts}</ul>` : ''}</div>`).join('')}</div>`;
   b3 += `<div class="doc-panel" style="margin-top:14px"><h3>How FactorLab helps</h3><ul class="px-helps">${PX_HELPS.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
   pages.push({ title: 'Your first 90 days, step by step', body: b3 });
 
