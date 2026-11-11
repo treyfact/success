@@ -570,6 +570,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .px-pick b { display: block; font-size: 14px; } .px-pick p { margin: 3px 0 0; font-size: 12.5px; color: #444; line-height: 1.45; }
 .px-nextbox { margin-top: 12px; border: 1.5px dashed #b9c3d3; border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; gap: 20px; align-items: center; }
 .px-nextbox p { margin: 2px 0 0; font-size: 13px; color: #556; } .px-when { text-align: right; font-size: 13.5px; } .px-when span { display: block; }
+.pair-field > .row2 > .field { margin-bottom: 0; } .pair-field > .row2 > .field > label { font-weight: 500; color: var(--muted); font-size: 13px; }
 .hs-confirm { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 6px 0 4px; }
 .hs-confirm span { color: var(--muted); font-size: 13px; }
 .hs-done { display: inline-block; margin-left: 8px; font-size: 11.5px; font-weight: 600; color: #1f7a45; background: #e6f4ec; border-radius: 999px; padding: 1px 8px; vertical-align: 1px; }
@@ -579,6 +580,10 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .px-chip span { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; }
 .px-body { padding: 4px 14px 12px; font-size: 13px; } .px-body p { margin: 0; line-height: 1.4; }
 .px-body .px-list { padding: 0; gap: 4px; } .px-body .px-list li { margin: 0; }
+.px-first { margin-top: 10px; background: #fdf3e7; border-left: 3px solid #e08a3c; border-radius: 6px; padding: 7px 10px; }
+.px-first-h { margin: 8px 14px 0; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #c4661f; font-size: 12.5px; }
+.px-first-li b { color: #1f3a5f; }
+.px-helps { margin: 0; padding-left: 18px; } .px-helps li { font-size: 13px; line-height: 1.45; margin-bottom: 3px; }
 .px-h { margin: 10px 0 3px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: 12.5px; color: var(--amber); }
 .px-stat { display: block; margin-top: 4px; color: var(--navy); font-weight: 600; }
 .doc-panel { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
@@ -1931,6 +1936,7 @@ SECTIONS.push(
   {
     key: 'pxWho', set: 'prospect', branch: 'who', title: 'About them', short: 'about them', tiers: [],
     intro: 'Who you talked to and the work they do. Keep it quick.',
+    hint: "Start by telling them what you'll cover and why: about ten quick questions on how their crews plan today and what matters most this year, then a plan built around their answers. Open the Customer window to show them the list as you go.",
     ask: ['What made them take the call?', 'Who else would care about better planning there?'],
     fields: [
       { key: 'contact', label: 'Who you talked to', type: 'text' },
@@ -1947,8 +1953,8 @@ SECTIONS.push(
     ask: ['What do they like about how it works today?', 'Who looks at the plans once they are done?'],
     fields: [
       { key: 'doing', label: 'Are your crews talking through a plan before work today?', type: 'select', options: ['', 'Every crew, every day', 'Most crews, most days', 'Some crews', 'Not yet'] },
-      { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', options: PX_SCALE },
-      { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', options: PX_SCALE },
+      { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', options: PX_SCALE, pair: 'target', pairLabel: 'On a scale of 1 to 10, how effective are those conversations today, and what number would mean success?', shortLabel: 'Today' },
+      { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', options: PX_SCALE, shortLabel: 'What would mean success' },
       { key: 'worth', label: 'What would tell you this was worth it?', type: 'textarea', placeholder: 'Their words. A story counts as much as a number.' },
       { key: 'together', label: 'How closely do safety and operations plan the work together, 1 to 5?', type: 'select', options: ['', '1', '2', '3', '4', '5'] },
       { key: 'callIt', label: 'What do you call it?', type: 'select', options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
@@ -1961,7 +1967,7 @@ SECTIONS.push(
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
     intro: 'Read them the five areas and ask which three matter most this year. Each one they pick adds three quick questions.',
-    hint: 'If none of these fit, tick Something else and write their words. Their plan is built around what they pick here.',
+    hint: 'If none of these fit, pick Something else and write their words. Their plan is built around what they pick here.',
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
     fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain) }],
     leaves: d => (d.areas || []).slice(0, 4)
@@ -3191,7 +3197,12 @@ function sectionHtml(p, s) {
   } else {
     const shown = s.fields.filter(f => !f.showIf || f.showIf(d));
     const fold = shown.length > STEP_SHOW + 1 ? shown.slice(STEP_SHOW) : [];
-    shown.slice(0, shown.length - fold.length).forEach(f => { html += fieldHtml(s, f, d); });
+    const top = shown.slice(0, shown.length - fold.length), paired = new Set(top.filter(f => f.pair).map(f => f.pair));
+    top.forEach(f => {
+      if (paired.has(f.key)) return;   // drawn beside its pair
+      const g = f.pair && top.find(x => x.key === f.pair);
+      html += g ? `<div class="field pair-field"><label>${esc(f.pairLabel)}</label><div class="row2">${fieldHtml(s, Object.assign({}, f, { label: f.shortLabel }), d)}${fieldHtml(s, Object.assign({}, g, { label: g.shortLabel }), d)}</div></div>` : fieldHtml(s, f, d);
+    });
     if (fold.length) {
       const filled = fold.filter(f => hasAnswer(d[f.key])).length, k = 'step|' + s.key;
       html += `<details class="more-details" data-fold="${k}" ${foldOpen[k] ? 'open' : ''}><summary>More on this step <span>${fold.length} more question${fold.length > 1 ? 's' : ''}${filled ? ' · ' + filled + ' filled in' : ''}</span></summary>${fold.map(f => fieldHtml(s, f, d)).join('')}</details>`;
@@ -3781,9 +3792,18 @@ function docShifts(p, customer) {
 /* Value in stages (Barry, Nov 9 2026: "here's the value I'm going to give you in 2 weeks, here's the value in
    30 days"). The same product-neutral steps as before, grouped by when they pay off, each with what they get. */
 const PX_90 = [
-  { when: 'In 2 weeks', title: 'Know where you stand', get: 'A clear picture of where your planning stands today.', items: ['Listen to five real planning conversations together and score them.', 'Name your best planners.'] },
-  { when: 'By day 30', title: 'Agree what to improve', get: 'Three agreed things to improve, and the people who will lead them.', items: ['Turn your top three into three things to improve.', 'Share three good plans with every crew, and why they are good.', 'Leaders look at two plans a week and say one thing back to the crew.'] },
+  { when: 'In 2 weeks', title: 'Know where you stand', get: 'A clear picture of where your planning stands, and your first steps under way.', items: ['Listen to five real planning conversations together and score them.'], firstSteps: true },
+  { when: 'By day 30', title: 'Agree what to improve', get: 'Three agreed things to improve, and the people who will lead them.', items: ['Name your best planners.', 'Turn your top three into three things to improve.', 'Share three good plans with every crew, and why they are good.', 'Leaders look at two plans a week and say one thing back to the crew.'] },
   { when: 'By day 90', title: 'See the change', get: "A before-and-after in your own crews' plans.", items: ['Recognize one great plan in front of the team.', 'Score five plans again and compare them with the baseline.', 'Keep what worked, drop what did not, and pick the next thing to improve.'] }
+];
+/* How FactorLab helps, on the prospect's page 3 (Gretchen, Nov 11 2026: "add more value to this statement",
+   and how we work with the safety platforms they already have). The connections line is from the internal
+   product notes (Procore, CMIC, HammerTech): confirm with John before changing it. */
+const PX_HELPS = [
+  'Your crews record their planning conversation on a phone, the way they already talk it through. No extra form.',
+  'Every conversation is transcribed, translated and scored, so you can see which crews plan well and where to help, without reading every form.',
+  'Your best plans become examples for every crew, and you can see whether planning is getting better, job by job.',
+  'It works alongside the systems you already use, with connections to Procore, CMIC and HammerTech.'
 ];
 /* The offer at the end of a prospect's plan (Keith, Nov 9 2026: Brian drafts it). Empty: nothing prints.
    Write it as one or two plain sentences, e.g. what they get and how to say yes. */
@@ -3823,7 +3843,7 @@ function prospectPages(p, customer) {
         ${said.length ? `<div class="px-h">What you told us</div><ul class="px-list">${said.map(x => `<li>${esc(trunc(x, 120))}</li>`).join('')}</ul>` : ''}
         <div class="px-h">What the best planners do</div><p>${esc(a.best)}</p>
         <div class="px-h">Why it matters</div><p>${esc(a.why)}${a.stat && (a.src || !customer) ? ` <span class="px-stat">${esc(a.stat)}${a.src ? '' : ' (source to confirm)'}</span>` : ''}</p>
-        <div class="px-h">First step</div><p>${esc(a.first)}</p></div></div>`;
+        <div class="px-first"><div class="px-h" style="margin-top:0">Your first step</div><p>${esc(a.first)}</p></div></div></div>`;
     }).join('');
     const b2 = chosen.length ? `<div class="doc-cards" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr));margin-top:0">${cards}</div>${extra.length ? `<p class="doc-note" style="margin-top:12px"><b>Also on your mind:</b> ${esc(trunc(extra.join('; '), 200))}</p>` : ''}` : '<p class="doc-empty" style="margin-top:10px">Pick their top three in the plan builder.</p>';
     const srcNote = chosen.some(a => a.stat && a.src) ? `<p class="doc-src" style="margin-top:10px">Figures: ${esc(OUTLOOK.source)}</p>` : '';
@@ -3831,9 +3851,9 @@ function prospectPages(p, customer) {
   }
 
   // ---- Your first 90 days ----
-  let b3 = `<div class="doc-cards" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${PX_90.map(x => `<div class="doc-card"><div class="doc-card-head"><b>${esc(x.title)}</b><span>${esc(x.when)}</span></div>${x.get ? `<p class="px-get"><b>What you get:</b> ${esc(x.get)}</p>` : ''}<ul>${x.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')}</div>`;
-  b3 += `<div class="doc-panel" style="margin-top:16px"><h3>How FactorLab helps</h3><p style="margin:0;font-size:13.5px">SmartTagIt captures planning conversations on a phone, scores them and benchmarks them against the industry, so each of these steps takes minutes, not meetings.</p></div>`;
-  b3 += `<div class="doc-panel" style="margin-top:12px"><h3>Across the industry</h3><div class="doc-stats">${OUTLOOK.stats.slice(PX_OFFER ? 0 : 1).map(x => `<div><div class="doc-stat-n">${esc(x[0])}</div><div class="doc-stat-t">${esc(x[1])}</div></div>`).join('')}</div><div class="doc-src">Source: ${esc(OUTLOOK.source)}</div></div>`;
+  const firsts = chosen.map(a => `<li class="px-first-li"><b>${esc(a.goal)}:</b> ${esc(trunc(a.first.split('. ')[0].replace(/\.$/, ''), 120))}.</li>`).join('');
+  let b3 = `<div class="doc-cards" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${PX_90.map(x => `<div class="doc-card"><div class="doc-card-head"><b>${esc(x.title)}</b><span>${esc(x.when)}</span></div>${x.get ? `<p class="px-get"><b>What you get:</b> ${esc(x.get)}</p>` : ''}<ul>${x.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${x.firstSteps && firsts ? `<p class="px-first-h">Your first steps, from page 2</p><ul>${firsts}</ul>` : ''}</div>`).join('')}</div>`;
+  b3 += `<div class="doc-panel" style="margin-top:14px"><h3>How FactorLab helps</h3><ul class="px-helps">${PX_HELPS.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
   pages.push({ title: 'Your first 90 days, step by step', body: b3 });
 
   // ---- FactorLab only ----
@@ -4540,11 +4560,23 @@ function renderShare() {
   const s = sectionByKey(currentSec), c = customByKey(currentSec);
   const showNow = p && (currentSec === 'basics' || c || (s && s.branch !== 'internal'));
   d.title = p ? (p.meta.account || 'Success plan') + ' success plan' : 'Success plan';
+  if (p && p.meta.template === 'prospect') { d.body.innerHTML = pxAgendaHtml(p); shareWin.scrollTo(0, y); return; }
   d.body.innerHTML = p
     ? `<div class="share-now">${showNow ? 'Working on: <b>' + esc(secName(currentSec)) + '</b>' : '&nbsp;'}</div><div class="present-body">${presentHtml(p, true)}</div>`
     : '<div class="present-body"><p class="empty-note">Open a plan to share it.</p></div>';
   fitDoc(d.body);
   shareWin.scrollTo(0, y);
+}
+/* Gretchen, Nov 11 2026: a prospect on a discovery call sees nothing, and can get impatient wondering where it's
+   going. The Customer window shows them what you'll cover and why, with the step you're on lit up. Their
+   answers and the plan stay off it: the plan is walked through at the follow-up meeting. */
+function pxAgendaHtml(p) {
+  const order = navOrder(p).filter(k => k !== 'basics' && k !== PX_END), idx = order.indexOf(currentSec);
+  const why = k => { const a = pxArea(k); if (a) return [a.goal, 'A few quick questions, so your plan speaks to your situation.'];
+    return { pxWho: ['About you', 'So the plan fits your company and your crews.'], pxToday: ['Where your planning stands today', 'How your crews plan now, in your words, and what good would look like.'], pxTop: ['What matters most this year', "You pick the three areas that matter most. We'll focus there."] }[k] || [secName(k), '']; };
+  const rows = order.map((k, i) => { const w = why(k); return `<li class="${i === idx ? 'now' : i < idx ? 'done' : ''}"><span>${i + 1}</span><div><b>${esc(w[0])}</b><p>${esc(w[1])}</p></div></li>`; });
+  rows.push(`<li class="${currentSec === PX_END ? 'now' : ''}"><span>${order.length + 1}</span><div><b>Your plan</b><p>We send you a plan built around your answers, and walk through it with you.</p></div></li>`);
+  return `<div class="px-agenda"><div class="px-ag-head"><div class="doc-eyebrow">${planYear(p)} Success plan</div><h1>${esc(p.meta.account || 'Your success plan')}</h1><p>Today's conversation, about 30 minutes</p></div><ol>${rows.join('')}</ol></div>`;
 }
 function openShare() {
   if (shareWin && !shareWin.closed) { shareWin.focus(); renderShare(); return; }
@@ -4553,6 +4585,7 @@ function openShare() {
   if (!shareWin) { alert('Your browser blocked the customer window. Allow pop-ups for this page, then click Customer window again.'); return; }
   shareWin.document.head.innerHTML = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Success plan</title>'
     + document.querySelector('style').outerHTML
+    + '<style>.px-agenda{max-width:760px;margin:40px auto;padding:32px 40px;background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(20,30,50,.08)}.px-ag-head h1{font-family:\'FL Condensed\',sans-serif;text-transform:uppercase;font-size:34px;margin:4px 0 2px;color:#1c2433}.px-ag-head p{margin:0 0 18px;color:#5b6575}.px-agenda ol{list-style:none;margin:0;padding:0}.px-agenda li{display:flex;gap:14px;padding:12px 14px;border-radius:10px;margin-bottom:6px}.px-agenda li span{flex:none;width:28px;height:28px;border-radius:50%;background:#e6ebf2;color:#1f3a5f;display:flex;align-items:center;justify-content:center;font-weight:600}.px-agenda li b{font-size:16px;color:#1c2433}.px-agenda li p{margin:3px 0 0;font-size:14px;color:#5b6575;line-height:1.45}.px-agenda li.now{background:#eef3fa;box-shadow:inset 3px 0 0 #1f3a5f}.px-agenda li.now span{background:#1f3a5f;color:#fff}.px-agenda li.done span{background:#2b7a4b;color:#fff}</style>'
     + '<style>body{background:#e9ecf1}.share-now{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 32px;font-size:13px;color:var(--muted)}.share-now b{color:var(--ink)}.leaf{cursor:default}</style>';
   shareWin.addEventListener('pagehide', () => { shareWin = null; });
   shareWin.addEventListener('resize', () => fitDoc(shareWin.document.body));
