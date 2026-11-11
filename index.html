@@ -549,6 +549,27 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .px-num { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 56px; line-height: 1; color: var(--navy); }
 .px-num.goal { color: var(--green); } .px-lab { font-size: 12px; color: var(--muted); } .px-arrow { font-size: 13px; color: var(--faint); }
 a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+.doc-stages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #d9dee7; border-radius: 10px; overflow: hidden; }
+.doc-stages > div { padding: 10px 14px; border-right: 1px solid #d9dee7; } .doc-stages > div:last-child { border-right: 0; }
+.doc-stages .st { display: block; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; color: #c4661f; }
+.doc-stages b { display: block; font-size: 14px; margin: 2px 0 3px; color: #1f3a5f; }
+.doc-stages p { margin: 0; font-size: 12.5px; line-height: 1.45; color: #333; }
+.doc-stages ul { margin: 7px 0 0; padding-left: 16px; } .doc-stages li { font-size: 12.3px; line-height: 1.45; margin-bottom: 3px; }
+.doc-strip { display: grid; gap: 12px; margin-top: 14px; }
+.doc-strip ul { margin: 4px 0 0; padding-left: 16px; } .doc-strip li { font-size: 12.5px; line-height: 1.45; margin-bottom: 4px; }
+.doc-strip .measured { background: #eef3fa; border-color: #d4deec; } .doc-strip .seen { background: #faf5ec; border-color: #ecdcc0; } .doc-strip .unproven { background: #f7f7f9; border-style: dashed; }
+.doc-proof { margin: 0 0 12px; } .doc-proof ul { margin: 4px 0 0; padding-left: 16px; } .doc-proof li { font-size: 13px; line-height: 1.5; margin-bottom: 3px; }
+.doc-tag { display: inline-block; font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 1px 7px; margin-right: 6px; vertical-align: 1px; background: #faf0e2; color: #8a4a12; }
+.doc-tag.n { background: #e6edf7; color: #1f3a5f; }
+.px-one .doc-panel { padding: 10px 14px; } .px-one .doc-panel h3 { margin-bottom: 6px; }
+.px-one .px-score { gap: 12px; margin-top: 2px; } .px-one .px-num { font-size: 30px; line-height: 1; } .px-one .px-lab { font-size: 11.5px; } .px-one .px-grid { gap: 12px; }
+.px-one .doc-stages > div { padding: 7px 14px; } .px-one .px-picks { margin-top: 2px; } .px-one .px-nextbox { margin-top: 10px; } .px-one .px-nextbox { padding: 8px 14px; }
+.px-now { margin: 0; font-size: 13.5px; line-height: 1.45; } .px-own { margin: 2px 0 0; font-size: 11.5px; color: #7a8394; }
+.px-picks { display: grid; gap: 14px; margin-top: 6px; } .px-pick { display: flex; gap: 9px; }
+.px-pick > span { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #1f3a5f; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.px-pick b { display: block; font-size: 14px; } .px-pick p { margin: 3px 0 0; font-size: 12.5px; color: #444; line-height: 1.45; }
+.px-nextbox { margin-top: 12px; border: 1.5px dashed #b9c3d3; border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+.px-nextbox p { margin: 2px 0 0; font-size: 13px; color: #556; } .px-when { text-align: right; font-size: 13.5px; } .px-when span { display: block; }
 .hs-confirm { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 6px 0 4px; }
 .hs-confirm span { color: var(--muted); font-size: 13px; }
 .hs-done { display: inline-block; margin-left: 8px; font-size: 11.5px; font-weight: 600; color: #1f7a45; background: #e6f4ec; border-radius: 999px; padding: 1px 8px; vertical-align: 1px; }
@@ -937,6 +958,21 @@ const MS_OLD_DEFAULT = {
 };
 
 /* Field types: text, textarea, select, date, list, table, checks, milestones */
+/* Value that isn't a number (Nov 11 2026 rework, from Barry's prompt and discovery guide: capture "the evidence
+   the customer would accept as success", and keep expected value, experienced value and measured evidence apart).
+   PROOF: what would tell them it worked, in their words, tagged as a number we'll track or something they'll see
+   and hear. SEEN: what they've seen or said so far, with who and when: stories and quotes, never dollar figures. */
+const PROOF_KINDS = ['', "A number we'll track", "Something they'll see and hear"];
+const PROOF_FIELD = () => ({ key: 'proof', label: "They'll call this worth it when (their words)", type: 'table',
+  help: 'What would tell them this worked. A number or something they will see and hear both count.',
+  columns: [{ key: 'what', label: 'What they said', width: '50%', multi: true }, { key: 'kind', label: 'Kind', width: '30%', type: 'select', options: PROOF_KINDS }, { key: 'when', label: 'By when', width: '16%', type: 'select', options: ['', 'In 2 weeks', 'By day 30', 'This year'] }],
+  noteCols: ['what', 'kind', 'when'], defaultRows: () => [], addLabel: 'Add what they said' });
+const SEEN_FIELD = () => ({ key: 'seen', label: "What they've seen or said so far", type: 'table',
+  help: 'Their words, with who said it and when. Stories and quotes, not dollar figures.',
+  columns: [{ key: 'what', label: 'What they saw or said', width: '60%', multi: true }, { key: 'who', label: 'Who' }, { key: 'when', label: 'When' }],
+  noteCols: ['what', 'who', 'when'], defaultRows: () => [], addLabel: 'Add what they saw or said' });
+const SEEN_MONEY = /\$|%|\bROI\b|\bdollars?\b|\bsaved \d/i;   // seen-and-said stays in their words, not money
+function proofTag(k) { return /number/i.test(k || '') ? "A number we'll track" : /see|hear/i.test(k || '') ? "Something you'll see and hear" : (k || ''); }
 const SECTIONS = [
   /* ---------------- WHY ---------------- */
   {
@@ -944,7 +980,7 @@ const SECTIONS = [
     tiers: ['starter', 'growth', 'enterprise'],
     intro: 'Their goal for next year in their words, and the work we take off their plate. Lead with relief, not features.',
     ask: [
-      "Tell me what you're doing next year to cut injuries, and I'll show you whether it's working.",
+      "Tell me what you're working on next year, and I'll show you whether it's working.",
       'If this works, what can your people stop doing?',
       'Which report do you build by hand every month?',
       'What number does your boss keep asking you for?',
@@ -954,12 +990,14 @@ const SECTIONS = [
       { key: 'words', label: 'Their goal, in their words', type: 'textarea', placeholder: 'Quote them as closely as you can.' },
       { key: 'test30', label: 'The 30-day test: at the end of 30 days, what will tell us this worked?', type: 'textarea', placeholder: 'e.g. three good examples on record, and a baseline we both trust' },
       { key: 'plate', label: "Work we'll take off their plate", type: 'list', placeholder: 'e.g. building the monthly report by hand' },
-      { key: 'priorities', label: 'Priorities they already have', type: 'list', placeholder: 'e.g. stronger planning, earlier leadership action' }
+      { key: 'priorities', label: 'Priorities they already have', type: 'list', placeholder: 'e.g. stronger planning, earlier leadership action' },
+      PROOF_FIELD()
     ],
     leaves: d => [
       d.words && '"' + trunc(d.words, 46) + '"',
       d.test30 && 'In 30 days: ' + d.test30,
-      ...(d.plate || []).map(x => 'Off their plate: ' + x)
+      ...(d.plate || []).map(x => 'Off their plate: ' + x),
+      ...(d.proof || []).filter(r => r.what).map(r => 'Worth it: ' + r.what)
     ]
   },
   {
@@ -1083,11 +1121,13 @@ const SECTIONS = [
         ],
         addLabel: 'Add a measure'
       },
-      { key: 'outcome', label: 'One outcome they already track (we follow it alongside, never predict it)', type: 'text', placeholder: 'e.g. their incident cost per hour worked' }
+      { key: 'outcome', label: 'One outcome they already track (we follow it alongside, never predict it)', type: 'text', placeholder: 'e.g. rework hours, turnover, or their recordable rate' },
+      SEEN_FIELD()
     ],
     leaves: d => [
-      ...(d.measures || []).filter(r => r.target).map(r => r.measure + ': ' + (r.baseline || '?') + ' to ' + r.target + (r.stretch ? ' (stretch ' + r.stretch + ')' : '')),
-      d.outcome && 'Tracking: ' + d.outcome
+      ...(d.measures || []).filter(r => r.target).map(r => r.measure + ': ' + (r.baseline ? r.baseline + ' to ' + r.target + (r.stretch ? ' (stretch ' + r.stretch + ')' : '') : 'set the baseline first')),
+      d.outcome && 'Tracking: ' + d.outcome,
+      ...(d.seen || []).filter(r => r.what).map(r => 'Seen: ' + r.what)
     ]
   },
   {
@@ -1572,9 +1612,10 @@ const SECTIONS = [
     fields: [
       { key: 'objective', label: 'The objective, in one or two sentences', type: 'textarea', placeholder: 'e.g. This year we will simplify and improve the critical systems we use to manage safety and construction risk.' },
       { key: 'helps', label: 'FactorLab will help them', type: 'checks', options: ['Lighten the load of safety and compliance work', 'Bring daily safety work into fewer systems', 'Grow workforce and trade partner participation', 'Get better information from everyday work', 'Benchmark the quality, frequency and consistency of critical activities', 'Find the project practices that produce stronger execution', 'Turn those practices into their own standards', 'Use project, trade partner, incident and field information to improve decisions and training'] },
-      { key: 'priorities', label: 'Their existing priorities this supports', type: 'list', placeholder: 'e.g. stronger planning discipline, earlier leadership action' }
+      { key: 'priorities', label: 'Their existing priorities this supports', type: 'list', placeholder: 'e.g. stronger planning discipline, earlier leadership action' },
+      PROOF_FIELD()
     ],
-    leaves: d => [d.objective, ...(d.helps || []), ...(d.priorities || []).map(x => 'Supports: ' + x)]
+    leaves: d => [d.objective, ...(d.helps || []), ...(d.priorities || []).map(x => 'Supports: ' + x), ...(d.proof || []).filter(r => r.what).map(r => 'Worth it: ' + r.what)]
   },
   {
     key: 'fcSimplify', set: 'flintco', branch: 'what', title: 'Simplification', short: 'simplification', model: true, tiers: [],
@@ -1749,9 +1790,10 @@ const SECTIONS = [
           { measure: 'Leadership and system improvement', how: 'Action taken on gaps, and proof the changes work' },
           { measure: 'Learning transfer', how: 'Practices turned into standards, training, guidance and game tape' }
         ],
-        addLabel: 'Add a measure' }
+        addLabel: 'Add a measure' },
+      SEEN_FIELD()
     ],
-    leaves: d => (d.rows || []).filter(r => r.target || r.baseline).map(r => r.measure + ': ' + (r.baseline || '?') + ' to ' + (r.target || '?'))
+    leaves: d => [...(d.rows || []).filter(r => r.target || r.baseline).map(r => r.measure + ': ' + (r.baseline ? r.baseline + ' to ' + (r.target || '?') : 'set the baseline first')), ...(d.seen || []).filter(r => r.what).map(r => 'Seen: ' + r.what)]
   },
   {
     key: 'fcYearEnd', set: 'flintco', branch: 'know', title: 'Quarterly reports and year-end outcome', short: 'the year-end outcome', model: true, tiers: [],
@@ -1865,7 +1907,7 @@ const PX_AREAS = [
   { key: 'pxLate', pain: "Leaders hear about problems too late and crews don't speak up", was: ['Leaders hear about problems too late'], goal: 'Leaders see it early',
     qs: ['How do leaders know whether this morning\'s plans were any good?', 'How many plans does a superintendent or manager actually see in a week?', 'What would you want to know before 7 a.m. that you find out later?'],
     best: 'Leaders look at a couple of real plans every week, say something back to the crew, and spot a weak plan the same day.',
-    why: 'The plan is the earliest, cheapest place to catch risk.', stat: '59% say planning weaknesses reach leaders too late.',
+    why: 'The plan is the earliest, cheapest place to catch risk.', stat: '59% say planning weaknesses reach leaders too late.', src: 'survey',
     first: 'Ask each leader to look at two plans a week and say one thing back to the crew.' },
   { key: 'pxSilo', retired: true, pain: 'Safety and operations plan separately', goal: 'One plan safety and operations both own',
     qs: ['Who owns the morning plan today: safety, operations or both?', 'When safety and operations see a good plan differently, how does that get settled?', 'Do your operations leaders ever review plans with your safety team?'],
@@ -1875,12 +1917,12 @@ const PX_AREAS = [
   { key: 'pxLessons', pain: 'Lessons stay on the job where they happened', goal: 'Lessons that travel to the next job',
     qs: ['When a crew finds a better way to plan, how does anyone else hear about it?', 'How do lessons from a close call get into the next plan?', 'Can you compare planning between your projects or regions today?'],
     best: 'Share real examples of good plans across crews and regions, and carry what changed into the next project.',
-    why: 'Every job teaches something. The best companies make sure the next crew hears it.', stat: '56% want AI to find patterns across projects, the top AI use case.',
+    why: 'Every job teaches something. The best companies make sure the next crew hears it.', stat: '56% want AI to find patterns across projects, the top AI use case.', src: 'survey',
     first: 'Pick three good plans a month and share them with every crew, with a line on why they are good.' },
   { key: 'pxBench', pain: 'Not enough experienced leaders to go around', goal: 'A deeper bench of field leaders',
     qs: ['How many of your foremen are new to the role in the last year or two?', 'How do you know which foremen need help planning?', 'How do your best planners help the newer ones today?'],
     best: 'Find their best planners, recognize them, and pair them with newer leaders. Send experienced leaders where the plans show they are needed.',
-    why: 'Better leaders tend to plan better, keep their people and see more of what is coming.', stat: '69% rank frontline leadership development one of their top three 2027 priorities.',
+    why: 'Better leaders tend to plan better, keep their people and see more of what is coming.', stat: '69% rank frontline leadership development one of their top three 2027 priorities.', src: 'survey',
     first: 'Name your best planners and recognize one each month for a plan others can learn from.' }
 ];
 const PX_BASE = ['pxWho', 'pxToday', 'pxTop'], PX_END = 'pxNext';
@@ -1905,15 +1947,16 @@ SECTIONS.push(
     ask: ['What do they like about how it works today?', 'Who looks at the plans once they are done?'],
     fields: [
       { key: 'doing', label: 'Are your crews talking through a plan before work today?', type: 'select', options: ['', 'Every crew, every day', 'Most crews, most days', 'Some crews', 'Not yet'] },
-      { key: 'callIt', label: 'What do you call it?', type: 'select', options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
       { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', options: PX_SCALE },
       { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', options: PX_SCALE },
+      { key: 'worth', label: 'What would tell you this was worth it?', type: 'textarea', placeholder: 'Their words. A story counts as much as a number.' },
       { key: 'together', label: 'How closely do safety and operations plan the work together, 1 to 5?', type: 'select', options: ['', '1', '2', '3', '4', '5'] },
+      { key: 'callIt', label: 'What do you call it?', type: 'select', options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
       { key: 'count', label: 'How many do you take part in yourself in a month?', type: 'text' },
       { key: 'measure', label: 'How do you measure whether they work today?', type: 'textarea' },
       { key: 'system', label: 'What do you use to capture them today?', type: 'text', placeholder: 'e.g. paper, a form app' }
     ],
-    leaves: d => [d.doing, d.callIt && 'Calls it: ' + d.callIt, d.score && 'Today: ' + d.score + ' of 10' + (d.target ? ', goal ' + d.target : ''), d.system && 'Uses: ' + d.system]
+    leaves: d => [d.doing, d.worth && 'Worth it: ' + d.worth, d.callIt && 'Calls it: ' + d.callIt, d.score && 'Today: ' + d.score + ' of 10' + (d.target ? ', goal ' + d.target : ''), d.system && 'Uses: ' + d.system]
   },
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
@@ -1986,7 +2029,7 @@ const MORE_ASK = {
   targets: [
     'Which of these numbers would your leadership actually ask about?',
     "What does an hour of a foreman's time cost you, all in?",
-    'What does a typical recordable cost you, all in?',
+    'Which numbers you already track would show this is working: hours, rework, turnover, or something else?',
     'Where do these numbers live today, and who pulls them?',
     'Which number would you put in front of your boss at 90 days?',
     'What would make a target feel too easy, or out of reach?'
@@ -2336,8 +2379,11 @@ function readyChecks(plan) {
   const promises = [].concat(
     (d('targets').measures || []).map(r => [[r.target, 'targets'], [r.stretch, 'targets']]).flat(),
     (d('fcValue').rows || []).map(r => [r.target, 'fcValue']),
-    [[d('goal').test30, 'goal'], [d('hypothesis').result, 'hypothesis']]
+    [[d('goal').test30, 'goal'], [d('hypothesis').result, 'hypothesis'], [d('fcValue').line, 'fcValue']],
+    ['goal', 'fcObjective'].map(k => (d(k).proof || []).map(r => [r.what, k])).flat()
   ).filter(x => x[0] && vis.includes(x[1]) && PROMISE_WORDS.test(x[0]));
+  const proofSec = vis.includes('goal') ? 'goal' : 'fcObjective', proofRows = (d(proofSec).proof || []).filter(r => (r.what || '').trim());
+  const seenSec = vis.includes('targets') ? 'targets' : 'fcMeasures', seenRows = (d(seenSec).seen || []).filter(r => (r.what || '').trim()), seenBad = seenRows.find(r => SEEN_MONEY.test(r.what));
   const left = startingLeft(plan), noWho = msAll.filter(m => !m.who).length;
   return [
     { id: 'goal', label: 'Their goal is written in their words', ok: !!d('goal').words, sec: 'goal' },
@@ -2369,6 +2415,8 @@ function readyChecks(plan) {
     { id: 'pxTop', label: 'Their top pains are picked (up to three)', ok: pxChosen(plan).length > 0, sec: 'pxTop' },
     ...pxChosen(plan).map(a => ({ id: 'px-' + a.key, label: 'Their answers on: ' + a.pain.toLowerCase(), ok: ['q1', 'q2', 'q3'].filter(k => (d(a.key)[k] || '').trim()).length >= 2, tip: 'Two of the three questions is enough.', sec: a.key })),
     { id: 'pxNext', label: 'The follow-up meeting is booked', ok: !!d('pxNext').date, sec: 'pxNext' },
+    { id: 'proof', label: "They've said what would tell them it worked, and each one says a number or something they'll see and hear", ok: proofRows.length > 0 && proofRows.every(r => r.kind), tip: proofRows.some(r => !r.kind) ? 'Pick a kind for each one' : '', sec: proofSec },
+    ...(seenRows.length ? [{ id: 'seenwords', label: "What they've seen is in their words, not dollar figures or percentages", ok: !seenBad, tip: seenBad ? 'Check "' + trunc(seenBad.what, 50) + '"' : '', sec: seenSec }] : []),
     { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it under More details in Account basics)', ok: !!plan.meta.verified, sec: 'basics' }
   ].filter(c => { const k = c.shows || c.sec; return (plan.meta.template === 'prospect' ? c.id.startsWith('px') || c.id === 'verified' : true) && (k === 'basics' || visibleSections(plan).some(s => s.key === k)); });
 }
@@ -3579,6 +3627,7 @@ function docBranches(p, customer, skip) {
       let ls = [];
       try { ls = (s.leaves(p.data[s.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
       if (s.key === 'goal') ls = ls.filter(x => !x.startsWith('"') && !x.startsWith('In 30 days: '));   // the goal and 30-day test are shown at the top
+      ls = ls.filter(x => !x.startsWith('Worth it: ') && !x.startsWith('Seen: '));   // these have their own boxes
       if (s.key === 'hypothesis') ls = ls.filter(x => !x.startsWith('If we improve'));
       if (s.key === 'fcObjective') ls = ls.filter(x => x !== (p.data.fcObjective || {}).objective);
       if (s.key === 'fcValue') ls = ls.filter(x => x !== valueLine);
@@ -3632,6 +3681,31 @@ function docNextSteps(p, has) {
   if (has('rolloutProjects')) ((p.data.rolloutProjects || {}).rows || []).filter(r => r.project && r.launch && r.status !== 'Launched').forEach(r => add('Launch: ' + r.project, r.ops, r.launch, r.status));
   const rank = x => x.status === 'In progress' ? 0 : x.when ? 1 : 2;
   return { open: out.filter(x => x.status !== 'Done').sort((a, b) => rank(a) - rank(b)), done: out.filter(x => x.status === 'Done') };
+}
+/* What the customer gets, and when (Barry, Nov 9 2026: "here's the value I'm going to give you in 2 weeks,
+   in 30 days"). The "get" lines are what CS delivers; draft until John confirms CS can deliver a first read
+   within 2 weeks of Day 1 for every first workflow. */
+const GET_STAGES = [
+  { key: 'w2', when: 'In 2 weeks', days: 14, title: 'A first read', get: "Where your planning stands, from your own crews' first conversations." },
+  { key: 'd30', when: 'By day 30', days: 30, title: 'Your baseline, and what to improve', get: 'Your baseline, how you compare, and the three things your leaders picked.' },
+  { key: 'yr', when: 'This year', days: 0, title: "Whether it's working, site by site", get: 'Whether the changes are working, job by job and region by region.' }
+];
+function addDaysFmt(iso, n) { const x = new Date(iso + 'T12:00:00'); x.setDate(x.getDate() + n); return fmtDate(localIso(x)); }
+/* The plan's value, kept in its kinds: what they'd call proof, what they've seen, what we've measured, what's
+   still a bet, and what we expect. Only what someone wrote in. */
+function docValue(p, has) {
+  const d = k => p.data[k] || {}, rows = (k, f) => has(k) ? (d(k)[f] || []) : [];
+  const proof = rows('goal', 'proof').concat(rows('fcObjective', 'proof')).filter(r => (r.what || '').trim());
+  const seen = rows('targets', 'seen').concat(rows('fcMeasures', 'seen')).filter(r => (r.what || '').trim())
+    .map(r => '"' + r.what.trim().replace(/^"|"$/g, '') + '"' + (r.who || r.when ? ' ' + [r.who, r.when].filter(Boolean).join(', ') : ''));
+  const sc = [].concat(rows('targets', 'measures'), rows('fcMeasures', 'rows'), rows('fcValue', 'rows'));
+  const measured = sc.filter(r => r.measure && r.baseline).map(r => r.measure + ': baseline ' + r.baseline + (r.current ? ', now ' + r.current : ''));
+  const results = rows('results', 'rows').filter(r => r.measure && (r.before || r.now)).map(r => r.measure + ': ' + (r.before || '?') + ' to ' + (r.now || '?'));
+  const hy = has('hypothesis') ? d('hypothesis') : {}, bet = hy.improve && hy.result ? 'That improving ' + hy.improve + ' will improve ' + hy.result : '';
+  const aims = sc.filter(r => r.measure && r.target && !r.current).map(r => r.measure + ': ' + (r.baseline ? r.baseline + ' to ' + r.target : 'aiming for ' + r.target + ', baseline first'));
+  const vline = has('fcValue') ? (d('fcValue').line || '').trim() : '';
+  const goals = sc.filter(r => r.measure && r.target).map(r => r.measure + ': ' + (r.baseline ? r.baseline + ' to ' + r.target : 'aiming for ' + r.target));
+  return { proof, seen, measured, results, unproven: [bet, ...aims.slice(0, 2)].filter(Boolean), expected: [vline, ...goals].filter(Boolean) };
 }
 /* The plan's year: the year it mostly covers. Day 1 (or, without one, the day the plan was started)
    in October to December means the year ahead. */
@@ -3721,16 +3795,25 @@ function prospectPages(p, customer) {
   const extra = (d('pxTop').areas || []).filter(x => !pxByPain(x));
   if (customer && !today.length && !t.score && !chosen.length) return [{ title: 'Your ' + yr + ' plan', body: '<p class="doc-empty" style="margin-top:30px;font-size:15px">Your plan builds here as we talk it through.</p>' }];
 
-  // ---- Where your planning stands ----
+  // ---- Where your planning stands: one page that works on its own (Nov 11 2026 rework) ----
+  // Their words first, their own rating labeled as theirs, what they'd call worth it, their top three with a first
+  // step each, what a first step would give them and when ("if": Barry, it's a bad assumption they want to change
+  // on the first call), the next step and the walkthrough date, and one survey figure with its source.
   let b1 = '';
   const who = [w.contact && w.contact + (w.role ? ', ' + w.role : ''), w.type, w.leaders && w.leaders + ' crew leaders'].filter(Boolean);
-  if (who.length) b1 += `<p class="doc-bet" style="margin:0 0 14px">Prepared for ${esc(who.join(' · '))}</p>`;
-  b1 += `<div class="px-grid"><div class="doc-panel"><h3>How your crews plan today</h3><ul class="px-list">${today.length ? today.map(x => `<li>${esc(x)}</li>`).join('') : '<li class="doc-empty">To talk through together</li>'}</ul></div>
-    <div class="doc-panel"><h3>In your own words</h3><p class="px-cap">How effective your planning conversations are, on a scale of 1 to 10</p>
-      <div class="px-score"><div><div class="px-num">${esc(t.score || '?')}</div><div class="px-lab">today</div></div><div class="px-arrow">to</div><div><div class="px-num goal">${esc(t.target || '?')}</div><div class="px-lab">would mean success</div></div></div></div></div>`;
-  if (chosen.length) b1 += `<h3 class="doc-h3">Your top ${chosen.length === 1 ? 'pick' : chosen.length === 2 ? 'two' : 'three'} for ${yr}</h3><div class="px-chips">${chosen.map((a, i) => `<div class="px-chip"><span>${i + 1}</span>${esc(a.goal)}</div>`).join('')}</div>`;
-  b1 += `<div style="margin-top:16px">${stats}</div>`;
-  pages.push({ title: 'Where your planning stands', body: b1 });
+  if (who.length) b1 += `<p class="doc-bet" style="margin:0 0 8px">Prepared for ${esc(who.join(' · '))}</p>`;
+  const now = [t.doing, t.callIt && 'You call it a ' + t.callIt.toLowerCase(), t.system && 'Captured on ' + t.system.toLowerCase()].filter(Boolean);
+  const stand = `<div class="doc-panel"><h3>Where things stand, in your words</h3>${now.length ? `<p class="px-now">${esc(trunc(now.join('. '), 120))}.</p>` : ''}
+    ${t.score || t.target ? `<div class="px-score"><div><div class="px-num">${esc(t.score || '?')}</div><div class="px-lab">today</div></div><div class="px-arrow">to</div><div><div class="px-num goal">${esc(t.target || '?')}</div><div class="px-lab">would mean success</div></div></div><p class="px-own">Your own rating, out of 10. Not a measurement.</p>` : ''}
+    ${t.together ? `<p class="px-now" style="margin-top:6px">Safety and operations plan the work together: <b>${esc(t.together)} of 5</b>, your rating.</p>` : ''}
+    ${!now.length && !t.score && !t.together ? '<p class="doc-empty">To talk through together</p>' : ''}</div>`;
+  const worth = (t.worth || '').trim();
+  b1 += worth ? `<div class="px-grid">${stand}<div class="doc-panel"><h3>You'd call this worth it if</h3><div class="doc-goal" style="margin:4px 0 0;font-size:16px">"${esc(trunc(worth, 190))}"</div></div></div>` : stand;
+  if (chosen.length) b1 += `<div class="doc-panel" style="margin-top:12px"><h3>What you told us matters most</h3><div class="px-picks" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr))">${chosen.map((a, i) => `<div class="px-pick"><span>${i + 1}</span><div><b>${esc(a.goal)}</b><p>First step: ${esc(trunc(a.first.charAt(0).toLowerCase() + a.first.slice(1).split('. ')[0].replace(/\.$/, ''), 80))}.</p></div></div>`).join('')}</div></div>`;
+  b1 += `<h3 class="doc-h3" style="margin:12px 0 5px">If you take a first step: what you get, and when</h3><div class="doc-stages">${PX_90.map(x => `<div><span class="st">${esc(x.when)}</span><b>${esc(x.title)}</b><p>${esc(x.get)}</p></div>`).join('')}</div>`;
+  if (PX_OFFER || nx.date) b1 += `<div class="px-nextbox"><div><b>Your next step</b><p>${PX_OFFER ? esc(trunc(PX_OFFER, 160)) : "We'll walk through this plan together."}</p></div>${nx.date ? `<div class="px-when"><b>Walkthrough</b><span>${esc(fmtDate(nx.date))}</span></div>` : ''}</div>`;
+  if (!PX_OFFER) b1 += `<p class="doc-src" style="margin-top:8px">${esc(OUTLOOK.stats[0][0] + ' ' + OUTLOOK.stats[0][1])}. Source: ${esc(OUTLOOK.source)}</p>`;
+  pages.push({ title: 'Where your planning stands', body: `<div class="px-one">${b1}</div>` });
 
   // ---- Your top three, and how to close the gaps ----
   if (chosen.length || !customer) {
@@ -3739,24 +3822,24 @@ function prospectPages(p, customer) {
       return `<div class="doc-card"><div class="doc-card-head"><b>${esc(a.goal)}</b></div><div class="px-body">
         ${said.length ? `<div class="px-h">What you told us</div><ul class="px-list">${said.map(x => `<li>${esc(trunc(x, 120))}</li>`).join('')}</ul>` : ''}
         <div class="px-h">What the best planners do</div><p>${esc(a.best)}</p>
-        <div class="px-h">Why it matters</div><p>${esc(a.why)}${a.stat ? ` <span class="px-stat">${esc(a.stat)}</span>` : ''}</p>
+        <div class="px-h">Why it matters</div><p>${esc(a.why)}${a.stat && (a.src || !customer) ? ` <span class="px-stat">${esc(a.stat)}${a.src ? '' : ' (source to confirm)'}</span>` : ''}</p>
         <div class="px-h">First step</div><p>${esc(a.first)}</p></div></div>`;
     }).join('');
     const b2 = chosen.length ? `<div class="doc-cards" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr));margin-top:0">${cards}</div>${extra.length ? `<p class="doc-note" style="margin-top:12px"><b>Also on your mind:</b> ${esc(trunc(extra.join('; '), 200))}</p>` : ''}` : '<p class="doc-empty" style="margin-top:10px">Pick their top three in the plan builder.</p>';
-    pages.push({ title: 'Your top three, and how to close the gaps', body: b2 });
+    const srcNote = chosen.some(a => a.stat && a.src) ? `<p class="doc-src" style="margin-top:10px">Figures: ${esc(OUTLOOK.source)}</p>` : '';
+    pages.push({ title: 'Your top three, and how to close the gaps', body: b2 + srcNote });
   }
 
   // ---- Your first 90 days ----
   let b3 = `<div class="doc-cards" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${PX_90.map(x => `<div class="doc-card"><div class="doc-card-head"><b>${esc(x.title)}</b><span>${esc(x.when)}</span></div>${x.get ? `<p class="px-get"><b>What you get:</b> ${esc(x.get)}</p>` : ''}<ul>${x.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')}</div>`;
   b3 += `<div class="doc-panel" style="margin-top:16px"><h3>How FactorLab helps</h3><p style="margin:0;font-size:13.5px">SmartTagIt captures planning conversations on a phone, scores them and benchmarks them against the industry, so each of these steps takes minutes, not meetings.</p></div>`;
-  if (PX_OFFER) b3 += `<div class="doc-panel px-offer" style="margin-top:12px"><h3>Your next step with FactorLab</h3><p style="margin:0;font-size:13.5px">${esc(PX_OFFER)}</p></div>`;
-  if (nx.date) b3 += `<p class="doc-bet" style="margin-top:16px"><b>Next:</b> we'll walk through this together on ${esc(fmtDate(nx.date))}.</p>`;
-  pages.push({ title: 'Your first 90 days: what you get, and when', body: b3 });
+  b3 += `<div class="doc-panel" style="margin-top:12px"><h3>Across the industry</h3><div class="doc-stats">${OUTLOOK.stats.slice(PX_OFFER ? 0 : 1).map(x => `<div><div class="doc-stat-n">${esc(x[0])}</div><div class="doc-stat-t">${esc(x[1])}</div></div>`).join('')}</div><div class="doc-src">Source: ${esc(OUTLOOK.source)}</div></div>`;
+  pages.push({ title: 'Your first 90 days, step by step', body: b3 });
 
   // ---- FactorLab only ----
   if (!customer) {
     const notes = Object.keys(p.notes || {}).filter(k => (p.notes[k] || '').trim() && (k === 'basics' || sectionByKey(k, p))).map(k => [k === 'basics' ? 'Account basics' : sectionByKey(k, p).title, p.notes[k]]);
-    const rows = [['Follow-up meeting', nx.date ? fmtDate(nx.date) : 'Not booked yet'], ['From FactorLab', nx.who], ['From their side', nx.them], ['What to lead with', nx.angle], ['Who ran the call', m.csm], ['What we know so far', m.context && trunc(m.context, 700)], ['Where it came from', m.sources], ...notes.slice(0, 4).map(n => ['Notes: ' + n[0], trunc(n[1], 300)])].filter(r => r[1]);
+    const rows = [['Follow-up meeting', nx.date ? fmtDate(nx.date) : 'Not booked yet'], ['From FactorLab', nx.who], ['From their side', nx.them], ['What to lead with', nx.angle], ['Who else should see this plan', w.others], ['How they measure it today', t.measure], ['How many they join a month', t.count], ['Who ran the call', m.csm], ['What we know so far', m.context && trunc(m.context, 700)], ['Where it came from', m.sources], ...notes.slice(0, 4).map(n => ['Notes: ' + n[0], trunc(n[1], 300)])].filter(r => r[1]);
     pages.push({ title: 'FactorLab only', body: `<table class="doc-table doc-run"><tbody>${rows.map(r => `<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join('')}</tbody></table>` });
   }
   return pages;
@@ -3789,18 +3872,36 @@ function presentHtml(p, customer) {
   if (dlSec) try { dlItems = (dlSec.leaves(p.data[dlSec.key] || {}, p) || []).filter(Boolean).map(String); } catch (e) {}
   const branches = docBranches(p, customer, dlItems.length ? dl.sec : null).filter(b => b.items.length || !(b.label === 'Why' && goal));   // the goal up top already covers an empty Why
   const n = branches.length, cols = n <= 4 ? Math.max(n, 1) : n <= 6 ? 3 : 4, rows = Math.ceil(n / cols);
-  const lead = (goal ? 1 : 0) + (t30 ? 1 : 0) + (value ? 1 : 0) + (hy.improve && hy.result ? 1 : 0) + (dlItems.length ? 2 + (dlItems.length > 2 ? 1 : 0) : 0);
+  const val = docValue(p, has), proofN = Math.min(3, val.proof.length);
+  const lead = (goal ? 1 : 0) + (proofN ? proofN + 1 : 0) + (value ? 1 : 0) + (hy.improve && hy.result ? 1 : 0) + (dlItems.length ? 2 + (dlItems.length > 2 ? 1 : 0) : 0);
   const fl = dlItems.length ? 1 : 0, per = rows === 1 ? Math.max(4 - fl, 8 - lead) : rows === 2 ? Math.max(2 - fl, 4 - Math.ceil(lead / 2)) : 2 - fl;   // the lead box takes room from the cards
   let b1 = '';
   if (goal) b1 += `<div class="doc-goal">"${esc(trunc(goal, 260))}"</div>`;
   if (dlItems.length) b1 += `<div class="doc-lead"><b>${esc(dl.title)}</b><ul>${dlItems.slice(0, 4).map(x => `<li>${esc(trunc(x, 110))}</li>`).join('')}</ul>${more(dlItems.length - 4)}</div>`;
-  if (t30) b1 += `<p class="doc-bet"><b>In 30 days:</b> ${esc(trunc(t30, 220))}</p>`;
-  if (value) b1 += `<p class="doc-bet"><b>The value:</b> ${esc(trunc(value, 220))}</p>`;
-  if (hy.improve && hy.result) b1 += `<p class="doc-bet"><b>Our bet:</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
+  if (hy.improve && hy.result) b1 += `<p class="doc-bet"><b>What we're testing (not proven yet):</b> if we improve ${esc(hy.improve)}, we will improve ${esc(hy.result)}.</p>`;
+  if (value) b1 += `<p class="doc-bet"><b>Where we're aiming (a direction, not a promise):</b> ${esc(trunc(value, 200))}</p>`;
+  if (proofN) b1 += `<div class="doc-panel doc-proof"><h3>You'll call this worth it when</h3><ul>${val.proof.slice(0, 3).map(r => `<li>${r.kind ? `<span class="doc-tag ${/number/i.test(r.kind) ? 'n' : 's'}">${esc(proofTag(r.kind))}</span>` : ''}${esc(trunc(r.what, 150))}</li>`).join('')}</ul>${more(val.proof.length - 3)}</div>`;
   if (n) b1 += `<div class="doc-cards" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${branches.map(b => `<div class="doc-card ${b.cls}"><div class="doc-card-head"><b>${esc(b.label)}</b><span>${esc(b.sub)}</span></div>
       <ul>${b.items.length ? b.items.slice(0, per).map(x => `<li>${esc(x)}</li>`).join('') : '<li class="doc-empty">Not started yet</li>'}</ul>${more(b.items.length - per)}</div>`).join('')}</div>`;
   if (!b1) b1 = '<p class="doc-empty" style="margin-top:30px;font-size:15px">The plan builds here as we talk it through.</p>';
   pages.push({ title: 'The plan at a glance', body: b1 });
+
+  // ---- What you get, and when (Nov 11 2026 rework: Barry's value in stages, and value that isn't a number) ----
+  const strip = [['What we\'ve measured', 'measured', val.measured.concat(dlItems.length ? [] : val.results)], ['What you\'ve seen so far', 'seen', val.seen], ['Not proven yet', 'unproven', val.unproven]];
+  const stripShown = strip.filter(x => x[2].length || !customer);
+  if (!customer || m.day1 || t30 || val.proof.length || strip.some(x => x[2].length)) {
+    const stage = st => {
+      const items = [];
+      if (st.key === 'd30' && t30) items.push(`<li><span class="doc-tag n">Your 30-day test</span>${esc(trunc(t30, 130))}</li>`);
+      val.proof.filter(r => (r.when || 'This year') === st.when).slice(0, 2).forEach(r => items.push(`<li>${r.kind ? `<span class="doc-tag ${/number/i.test(r.kind) ? 'n' : 's'}">${/number/i.test(r.kind) ? 'Number' : 'Seen and heard'}</span>` : ''}${esc(trunc(r.what, 110))}</li>`));
+      const date = st.days && m.day1 ? addDaysFmt(m.day1, st.days) : '';
+      return `<div><span class="st">${esc(st.when)}${date ? ' · by ' + esc(date) : ''}</span><b>${esc(st.title)}</b><p>${esc(st.get)}</p>${items.length ? `<ul>${items.join('')}</ul>` : ''}</div>`;
+    };
+    let bw = `<div class="doc-stages">${GET_STAGES.map(stage).join('')}</div>`;
+    if (stripShown.length) bw += `<div class="doc-strip" style="grid-template-columns:repeat(${stripShown.length},minmax(0,1fr))">${stripShown.map(x => `<div class="doc-panel ${x[1]}"><h3>${esc(x[0])}</h3><ul>${x[2].length ? x[2].slice(0, 4).map(t => `<li>${esc(trunc(t, 120))}</li>`).join('') : '<li class="doc-empty">Nothing yet</li>'}</ul>${more(x[2].length - 4)}</div>`).join('')}</div>`;
+    if (val.seen.length) bw += `<p class="doc-src" style="margin-top:8px">What you've seen is your people's experience, in their words. We don't turn it into a dollar figure.</p>`;
+    pages.push({ title: 'What you get, and when', body: bw });
+  }
 
   // ---- How we'll run it: the rhythm, recognition and how people hear about things ----
   const touched = milestonesTouched(p), mi = d('milestones'), rec = d('recognition'), msShow = has('milestones') && (!customer || touched);
@@ -3824,6 +3925,14 @@ function presentHtml(p, customer) {
   ].filter(Boolean).slice(0, 9);
   const runHtml = top => run.length ? `<h3 class="doc-h3" ${top ? 'style="margin-top:0"' : ''}>How we'll run it</h3><table class="doc-table doc-run"><tbody>${run.map(r => `<tr><th>${esc(r[0])}</th><td>${esc(trunc(r[1], 170))}</td></tr>`).join('')}</tbody></table>` : '';
   const ns = docNextSteps(p, has);
+  if (customer && msShow) {   // with no timeline page, the customer sees the phase they're in as next steps
+    const ph = mi.phases || {}, cur = PHASES.find(x => (ph[x.key] || []).some(it => it.text && !it.done));
+    const ours = /^(raving fans ask made|renewal case built in their numbers)$/i;   // our own tasks stay internal
+    PHASES.slice(0, cur ? PHASES.indexOf(cur) + 1 : PHASES.length).forEach(x => (ph[x.key] || []).filter(it => it.text && !ours.test(it.text.trim())).forEach(it => {
+      if (it.done) { if (!ns.done.some(y => y.what === it.text)) ns.done.push({ what: it.text }); }
+      else if (x === cur) ns.open.push({ what: it.text, who: it.who || '', when: (phaseDate(p, x) || x.when).replace(/^By /, ''), status: '' });
+    }));
+  }
   const nsHtml = (widthPx, cap) => {
     const cols = [{ label: 'Step', w: '48%', v: r => r.what }, { label: 'Who', w: '22%', v: r => r.who }, { label: 'When', w: '17%', v: r => r.when }, { label: 'Status', w: '13%', v: r => r.status }];
     cols.forEach(c => { c.px = widthPx * parseFloat(c.w) / 100; });
@@ -3832,7 +3941,7 @@ function presentHtml(p, customer) {
     return (ns.open.length ? tableHtml2(cols, ns.open.slice(0, k)) : '') + (ns.done.length ? `<p class="doc-note"><b>Done:</b> ${esc(trunc(ns.done.map(x => x.what).join('; '), 240))}</p>` : '') + (ns.open.length > k ? `<p class="doc-note">+ ${ns.open.length - k} more step${ns.open.length - k > 1 ? 's' : ''} on our list</p>` : '');
   };
   const hasNext = ns.open.length || ns.done.length;
-  if (msShow) {
+  if (msShow && !customer) {   // the customer copy has "What you get, and when" instead (Nov 11 2026)
     const ph = mi.phases || {};
     let b2 = `<div class="doc-tl">${PHASES.map((x, i) => {
       const items = (ph[x.key] || []).filter(it => it.text), shown = items.slice(0, 5), date = phaseDate(p, x), allDone = items.length && items.every(it => it.done);
@@ -3861,7 +3970,7 @@ function presentHtml(p, customer) {
     gv.sponsor ? [{ role: 'Operations sponsor', customer: gv.sponsor }] : [],
     gv.impl ? [{ role: 'Implementation owner', customer: gv.impl }] : [],
     (gv.workstreams || []).map(r => ({ role: r.workstream, customer: r.customer, factorlab: r.factorlab }))).filter(r => r.customer || r.factorlab);
-  if (ms.length || owners.length) {
+  if ((ms.length || owners.length) && !customer) {   // the customer copy shows owners in the Who card and measures on page 2
     const both = ms.length && owners.length, W = both ? 560 : 960;
     const any = k => ms.some(r => r[k]);
     const mc = [{ label: 'Measure', w: '18%', v: r => r.measure }, any('how') ? { label: 'How we score it', w: '24%', v: r => r.how } : null, { label: 'Baseline', w: '18%', v: r => r.baseline }, { label: 'Target', w: '20%', v: r => r.target },
@@ -3891,6 +4000,19 @@ function presentHtml(p, customer) {
     : [col('Item', 'item', '26%'), col('Needed?', 'need', '12%'), col(m.account || 'Their owner', 'customer', '25%'), col('FactorLab', 'factorlab', '22%'), col('Status', 'status', '15%')],
     foot: d('rolloutSetup').admin ? `<p class="doc-note"><b>Their admin:</b> ${esc(d('rolloutSetup').admin)}</p>` : '' });
   if (blocks.length) docBlocksPages(blocks.length > 1 ? 'Rollout details' : blocks[0].title, blocks).forEach(x => pages.push(x));
+
+  // ---- Value so far (internal only): Barry's prompt keeps expected, experienced and measured value apart ----
+  if (!customer) {
+    const e = has('economics') ? d('economics') : {};
+    const ledger = [
+      ['What we expect', val.expected],
+      ["What they've seen", val.seen],
+      ["What we've measured", val.measured.concat(val.results)],
+      ['Not proven yet', val.unproven],
+      ['Still available', [e.next && 'Next step up: ' + e.next, e.mustBeTrue && 'What has to be true first: ' + e.mustBeTrue].filter(Boolean)]
+    ];
+    if (ledger.some(r => r[1].length)) pages.push({ title: 'Value so far', body: `<table class="doc-table doc-run"><tbody>${ledger.map(r => `<tr><th>${esc(r[0])}</th><td>${r[1].length ? esc(trunc(r[1].join('; '), 420)) : '<span class="doc-empty">Nothing yet</span>'}</td></tr>`).join('')}</tbody></table>` });
+  }
 
   // ---- FactorLab only (internal PDF and view only) ----
   const otherInt = vis.filter(s => s.branch === 'internal' && !['economics', 'risks', 'advocacy'].includes(s.key));
