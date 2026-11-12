@@ -197,7 +197,7 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 .step-seg { flex: 1; height: 7px; border: 0; border-radius: 4px; background: var(--line); padding: 0; }
 .step-seg.done { background: #a7d0b6; }
 .step-seg.current { background: var(--navy); }
-.step-seg:hover { outline: 2px solid #b9cbe4; outline-offset: 1px; }
+.step-seg:hover { outline: 2px solid #b9cbe4; outline-offset: 1px; } .step-seg:disabled:hover { outline: 0; }
 @media (min-width: 761px) {   /* phones already show one thing at a time, with See the map */
   body.focus .nav, body.focus .side, body.focus .fab { display: none !important; }
   body.focus .app { grid-template-columns: minmax(0, 1fr); }
@@ -250,6 +250,7 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 @media (max-width: 480px) { .aud-pick { grid-template-columns: 1fr; } }
 .need-sel { display: none !important; }
 .fin-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 6px; }
+.aud.main { background: var(--navy); border-color: var(--navy); color: #fff; } .aud.main span { color: #dbe4f1; }
 @media (max-width: 700px) { .fin-pick { grid-template-columns: 1fr; } }
 .w-import { font-size: 13px; color: var(--faint) !important; margin: 18px 0 0 !important; }
 .w-import .qs-more { margin: 0 0 0 4px; }
@@ -886,7 +887,8 @@ table.grid td .other-box { margin-top: 4px; }
     <label class="toggle-row"><input type="checkbox" id="customerView"> Customer view (hides FactorLab-only)</label>
     <div class="spacer"></div>
     <button class="btn" id="printBtn">Print or save as PDF</button>
-    <button class="btn primary" id="closePresent">Back to editing</button>
+    <button class="btn" id="closePresent">Back to editing</button>
+    <button class="btn primary" id="hsFromPlan">Save to HubSpot</button>
   </div>
   <div class="present-body" id="presentBody"></div>
 </div>
@@ -1971,7 +1973,7 @@ SECTIONS.push(
   },
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
-    intro: 'Read them the five areas and ask which three matter most this year. Each one they pick adds three quick questions.',
+    intro: 'Read them the five areas and ask which three matter most this year. Each one has three quick questions, already counted in the steps above.',
     hint: 'If none of these fit, pick Something else and write their words. Their plan is built around what they pick here.',
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
     fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain) }],
@@ -2353,6 +2355,14 @@ function syncProspect(p) {
   return true;
 }
 /* The areas their plan is built on: the first three area steps. */
+/* The three "their pick" steps are counted before they're picked, so the step count never grows on the call.
+   Once the CSM moves past Their top three, only the steps that exist are counted. */
+function pxPad(p) {
+  if (!p || p.meta.template !== 'prospect') return 0;
+  const order = navOrder(p), top = order.indexOf('pxTop'), i = order.indexOf(currentSec);
+  if (top < 0 || i > top) return 0;
+  return Math.max(0, 3 - order.filter(k => pxArea(k)).length);
+}
 function pxChosen(p) { return ((p.meta.flow || {}).steps || []).map(x => pxArea(x.key)).filter(Boolean).slice(0, 3); }
 
 /* Starting points. Guided keeps today's setup. The others store their steps on the plan (meta.flow). */
@@ -3162,6 +3172,7 @@ function basicsHtml(p) {
   ${modeOf(m).lead ? `<div class="help" style="margin:-8px 0 16px">${needKeys(p, m.mode).length ? 'Adds these steps: ' + esc(needKeys(p, m.mode).map(k => sectionByKey(k, p).title).join('; ')) + '.' : esc(modeOf(m).lead)}</div>` : ''}
   ${ROLLOUT_MODES.includes(m.mode) || m.rollout === 'full' ? `<div class="field"><label>How big is the rollout?</label><div class="seg"><button class="btn ${m.rollout !== 'full' ? 'on' : ''}" data-action="rollout" data-v="first">Start with first crews</button><button class="btn ${m.rollout === 'full' ? 'on' : ''}" data-action="rollout" data-v="full">Full rollout</button></div><div class="help" style="margin-top:6px">${m.rollout === 'full' ? 'Adds the steps for every project, region and audience: projects, setup and access, leader alignment, training by audience, rollout steps and the communication plan.' : 'One project or a few crews first. Pick Full rollout to add the steps for every project, region and audience.'}</div></div>` : ''}
   ${px ? '' : `<div class="field"><label>Day 1</label><div class="help">The day the first workflow goes live. Milestone dates count from here.</div><input type="date" data-meta="day1" value="${esc(m.day1)}" style="max-width:220px"></div>`}
+  ${px ? '' : `<div class="fill-cta"><span><b>Need more steps for this account?</b> Add them now, before you start.</span><button class="btn" data-goto="addmore">Build out this plan</button></div>`}
   <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
   <details class="more-details" id="basicsMore" ${basicsMoreOpen ? 'open' : ''}><summary>More details <span>${px ? 'who ran the call, logo, notes' : 'CSM and backup, logo, plan size, notes'}${moreFilled ? ' · ' + moreFilled + ' filled in' : ''}</span></summary>${more}</details>
   ${footHtml(p)}`;
@@ -3330,14 +3341,15 @@ function finishHtml(p) {
   const px = p.meta.template === 'prospect', order = navOrder(p), checks = readyChecks(p), ok = checks.filter(c => c.ok).length;
   return `<div class="sec-branch">Last step</div>
   <div class="sec-head"><h2>Finish the plan</h2></div>
-  <p class="sec-intro">What do you want to do with it?</p>
+  <p class="sec-intro">Look it over, then pick what to do with it.</p>
+  <p style="margin:0 0 14px"><button class="btn" data-action="present">Look at the final plan</button></p>
   <div class="aud-pick fin-pick">
     <button class="aud" data-cmd="pdf-customer"><b>Send to the ${px ? 'prospect' : 'customer'}</b><span>Save their copy as a PDF, ready to send.</span></button>
     <button class="aud" data-cmd="export"><b>Save for the team</b><span>Download the plan file a teammate can open and keep working on.</span></button>
-    <button class="aud" data-cmd="hssave"><b>Save to HubSpot</b><span>Put the plan on the company in HubSpot, step by step.</span></button>
+    <button class="aud main" data-cmd="hssave"><b>Save to HubSpot</b><span>Put the plan on the company in HubSpot, step by step.</span></button>
   </div>
   ${checks.length ? `<p class="help">${ok} of ${checks.length} ready checks done.${ok < checks.length ? ' The ready check on the map shows what is left.' : ''}</p>` : ''}
-  <div class="sec-foot"><button class="btn ghost" data-goto="${esc(order[order.length - 1])}">Back to the plan</button><button class="btn" data-goto="addmore">+ Build out this plan</button></div>`;
+  <div class="sec-foot"><button class="btn ghost" data-goto="${esc(order[order.length - 1])}">Back to the plan</button></div>`;
 }
 
 /* ---------- Step bar: where you are in the plan, always visible ---------- */
@@ -3348,10 +3360,11 @@ function stepDone(p, k) {
   const s = sectionByKey(k); return s ? leavesFor(s, p).length > 0 : false;
 }
 function stepBarHtml(p) {
-  const order = navOrder(p), i = order.indexOf(currentSec);
-  const count = i >= 0 ? `Step ${i + 1} of ${order.length}` : `${order.length} steps in this plan`;
+  const order = navOrder(p), i = order.indexOf(currentSec), pad = pxPad(p), endAt = order.indexOf(PX_END);
+  const soon = Array.from({ length: pad }, () => '<button class="step-seg" disabled title="One of their top three: three quick questions" aria-label="One of their top three, not picked yet"></button>').join('');
+  const count = i >= 0 ? `Step ${i + 1} of ${order.length + pad}` : `${order.length + pad} steps in this plan`;
   return `<div class="stepbar"><div class="step-top"><span class="step-count">${count}</span><span class="step-name">${esc(secName(currentSec))}</span><button class="map-toggle" data-action="toggle-map">${focusOn ? 'Show map' : 'Hide map'}</button></div>
-    <div class="step-segs">${order.map((k, j) => `<button class="step-seg ${stepDone(p, k) ? 'done' : ''} ${j === i ? 'current' : ''}" data-goto="${esc(k)}" title="${j + 1}. ${esc(secName(k))}" aria-label="Step ${j + 1}: ${esc(secName(k))}"></button>`).join('')}</div></div>`;
+    <div class="step-segs">${order.map((k, j) => `${pad && j === endAt ? soon : ''}<button class="step-seg ${stepDone(p, k) ? 'done' : ''} ${j === i ? 'current' : ''}" data-goto="${esc(k)}" title="${j + 1}. ${esc(secName(k))}" aria-label="Step ${j + 1}: ${esc(secName(k))}"></button>`).join('')}${pad && endAt < 0 ? soon : ''}</div></div>`;
 }
 function updateStepBar() {
   const p = cur(), el = document.querySelector('#work .stepbar');
@@ -4483,6 +4496,7 @@ document.getElementById('callMenu').addEventListener('click', e => { const b = e
 document.getElementById('importFile').addEventListener('change', e => { if (e.target.files[0]) importFile(e.target.files[0]); e.target.value = ''; });
 document.getElementById('presentBtn').addEventListener('click', openPresent);
 document.getElementById('closePresent').addEventListener('click', () => document.getElementById('present').classList.remove('show'));
+document.getElementById('hsFromPlan').addEventListener('click', () => { if (!cur()) return; document.getElementById('present').classList.remove('show'); go('hssave'); });
 document.getElementById('customerView').addEventListener('change', openPresent);
 document.getElementById('printBtn').addEventListener('click', printPlan);
 window.addEventListener('afterprint', () => { document.title = APP_TITLE; });
@@ -4612,7 +4626,9 @@ function pxAgendaHtml(p) {
   const why = k => { const a = pxArea(k); if (a) return [a.goal, 'A few quick questions, so your plan speaks to your situation.'];
     return { pxWho: ['About you', 'So the plan fits your company and your crews.'], pxToday: ['Where your planning stands today', 'How your crews plan now, in your words, and what good would look like.'], pxTop: ['What matters most this year', "You pick the three areas that matter most. We'll focus there."] }[k] || [secName(k), '']; };
   const rows = order.map((k, i) => { const w = why(k); return `<li class="${i === idx ? 'now' : i < idx ? 'done' : ''}"><span>${i + 1}</span><div><b>${esc(w[0])}</b><p>${esc(w[1])}</p></div></li>`; });
-  rows.push(`<li class="${currentSec === PX_END ? 'now' : ''}"><span>${order.length + 1}</span><div><b>Your plan</b><p>We send you a plan built around your answers, and walk through it with you.</p></div></li>`);
+  const pad = pxPad(p), have = order.filter(k => pxArea(k)).length;
+  for (let j = 0; j < pad; j++) rows.push(`<li><span>${order.length + j + 1}</span><div><b>${['Your first priority', 'Your second priority', 'Your third priority'][have + j]}</b><p>A few quick questions, so your plan speaks to your situation.</p></div></li>`);
+  rows.push(`<li class="${currentSec === PX_END ? 'now' : ''}"><span>${order.length + pad + 1}</span><div><b>Your plan</b><p>We send you a plan built around your answers, and walk through it with you.</p></div></li>`);
   return `<div class="px-agenda"><div class="px-ag-head"><div class="doc-eyebrow">${planYear(p)} Success plan</div><h1>${esc(p.meta.account || 'Your success plan')}</h1><p>Today's conversation, about 30 minutes</p></div><ol>${rows.join('')}</ol></div>`;
 }
 function openShare() {
