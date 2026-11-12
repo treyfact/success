@@ -197,7 +197,7 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 .step-seg { flex: 1; height: 7px; border: 0; border-radius: 4px; background: var(--line); padding: 0; }
 .step-seg.done { background: #a7d0b6; }
 .step-seg.current { background: var(--navy); }
-.step-seg:hover { outline: 2px solid #b9cbe4; outline-offset: 1px; } .step-seg:disabled:hover { outline: 0; }
+.step-seg:hover { outline: 2px solid #b9cbe4; outline-offset: 1px; }
 @media (min-width: 761px) {   /* phones already show one thing at a time, with See the map */
   body.focus .nav, body.focus .side, body.focus .fab { display: none !important; }
   body.focus .app { grid-template-columns: minmax(0, 1fr); }
@@ -249,6 +249,21 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 .aud.on { border-color: var(--navy); box-shadow: 0 0 0 2px var(--navy) inset; background: var(--soft); }
 @media (max-width: 480px) { .aud-pick { grid-template-columns: 1fr; } }
 .need-sel { display: none !important; }
+.seg-big .btn { padding: 10px 16px; font-size: 14.5px; } .seg-num .btn { min-width: 42px; padding: 8px 10px; font-size: 14.5px; justify-content: center; }
+.pair-stack > .field { margin-bottom: 10px; } .pair-stack > .field > label { font-weight: 500; color: var(--muted); font-size: 13px; }
+.px-count { font-weight: 500; color: var(--muted); font-size: 13px; margin-left: 6px; }
+.px-cards { display: flex; flex-direction: column; gap: 10px; }
+.px-card { border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); }
+.px-card.on { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy) inset; }
+.px-card .px-card-head { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 0; border-radius: 12px; background: none; padding: 14px 16px; margin: 0; cursor: pointer; width: 100%; position: relative; box-sizing: border-box; }
+.px-card .px-card-head input { position: absolute; opacity: 0; pointer-events: none; }
+.px-card .px-card-head b { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 19px; color: var(--ink); }
+.px-card .px-card-head span { font-size: 13px; color: var(--muted); font-weight: 400; padding-left: 25px; }
+.px-card .px-card-head b::before { content: ''; display: inline-block; width: 15px; height: 15px; border: 1.5px solid var(--faint); border-radius: 50%; margin-right: 10px; vertical-align: -1px; box-sizing: border-box; }
+.px-card.on .px-card-head b::before { background: var(--navy); border-color: var(--navy); box-shadow: inset 0 0 0 3px var(--surface); }
+.px-card.on .px-card-head { background: var(--soft); border-radius: 11px 11px 0 0; }
+.px-card .px-card-head.full { cursor: not-allowed; opacity: .55; }
+.px-card-qs { padding: 2px 16px 6px; border-top: 1px solid var(--line); } .px-card-qs .field { margin: 10px 0; } .px-card-qs textarea { min-height: 54px; }
 .fin-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 6px; }
 .aud.main { background: var(--navy); border-color: var(--navy); color: #fff; } .aud.main span { color: #dbe4f1; }
 @media (max-width: 700px) { .fin-pick { grid-template-columns: 1fr; } }
@@ -1948,7 +1963,7 @@ SECTIONS.push(
     fields: [
       { key: 'contact', label: 'Who you talked to', type: 'text' },
       { key: 'role', label: 'Their role', type: 'text', placeholder: 'e.g. safety director' },
-      { key: 'type', label: 'The work they do', type: 'select', options: ['', 'General contractor', 'Trade contractor', 'Utility or energy', 'Owner'] },
+      { key: 'type', label: 'The work they do', type: 'select', buttons: true, options: ['', 'General contractor', 'Trade contractor', 'Utility or energy', 'Owner'] },
       { key: 'leaders', label: 'How many foremen or crew leaders', type: 'text', placeholder: 'e.g. about 40' },
       { key: 'others', label: 'Who else should see this plan?', type: 'text', placeholder: 'e.g. VP of operations, regional safety managers' }
     ],
@@ -1959,12 +1974,12 @@ SECTIONS.push(
     intro: 'How their crews plan today, in their own words. Ask it like a conversation; it becomes page one of their plan.',
     ask: ['What do they like about how it works today?', 'Who looks at the plans once they are done?'],
     fields: [
-      { key: 'doing', label: 'Are your crews talking through a plan before work today?', type: 'select', options: ['', 'Every crew, every day', 'Most crews, most days', 'Some crews', 'Not yet'] },
-      { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', options: PX_SCALE, pair: 'target', pairLabel: 'On a scale of 1 to 10, how effective are those conversations today, and what number would mean success?', shortLabel: 'Today' },
-      { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', options: PX_SCALE, shortLabel: 'What would mean success' },
+      { key: 'doing', label: 'Are your crews talking through a plan before work today?', type: 'select', buttons: true, options: ['', 'Every crew, every day', 'Most crews, most days', 'Some crews', 'Not yet'] },
+      { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', buttons: true, options: PX_SCALE, pair: 'target', pairLabel: 'On a scale of 1 to 10, how effective are those conversations today, and what number would mean success?', shortLabel: 'Today' },
+      { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', buttons: true, options: PX_SCALE, shortLabel: 'What would mean success' },
       { key: 'worth', label: 'What would tell you this was worth it?', type: 'textarea', placeholder: 'Their words. A story counts as much as a number.' },
-      { key: 'together', label: 'How closely do safety and operations plan the work together, 1 to 5?', type: 'select', options: ['', '1', '2', '3', '4', '5'] },
-      { key: 'callIt', label: 'What do you call it?', type: 'select', options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
+      { key: 'together', label: 'How closely do safety and operations plan the work together, 1 to 5?', type: 'select', buttons: true, options: ['', '1', '2', '3', '4', '5'] },
+      { key: 'callIt', label: 'What do you call it?', type: 'select', buttons: true, options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
       { key: 'count', label: 'How many do you take part in yourself in a month?', type: 'text' },
       { key: 'measure', label: 'How do you measure whether they work today?', type: 'textarea' },
       { key: 'system', label: 'What do you use to capture them today?', type: 'text', placeholder: 'e.g. paper, a form app' }
@@ -1973,8 +1988,8 @@ SECTIONS.push(
   },
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
-    intro: 'Read them the five areas and ask which three matter most this year. Each one has three quick questions, already counted in the steps above.',
-    hint: 'If none of these fit, pick Something else and write their words. Their plan is built around what they pick here.',
+    intro: 'Read them the five areas and ask which three matter most this year. Tap each one they pick, and its three quick questions open right under it.',
+    hint: 'Write their words under each one; the plan pairs them with what the best planners do. If none fit, pick Something else at the bottom.',
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
     fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain) }],
     leaves: d => (d.areas || []).slice(0, 4)
@@ -2355,14 +2370,17 @@ function syncProspect(p) {
   return true;
 }
 /* The areas their plan is built on: the first three area steps. */
-/* The three "their pick" steps are counted before they're picked, so the step count never grows on the call.
-   Once the CSM moves past Their top three, only the steps that exist are counted. */
-function pxPad(p) {
-  if (!p || p.meta.template !== 'prospect') return 0;
-  const order = navOrder(p), top = order.indexOf('pxTop'), i = order.indexOf(currentSec);
-  if (top < 0 || i > top) return 0;
-  return Math.max(0, 3 - order.filter(k => pxArea(k)).length);
+/* A prospect plan is four steps (Trey, Nov 11, 2026: under five, with easy buttons). About them shows on
+   step 1 with the company name, and each area's three questions open inside Their top three. The answers
+   still save under their own steps (pxWho, pxPaper and the rest), so the plan pages, the Note and Fill
+   from a call read them as before. */
+function pxHost(p, k) {
+  if (!p || p.meta.template !== 'prospect') return k;
+  if (k === 'pxWho') return 'basics';
+  if (pxArea(k)) return 'pxTop';
+  return k;
 }
+const pxInline = (p, k) => !!p && p.meta.template === 'prospect' && (k === 'pxWho' || !!pxArea(k));
 function pxChosen(p) { return ((p.meta.flow || {}).steps || []).map(x => pxArea(x.key)).filter(Boolean).slice(0, 3); }
 
 /* Starting points. Guided keeps today's setup. The others store their steps on the plan (meta.flow). */
@@ -2474,7 +2492,7 @@ function stepMemo() { try { return JSON.parse(localStorage.getItem(STEP_KEY) || 
 function rememberStep(id, sec) { if (!id || !sec) return; try { const m = stepMemo(); m[id] = sec; localStorage.setItem(STEP_KEY, JSON.stringify(m)); } catch (e) {} }
 function resumeStep(p) {
   if (!p) return 'basics';
-  const order = navOrder(p), saved = stepMemo()[p.id];
+  const order = navOrder(p), saved = pxHost(p, stepMemo()[p.id]);
   if (saved && (order.includes(saved) || ['addmore', 'sort'].includes(saved) || customByKey(saved))) return saved;
   let last = -1; order.forEach((k, i) => { const s = k !== 'basics' && sectionByKey(k, p); if (s && hasWork(p, s)) last = i; });
   return last < 0 ? 'basics' : order[Math.min(last + 1, order.length - 1)];
@@ -2752,14 +2770,14 @@ function renderNav() {
   const nav = document.getElementById('nav');
   if (!p) { nav.innerHTML = ''; return; }
   const vis = visibleSections(p);
-  let html = `<div class="nav-group"><button class="nav-item ${currentSec === 'basics' ? 'active' : ''}" data-goto="basics"><span class="dot ${p.meta.account ? 'on' : ''}"></span>Account basics</button></div>`;
+  let html = `<div class="nav-group"><button class="nav-item ${currentSec === 'basics' ? 'active' : ''}" data-goto="basics"><span class="dot ${p.meta.account ? 'on' : ''}"></span>${esc(secName('basics'))}</button></div>`;
   const navItem = s => `<button class="nav-item ${currentSec === s.key ? 'active' : ''} ${s.branch === 'internal' ? 'internal' : ''}" data-goto="${s.key}"><span class="dot ${leavesFor(s, p).length ? 'on' : ''}"></span>${esc(s.title)}${s.model && !p.meta.flow ? `<span class="tag dogear" title="${esc(MODEL_TIP)}"></span>` : ''}</button>`;
   if (p.meta.flow) {
-    html += `<div class="nav-group"><div class="nav-group-title">${esc(planLabel(p))}</div>${vis.map(navItem).join('')}</div>`;
+    html += `<div class="nav-group"><div class="nav-group-title">${esc(planLabel(p))}</div>${vis.filter(s => !pxInline(p, s.key)).map(navItem).join('')}</div>`;
     const px = p.meta.template === 'prospect';
     if (!px || p.custom.length) html += `<div class="nav-group"><div class="nav-group-title">Your branches</div>${p.custom.map(c => `<button class="nav-item ${currentSec === 'custom:' + c.id ? 'active' : ''}" data-goto="custom:${c.id}"><span class="dot ${(c.items || []).length ? 'on' : ''}"></span>${esc(c.title || 'Untitled branch')}</button>`).join('')}<button class="nav-item" data-action="add-branch" style="color:var(--muted)">+ Add your own branch</button></div>`;
     html += `<div class="nav-group">${miscCount(p) ? `<button class="nav-item ${currentSec === 'sort' ? 'active' : ''}" data-goto="sort" style="color:var(--amber);font-weight:600">Notes to sort (${miscCount(p)})</button>` : ''}<button class="nav-item ${currentSec === 'addmore' ? 'active' : ''}" data-goto="addmore" style="color:var(--navy);font-weight:600">+ Build out this plan</button><button class="nav-item ${currentSec === 'fill' ? 'active' : ''}" data-goto="fill" style="color:var(--muted)">Fill from a call</button>${px ? '' : '<button class="nav-item" data-action="edit-steps" style="color:var(--muted)">Change the steps</button>'}</div>`;
-    html += `<div class="nav-foot"><div class="toggle-row" style="font-size:12px">${esc(planLabel(p))}, ${vis.length + 1} steps. Dashed steps stay FactorLab only.</div></div>`;
+    html += `<div class="nav-foot"><div class="toggle-row" style="font-size:12px">${esc(planLabel(p))}, ${navOrder(p).length} steps. Dashed steps stay FactorLab only.</div></div>`;
     nav.innerHTML = html; return;
   }
   BRANCHES.forEach(b => {
@@ -2815,6 +2833,7 @@ function renderWorkInner() {
   const p = cur();
   if (!p) { work.innerHTML = pendingNew ? startHtml() : welcomeHtml(); if (!pendingNew) welcomeAudApply(); return; }
   if (repick) { work.innerHTML = startHtml(); return; }
+  currentSec = pxHost(p, currentSec);
   if (!['basics', 'addmore', 'sort', 'fill', 'hssave', 'finish'].includes(currentSec) && !customByKey(currentSec) && !sectionByKey(currentSec)) currentSec = 'basics';
   const jump = stepBarHtml(p) + mobileJumpHtml(p);
   if (currentSec === 'addmore') { work.innerHTML = jump + addMoreHtml(p); return; }
@@ -2834,7 +2853,7 @@ function secName(k) {
   if (k === 'fill') return 'Fill from a call';
   if (k === 'hssave') return 'Save to HubSpot';
   if (k === 'finish') return 'Finish the plan';
-  if (k === 'basics') return 'Account basics';
+  if (k === 'basics') { const p = cur(); return p && p.meta.template === 'prospect' ? 'About them' : 'Account basics'; }
   const c = customByKey(k);
   if (c) return c.title || 'Your branch';
   const s = sectionByKey(k);
@@ -3150,8 +3169,7 @@ function basicsHtml(p) {
   const moreFilled = [m.logo, m.csm, !px && m.backup, m.context, m.sources, m.verified, !px && !m.flow && m.tier && m.tier !== 'starter'].filter(Boolean).length;
   const more = `
     ${logoFieldHtml(m.logo ? { src: m.logo, ratio: m.logoRatio } : null, 'plan')}
-    ${px ? `<div class="field"><label>Who ran the call</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
-    <div class="field"><label>How big is the rollout?</label><div class="help">N/A: not a customer yet. When they buy, change "What the account needs this year" and pick a starting point; their answers here are kept.</div></div>`
+    ${px ? `<div class="field"><label>Who ran the call</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>`
     : `<div class="row2">
       <div class="field"><label>CSM</label><input type="text" data-meta="csm" value="${esc(m.csm)}"></div>
       <div class="field"><label>Backup</label><input type="text" data-meta="backup" value="${esc(m.backup)}"></div>
@@ -3160,6 +3178,7 @@ function basicsHtml(p) {
     <div class="field"><label>What you know so far</label><div class="help">Notes from calls, emails, the handover. Rough is fine.</div><textarea data-meta="context" style="min-height:120px">${esc(m.context)}</textarea></div>
     <div class="field"><label>Where it came from</label><input type="text" data-meta="sources" value="${esc(m.sources)}" placeholder="e.g. Oct 29 planning call, handover from Justin"></div>
     <div class="field"><label class="check ${m.verified ? 'on' : ''}" style="display:inline-flex"><input type="checkbox" data-meta="verified" ${m.verified ? 'checked' : ''}> Every number here is confirmed. No placeholders and no unverified marketing figures.</label></div>`;
+  if (px) return pxBasicsHtml(p, more, moreFilled);
   return `<div class="sec-branch">Start here</div>
   <div class="sec-head"><h2>Account basics</h2></div>
   <p class="sec-intro">${px ? "A short discovery conversation with a company that isn't a customer yet. Their plan is ready to walk through at the follow-up meeting." : 'Who this plan is for and what the account needs this year.'}</p>
@@ -3175,6 +3194,25 @@ function basicsHtml(p) {
   ${px ? '' : `<div class="fill-cta"><span><b>Need more steps for this account?</b> Add them now, before you start.</span><button class="btn" data-goto="addmore">Build out this plan</button></div>`}
   <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
   <details class="more-details" id="basicsMore" ${basicsMoreOpen ? 'open' : ''}><summary>More details <span>${px ? 'who ran the call, logo, notes' : 'CSM and backup, logo, plan size, notes'}${moreFilled ? ' · ' + moreFilled + ' filled in' : ''}</span></summary>${more}</details>
+  ${footHtml(p)}`;
+}
+function pxBasicsHtml(p, more, moreFilled) {
+  const m = p.meta, s = sectionByKey('pxWho', p), d = p.data.pxWho || (p.data.pxWho = {}), f = k => s.fields.find(x => x.key === k);
+  const extra = `<div class="field"><label>Who I'm working with</label><div class="help">With HubSpot linked, pick their contact here and it fills Who you talked to.</div><input type="text" data-meta="contact" value="${esc(m.contact || '')}" autocomplete="off" placeholder="${auth && m.hubspot ? 'Start typing, or click to see their contacts' : 'Name and role'}"></div>
+    ${modeFieldHtml(m)}<div class="help" style="margin:-8px 0 16px">When they buy, pick what they need this year. Their answers here are kept.</div>`;
+  return `<div class="sec-branch">Start here</div>
+  <div class="sec-head"><h2>About them</h2></div>
+  <p class="sec-intro">${esc(s.intro)}</p>
+  ${fillDone ? `<div class="fill-ok" style="margin-bottom:16px">${esc(fillDone)}</div>` : ''}
+  <div id="hsBar-plan">${hsBarHtml()}</div>
+  ${askBoxHtml(p, s)}${s.hint ? `<div class="hint">${esc(s.hint)}</div>` : ''}
+  <div class="field"><label>Company</label><input type="text" data-meta="account" value="${esc(m.account)}" autocomplete="off"><a class="logo-search" id="b-logoSearch" target="_blank" rel="noopener" ${(m.account || '').trim() ? `href="${esc(logoSearchUrl(m.account))}"` : 'hidden'}>(Get Company's Logo)</a><div id="hsLink-plan">${hsLinkHtml(m.hubspot)}</div></div>
+  <div class="row2">${fieldHtml(s, f('contact'), d)}${fieldHtml(s, f('role'), d)}</div>
+  ${fieldHtml(s, f('type'), d)}
+  <div class="row2">${fieldHtml(s, f('leaders'), d)}${fieldHtml(s, f('others'), d)}</div>
+  <div class="fill-cta"><span><b>Had the call already?</b> Fill this plan from the transcript with your own AI.</span><button class="btn" data-goto="fill">Fill from a call</button></div>
+  <details class="more-details" id="basicsMore" ${basicsMoreOpen ? 'open' : ''}><summary>More details <span>who ran the call, logo, notes${moreFilled ? ' · ' + moreFilled + ' filled in' : ''}</span></summary>${extra}${more}</details>
+  <div class="notes field"><label>Notes and open questions</label><div class="help">What you still need to find out, and who might know.</div><textarea data-note="pxWho">${esc(p.notes.pxWho || '')}</textarea></div>
   ${footHtml(p)}`;
 }
 document.addEventListener('toggle', e => { if (e.target.id === 'basicsMore') basicsMoreOpen = e.target.open; if (e.target.dataset && e.target.dataset.fold) foldOpen[e.target.dataset.fold] = e.target.open; }, true);
@@ -3216,6 +3254,8 @@ function sectionHtml(p, s) {
       html += rhythmIsStarting(p, k) ? fh.replace('</label>', ` <button class="start-tag" data-action="keep-rhythm" data-k="${k}" title="This is the starting text. Edit it, or keep it as it is.">Starting text: keep it</button></label>`) : fh;
     });
     html += fieldHtml(s, s.fields.find(f => f.key === 'workbooks'), d);
+  } else if (s.key === 'pxTop' && p.meta.template === 'prospect') {
+    html += pxTopHtml(p, s, d);
   } else {
     const shown = s.fields.filter(f => !f.showIf || f.showIf(d));
     const fold = shown.length > STEP_SHOW + 1 ? shown.slice(STEP_SHOW) : [];
@@ -3223,7 +3263,7 @@ function sectionHtml(p, s) {
     top.forEach(f => {
       if (paired.has(f.key)) return;   // drawn beside its pair
       const g = f.pair && top.find(x => x.key === f.pair);
-      html += g ? `<div class="field pair-field"><label>${esc(f.pairLabel)}</label><div class="row2">${fieldHtml(s, Object.assign({}, f, { label: f.shortLabel }), d)}${fieldHtml(s, Object.assign({}, g, { label: g.shortLabel }), d)}</div></div>` : fieldHtml(s, f, d);
+      html += g ? `<div class="field pair-field"><label>${esc(f.pairLabel)}</label><div class="${f.buttons ? 'pair-stack' : 'row2'}">${fieldHtml(s, Object.assign({}, f, { label: f.shortLabel }), d)}${fieldHtml(s, Object.assign({}, g, { label: g.shortLabel }), d)}</div></div>` : fieldHtml(s, f, d);
     });
     if (fold.length) {
       const filled = fold.filter(f => hasAnswer(d[f.key])).length, k = 'step|' + s.key;
@@ -3257,6 +3297,12 @@ function fieldHtml(s, f, d) {
     case 'select': {
       if (hasOwnOther(f.options)) return `<div class="field">${label}<select ${attr}>${f.options.map(o => `<option value="${esc(o)}" ${o === (v || '') ? 'selected' : ''}>${esc(optLabel(o) || 'Choose...')}</option>`).join('')}</select></div>`;
       const k = s.key + '|' + f.key, custom = !!v && !f.options.includes(v), other = custom || otherOpen[k];
+      if (f.buttons) {   // easy buttons; the list behind them keeps working as before
+        const num = f.options.filter(o => o).every(o => /^\d+$/.test(o));
+        return `<div class="field">${label}<div class="seg ${num ? 'seg-num' : 'seg-big'}">${f.options.filter(o => o).map(o => `<button class="btn ${!other && o === v ? 'on' : ''}" data-action="segpick" data-v="${esc(o)}">${esc(o)}</button>`).join('')}<button class="btn ${other ? 'on' : ''}" data-action="segpick" data-v="__other">${OTHER}</button></div>
+          <select ${attr} data-other-sel="1" class="need-sel" aria-hidden="true" tabindex="-1">${f.options.map(o => `<option value="${esc(o)}" ${!other && o === (v || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}<option value="__other" ${other ? 'selected' : ''}>${OTHER}</option></select>
+          ${other ? `<input type="text" class="other-box" ${attr} data-other-text="select" value="${esc(custom ? v : '')}" placeholder="Type it in" aria-label="${esc(f.label)}: something else">` : ''}</div>`;
+      }
       return `<div class="field">${label}<select ${attr} data-other-sel="1">${f.options.map(o => `<option value="${esc(o)}" ${!other && o === (v || '') ? 'selected' : ''}>${esc(o || 'Choose...')}</option>`).join('')}<option value="__other" ${other ? 'selected' : ''}>${OTHER}</option></select>
         ${other ? `<input type="text" class="other-box" ${attr} data-other-text="select" value="${esc(custom ? v : '')}" placeholder="Type it in" aria-label="${esc(f.label)}: something else">` : ''}</div>`;
     }
@@ -3271,6 +3317,24 @@ function fieldHtml(s, f, d) {
   }
 }
 
+function pxTopHtml(p, s, d) {
+  const f = s.fields[0], arr = Array.isArray(d.areas) ? d.areas : [], picked = PX_AREAS.filter(a => arr.some(x => pxByPain(x) === a));
+  const steps = ((p.meta.flow || {}).steps || []).map(x => pxArea(x.key)).filter(Boolean);
+  const list = PX_OFFERED().concat(steps.filter(a => a.retired)), full = picked.length >= 3;
+  const cards = list.map(a => {
+    const on = picked.includes(a), open = on || steps.includes(a), as = sectionByKey(a.key, p), ad = p.data[a.key] || {};
+    const pain = arr.find(x => pxByPain(x) === a) || a.pain;
+    return `<div class="px-card ${on ? 'on' : ''} ${open ? 'open' : ''}">
+      <label class="check px-card-head ${!on && full ? 'full' : ''}"><input type="checkbox" data-sec="pxTop" data-field="areas" data-opt="${esc(pain)}" ${on ? 'checked' : ''} ${!on && full ? 'disabled' : ''}><b>${esc(a.goal)}</b><span>${esc(a.pain)}</span></label>
+      ${open ? `<div class="px-card-qs">${!on ? '<div class="help" style="margin-top:8px">Not in their top three. Their answers are kept.</div>' : ''}${as.fields.map(q => fieldHtml(as, q, ad)).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+  const extra = arr.filter(x => !pxByPain(x)), other = extra.length > 0 || otherOpen['pxTop|areas'];
+  return `<div class="field"><div class="field-label">${esc(f.label)} <span class="px-count">${picked.length} of 3 picked</span></div>
+    <div class="px-cards">${cards}</div>
+    <div class="checks" style="margin-top:10px"><label class="check ${other ? 'on' : ''}"><input type="checkbox" data-sec="pxTop" data-field="areas" data-other-chk="1" ${other ? 'checked' : ''}>None of these fit: ${OTHER}</label></div>
+    ${other ? `<input type="text" class="other-box" data-sec="pxTop" data-field="areas" data-other-text="checks" value="${esc(extra.join(', '))}" placeholder="Type it in" aria-label="Their top three: something else">` : ''}</div>`;
+}
 function listHtml(items, attr, placeholder) {
   return items.map((x, i) => `<div class="list-item"><input type="text" ${attr} data-idx="${i}" value="${esc(x)}"><button class="x" title="Remove" data-action="remove-item" ${attr} data-idx="${i}">&times;</button></div>`).join('')
     + `<div class="list-add"><input type="text" ${attr} data-add="1" placeholder="${esc(placeholder)} (press Enter)"><button class="btn small" data-action="add-item" ${attr}>Add</button></div>`;
@@ -3360,11 +3424,10 @@ function stepDone(p, k) {
   const s = sectionByKey(k); return s ? leavesFor(s, p).length > 0 : false;
 }
 function stepBarHtml(p) {
-  const order = navOrder(p), i = order.indexOf(currentSec), pad = pxPad(p), endAt = order.indexOf(PX_END);
-  const soon = Array.from({ length: pad }, () => '<button class="step-seg" disabled title="One of their top three: three quick questions" aria-label="One of their top three, not picked yet"></button>').join('');
-  const count = i >= 0 ? `Step ${i + 1} of ${order.length + pad}` : `${order.length + pad} steps in this plan`;
+  const order = navOrder(p), i = order.indexOf(currentSec);
+  const count = i >= 0 ? `Step ${i + 1} of ${order.length}` : `${order.length} steps in this plan`;
   return `<div class="stepbar"><div class="step-top"><span class="step-count">${count}</span><span class="step-name">${esc(secName(currentSec))}</span><button class="map-toggle" data-action="toggle-map">${focusOn ? 'Show map' : 'Hide map'}</button></div>
-    <div class="step-segs">${order.map((k, j) => `${pad && j === endAt ? soon : ''}<button class="step-seg ${stepDone(p, k) ? 'done' : ''} ${j === i ? 'current' : ''}" data-goto="${esc(k)}" title="${j + 1}. ${esc(secName(k))}" aria-label="Step ${j + 1}: ${esc(secName(k))}"></button>`).join('')}${pad && endAt < 0 ? soon : ''}</div></div>`;
+    <div class="step-segs">${order.map((k, j) => `<button class="step-seg ${stepDone(p, k) ? 'done' : ''} ${j === i ? 'current' : ''}" data-goto="${esc(k)}" title="${j + 1}. ${esc(secName(k))}" aria-label="Step ${j + 1}: ${esc(secName(k))}"></button>`).join('')}</div></div>`;
 }
 function updateStepBar() {
   const p = cur(), el = document.querySelector('#work .stepbar');
@@ -3373,7 +3436,7 @@ function updateStepBar() {
 
 function navOrder(p) {
   const keys = ['basics'];
-  if (p.meta.flow) { visibleSections(p).forEach(s => keys.push(s.key)); p.custom.forEach(c => keys.push('custom:' + c.id)); return keys; }
+  if (p.meta.flow) { visibleSections(p).forEach(s => { if (!pxInline(p, s.key)) keys.push(s.key); }); p.custom.forEach(c => keys.push('custom:' + c.id)); return keys; }
   BRANCHES.forEach(b => {
     visibleSections(p).filter(s => s.branch === b.key).forEach(s => keys.push(s.key));
     if (b.key === 'know') p.custom.forEach(c => keys.push('custom:' + c.id));
@@ -4123,7 +4186,7 @@ function sideSoon() { clearTimeout(sideTimer); sideTimer = setTimeout(() => { re
 
 function go(sec) {
   builder = null; repick = false; fillDone = '';
-  currentSec = sec;
+  currentSec = sec = pxHost(cur(), sec);
   if (sec !== 'fill' && sec !== 'hssave' && sec !== 'finish') rememberStep(currentId, sec);
   if (sec === 'hssave') hsSave = { ok: false, done: {} };
   setTimeout(() => renderShare(), 0);
@@ -4267,6 +4330,11 @@ function handleClick(e) {
   if (act === 'need') {   // the need buttons set the list behind them, so everything that reads the list works as before
     const f = a.closest('.field'), sel = f && f.querySelector('select.need-sel');
     if (sel) { sel.value = a.dataset.v; f.querySelectorAll('[data-action=need]').forEach(b => b.classList.toggle('on', b.dataset.v === sel.value)); sel.dispatchEvent(new Event('change', { bubbles: true })); }
+    return;
+  }
+  if (act === 'segpick') {
+    const f = a.closest('.field'), sel = f && f.querySelector('select.need-sel');
+    if (sel) { sel.value = a.classList.contains('on') && a.dataset.v !== '__other' ? '' : a.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); }
     return;
   }
   if (act === 'wcall') {
@@ -4465,7 +4533,7 @@ window.addEventListener('resize', () => { if (document.getElementById('present')
 document.addEventListener('input', handleInput);
 document.addEventListener('change', e => { if (e.target.matches('select, input[type=checkbox], input[type=date]')) handleInput(e); });
 document.addEventListener('click', handleClick);
-document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.sec === 'pxTop') { const p = cur(); if (syncProspect(p)) { saveSoon(); renderAll(); } } });   // their top three set the prospect steps
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.sec === 'pxTop') { const p = cur(); if (syncProspect(p)) { saveSoon(); renderAll(); } else if (t.dataset.opt && p && p.meta.template === 'prospect') renderWork(); } });   // their top three set the prospect steps
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.dataset && e.target.dataset.add) { e.preventDefault(); addFromInput(e.target); }
   if (e.key === 'Escape') { document.getElementById('present').classList.remove('show'); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); }
@@ -4622,13 +4690,11 @@ function renderShare() {
    going. The Customer window shows them what you'll cover and why, with the step you're on lit up. Their
    answers and the plan stay off it: the plan is walked through at the follow-up meeting. */
 function pxAgendaHtml(p) {
-  const order = navOrder(p).filter(k => k !== 'basics' && k !== PX_END), idx = order.indexOf(currentSec);
-  const why = k => { const a = pxArea(k); if (a) return [a.goal, 'A few quick questions, so your plan speaks to your situation.'];
-    return { pxWho: ['About you', 'So the plan fits your company and your crews.'], pxToday: ['Where your planning stands today', 'How your crews plan now, in your words, and what good would look like.'], pxTop: ['What matters most this year', "You pick the three areas that matter most. We'll focus there."] }[k] || [secName(k), '']; };
+  const order = navOrder(p).filter(k => k !== PX_END), idx = order.indexOf(currentSec), goals = pxChosen(p).map(a => a.goal);
+  const why = k => ({ basics: ['About you', 'So the plan fits your company and your crews.'], pxToday: ['Where your planning stands today', 'How your crews plan now, in your words, and what good would look like.'],
+    pxTop: ['What matters most this year', goals.length ? goals.join(' · ') : "You pick the three areas that matter most, with a few quick questions on each. We'll focus there."] }[k] || [secName(k), '']);
   const rows = order.map((k, i) => { const w = why(k); return `<li class="${i === idx ? 'now' : i < idx ? 'done' : ''}"><span>${i + 1}</span><div><b>${esc(w[0])}</b><p>${esc(w[1])}</p></div></li>`; });
-  const pad = pxPad(p), have = order.filter(k => pxArea(k)).length;
-  for (let j = 0; j < pad; j++) rows.push(`<li><span>${order.length + j + 1}</span><div><b>${['Your first priority', 'Your second priority', 'Your third priority'][have + j]}</b><p>A few quick questions, so your plan speaks to your situation.</p></div></li>`);
-  rows.push(`<li class="${currentSec === PX_END ? 'now' : ''}"><span>${order.length + pad + 1}</span><div><b>Your plan</b><p>We send you a plan built around your answers, and walk through it with you.</p></div></li>`);
+  rows.push(`<li class="${currentSec === PX_END ? 'now' : ''}"><span>${order.length + 1}</span><div><b>Your plan</b><p>We send you a plan built around your answers, and walk through it with you.</p></div></li>`);
   return `<div class="px-agenda"><div class="px-ag-head"><div class="doc-eyebrow">${planYear(p)} Success plan</div><h1>${esc(p.meta.account || 'Your success plan')}</h1><p>Today's conversation, about 30 minutes</p></div><ol>${rows.join('')}</ol></div>`;
 }
 function openShare() {
