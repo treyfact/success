@@ -579,6 +579,7 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .np-tile .v { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 34px; line-height: 1; }
 .np-tile .t { font-size: 14px; color: #d9e3f0; margin-top: 7px; line-height: 1.35; }
 .np-tile.light { background: #f4f6f9; color: #1c2433; } .np-tile.light .v { color: #1f3a5f; } .np-tile.light .t { color: #5d6677; }
+.np-about { margin-top: 6px; font-size: 13.5px; line-height: 1.38; color: #dbe5f1; font-style: italic; } .np-about-i { font-style: italic; opacity: .85; }
 .np-kind { margin-top: 8px; font-size: 11.5px; font-weight: 600; color: #a9c3e3; text-transform: uppercase; letter-spacing: .05em; }
 .np-l { margin-top: 16px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; color: #1d7d84; }
 .np-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; }
@@ -1094,8 +1095,9 @@ const MS_OLD_DEFAULT = {
 const PROOF_KINDS = ['', "A number we'll track", "Something they'll see and hear"];
 const PROOF_FIELD = () => ({ key: 'proof', label: "They'll call this worth it when (their words)", type: 'table',
   help: 'What would tell them this worked. A number or something they will see and hear both count.',
-  columns: [{ key: 'what', label: 'What they said', width: '50%', multi: true }, { key: 'kind', label: 'Kind', width: '30%', type: 'select', options: PROOF_KINDS }, { key: 'when', label: 'By when', width: '16%', type: 'select', options: ['', 'In 2 weeks', 'By day 30', 'This year'] }],
-  noteCols: ['what', 'kind', 'when'], defaultRows: () => [], addLabel: 'Add what they said' });
+  columns: [{ key: 'what', label: 'What they said', width: '36%', multi: true }, { key: 'about', label: "What it's about", width: '20%', multi: true }, { key: 'kind', label: 'Kind', width: '30%', type: 'select', options: PROOF_KINDS }, { key: 'when', label: 'By when', width: '16%', type: 'select', options: ['', 'In 2 weeks', 'By day 30', 'This year'] }],
+  noteCols: ['what', 'about', 'kind', 'when'], defaultRows: () => [], addLabel: 'Add what they said',
+  fill: 'When "what" is their words and points at something it does not name ("the issue", "that problem", "it"), "about" says what it was in one short sentence, from the transcript, so a reader who was not on the call understands it.' });
 const SEEN_FIELD = () => ({ key: 'seen', label: "What they've seen or said so far", type: 'table',
   help: 'Their words, with who said it and when. Stories and quotes, not dollar figures.',
   columns: [{ key: 'what', label: 'What they saw or said', width: '42%', multi: true }, { key: 'about', label: "What it's about", width: '26%', multi: true }, { key: 'who', label: 'Who' }, { key: 'when', label: 'When' }],
@@ -1118,6 +1120,7 @@ const SECTIONS = [
     ],
     fields: [
       { key: 'words', label: 'Their goal, in their words', type: 'textarea', placeholder: 'Quote them as closely as you can.' },
+      { key: 'wordsAbout', label: "What it's about, for someone who wasn't on the call", type: 'text', placeholder: 'Only if their words point at something they don\'t name, like "the issue" or "that job"', help: 'One short line. It prints under their goal, so a boss who reads the plan knows what they meant.', fill: 'Only when their goal points at something it does not name ("the issue", "that job", "it"): one short sentence saying what, from the transcript.' },
       { key: 'test30', label: 'The 30-day test: at the end of 30 days, what will tell us this worked?', type: 'textarea', placeholder: 'e.g. three good examples on record, and a baseline we both trust' },
       { key: 'plate', label: "Work we'll take off their plate", type: 'list', placeholder: 'e.g. building the monthly report by hand' },
       { key: 'priorities', label: 'Priorities they already have', type: 'list', placeholder: 'e.g. stronger planning, earlier leadership action' },
@@ -2529,6 +2532,37 @@ const CHECKPOINTS = [
   { key: 'priorities', step: 'Learn through game tape', q: 'Have we agreed on the priority improvements and action plan?' },
   { key: 'sustain', step: 'Reinforce and sustain', q: 'Do we have the ownership, reinforcement and governance to sustain improvement?' }
 ];
+/* Words on their copy that point at something they don't name ("the issue", "that problem", "it ..."), so a
+   reader who wasn't on the call can't follow (Trey, Nov 17). Whatever wrote them, the AI or a teammate, the ready
+   check lists them; a quote with "what it's about" filled in is fine. Only what can reach their pages is read. */
+const VAGUE = [
+  /\b(?:that|this|those|these)\s+(?:specific\s+|same\s+|whole\s+|particular\s+|big\s+)?(?:issues?|problems?|incidents?|things?|situations?|reports?|summary|summaries|bullets?|lists?|stuff|one|ones|forms?|meetings?|calls?)\b/i,
+  /\bthe\s+(?:issues?|problems?|incidents?|thing|situation|summary|bullets|report|list|stuff)\b(?!\s*(?:is|was|were|are|of|with|where|when|that|which|we|they|:|-)\b)/i,
+  /\bthe\s+(?:two|three|four|five|six)\s+(?:bullets|points|items|things)\b/i, /\bbullets?\b/i, /\b(?:two|three|four|five) of (?:the )?(?:three|four|five|six|seven)\b/i,
+  /\b(?:last time|as discussed|like we said|you mentioned|we talked about|what happened)\b/i,
+  /^(?:it|that|this)\b(?!\s+(?:year|week|month|job|project|season)\b)/i
+];
+function vagueHit(t) { t = String(t || '').trim(); for (const re of VAGUE) { const m = t.match(re); if (m) return m[0].trim(); } return ''; }
+function vagueFlags(plan) {
+  const out = [], d = k => plan.data[k] || {}, add = (sec, label, t) => { const h = vagueHit(t); if (h) out.push({ sec, label, hit: h, text: t }); };
+  if (plan.meta.template === 'prospect') {
+    add('pxToday', 'What success looks like to them', d('pxToday').worth);
+    (d('pxToday').working || []).forEach(r => add('pxToday', "What's already working", r.what));
+    if (!String(d('pxTop').momentWhy || '').trim()) add('pxTop', 'The line that stuck with you', d('pxTop').moment);
+    pxChosen(plan).forEach(a => ['q1', 'q2', 'q3'].forEach(k => add(a.key, a.goal, d(a.key)[k])));
+    return out;
+  }
+  visibleSections(plan).filter(s => s.branch !== 'internal' && !['milestones', 'economics', 'risks'].includes(s.key)).forEach(s => {
+    const v = d(s.key);
+    (s.fields || []).forEach(f => {
+      if (f.key === 'words' && String(v.wordsAbout || '').trim()) return;
+      if (f.type === 'text' || f.type === 'textarea') add(s.key, f.label, v[f.key]);
+      else if (f.type === 'list') (v[f.key] || []).forEach(x => add(s.key, f.label, x));
+      else if (f.type === 'table' && ['proof', 'seen'].includes(f.key)) (v[f.key] || []).forEach(r => { if (!String(r.about || '').trim()) add(s.key, f.label, r.what); });
+    });
+  });
+  return out;
+}
 function readyChecks(plan) {
   const d = k => plan.data[k] || {};
   const owners = (d('owners').rows || []).filter(r => r.role);
@@ -2578,6 +2612,7 @@ function readyChecks(plan) {
     { id: 'pxNext', label: 'The follow-up meeting is booked', ok: !!d('pxNext').date, sec: 'pxNext' },
     { id: 'proof', label: "They've said what would tell them it worked, and each one says a number or something they'll see and hear", ok: proofRows.length > 0 && proofRows.every(r => r.kind), tip: proofRows.some(r => !r.kind) ? 'Pick a kind for each one' : '', sec: proofSec },
     ...(seenRows.length ? [{ id: 'seenwords', label: "What they've seen is in their words, not dollar figures or percentages", ok: !seenBad, tip: seenBad ? 'Check "' + trunc(seenBad.what, 50) + '"' : '', sec: seenSec }] : []),
+    (() => { const fl = vagueFlags(plan); return { id: 'pxClear', label: "Everything on their copy makes sense to someone who wasn't on the call", ok: !fl.length, tip: fl.length ? `"${fl[0].hit}" in ${fl[0].label}: say what it was, or fill in what it's about.` + (fl.length > 1 ? ` ${fl.length - 1} more after this one.` : '') : '', sec: fl.length ? fl[0].sec : 'basics' }; })(),
     { id: 'verified', label: 'No placeholder numbers or unverified marketing figures (tick it under More details in Account basics)', ok: !!plan.meta.verified, sec: 'basics' }
   ].filter(c => { const k = c.shows || c.sec; return (plan.meta.template === 'prospect' ? c.id.startsWith('px') || c.id === 'verified' : true) && (k === 'basics' || visibleSections(plan).some(s => s.key === k)); });
 }
@@ -4218,6 +4253,7 @@ function prospectPages(p, customer) {
 function npCustomerPages(p, customer, ctx) {
   const { has, d, val, ns, nsHtml, msShow, mi, owners, gv } = ctx, m = p.meta, yr = planYear(p), pages = [];
   const goal = (has('goal') && d('goal').words) || (has('fcObjective') && d('fcObjective').objective) || '';
+  const goalAbout = has('goal') && d('goal').words ? npFit(d('goal').wordsAbout, 180).replace(/^\(|\)$/g, '').replace(/[.]+$/, '') : '';   // what their words point at, for a reader who wasn't there
   const sc = has('scope') ? d('scope') : {}, first = sc.first === 'Other' ? sc.firstOther : sc.first, sites = (sc.sites || []).filter(Boolean);
   const sh = docShifts(p, customer), shiftItems = i => sh.shifts[i].items.filter(x => !/\.\.\.$/.test(x) && x.length <= 110).slice(0, 2);
   const anyShift = sh.shifts.some((x, i) => shiftItems(i).length);
@@ -4229,7 +4265,7 @@ function npCustomerPages(p, customer, ctx) {
   const show1 = goal || anyShift || first || !customer;
   if (show1) {
     const sub = first && sites.length ? `Start with ${first.toLowerCase()} at ${sites.join(', ')}, then grow what works.` : first ? `Start with ${first.toLowerCase()}, then grow what works.` : m.rollout === 'full' ? 'Every project, region and audience, in the order we agreed.' : 'Start with first crews, then grow what works.';
-    let b = goal ? `<div class="np-banner"><div class="np-lab">Your goal for ${yr}, in your words</div>${npQuote(goal)}</div>` : (customer ? '' : '<p class="doc-empty">Add their goal in their words.</p>');
+    let b = goal ? `<div class="np-banner"><div class="np-lab">Your goal for ${yr}, in your words</div>${npQuote(goal)}${goalAbout ? `<div class="np-about">(${esc(goalAbout)}.)</div>` : ''}</div>` : (customer ? '' : '<p class="doc-empty">Add their goal in their words.</p>');
     b += `<div class="np-cards">${NP_SHIFTS.map((s, i) => { const its = shiftItems(i); return `<div class="np-card"><div class="np-n">0${i + 1}</div><h3>${esc(s.label)}</h3><p>${esc(s.std)}</p>${its.length ? `<ul class="np-ul">${its.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<div class="np-l2 t">FactorLab can help</div><p class="np-help">${esc(s.help)}</p></div>`; }).join('')}</div>`;
     const nextUp = (sc.next || []).filter(Boolean);
     b += `<div class="np-two">${first ? `<div><div class="np-l">Starting with</div><p>${esc(first)}${sites.length ? ' at ' + esc(sites.join(', ')) : ''}.</p></div>` : ''}<div><div class="np-l">Grow after the first review</div><p>${nextUp.length ? 'Next: ' + esc(nextUp.join(', ')) + '. ' : ''}Use the first results to decide what to add, adjust or stop.</p></div></div>`;
@@ -4258,7 +4294,7 @@ function npCustomerPages(p, customer, ctx) {
   // ---- 03 How we'll know it's working ----
   const measures = [].concat(has('targets') ? (d('targets').measures || []) : [], has('fcMeasures') ? (d('fcMeasures').rows || []) : [], has('fcValue') ? (d('fcValue').rows || []) : []).filter(r => r.measure && r.target);
   if (val.proof.length || measures.length || m.day1 || t30 || val.seen.length || val.unproven.length || !customer) {
-    const tiles = val.proof.length ? val.proof.filter(r => npFit(r.what, 150)).slice(0, 3).map(r => `<div class="np-tile"><div class="v">${esc(r.when || 'This year')}</div><div class="t">${esc(npFit(r.what, 150))}</div>${r.kind ? `<div class="np-kind">${esc(proofTag(r.kind))}</div>` : ''}</div>`)
+    const tiles = val.proof.length ? val.proof.filter(r => npFit(r.what, 150)).slice(0, 3).map(r => `<div class="np-tile"><div class="v">${esc(r.when || 'This year')}</div><div class="t">${esc(npFit(r.what, 150))}${npFit(r.about, 120) ? ` <span class="np-about-i">(${esc(npFit(r.about, 120).replace(/^\(|\)$/g, '').replace(/[.]+$/, ''))})</span>` : ''}</div>${r.kind ? `<div class="np-kind">${esc(proofTag(r.kind))}</div>` : ''}</div>`)
       : measures.filter(r => npFit(r.target, 16) && npFit(r.measure, 90)).slice(0, 3).map(r => `<div class="np-tile"><div class="v">${esc(r.target)}</div><div class="t">${esc(r.measure)}${r.baseline ? ' (baseline ' + esc(r.baseline) + ')' : ', set the baseline first'}</div></div>`);
     let b = tiles.length ? `<div class="np-tiles" style="grid-template-columns:repeat(${tiles.length},minmax(0,1fr))">${tiles.join('')}</div>` : '';
     const rowsT = GET_STAGES.map(st => [st.days && m.day1 ? addDaysFmt(m.day1, st.days) : st.when, st.key === 'd30' && npFit(t30, 130) ? 'Your 30-day test: ' + npFit(t30, 130) : st.get, st.how]);
@@ -6045,7 +6081,7 @@ function fillPrompt(p, withTranscript) {
     '12. Anything important that fits no question goes in "other". So does anything that must never reach the customer\'s plan: doubts about a person, internal politics, pricing, contract terms, other vendors. Keep those out of the answers.',
     '13. Questions the teammate should still ask the customer go in "followups", with the step they belong to.',
     '14. Never write placeholders like "Not discussed", "Unknown" or "N/A". Leave the question or the part of a row out instead.',
-    '15. A quote that points at something it doesn\'t name ("an issue", "that problem", "it") means nothing to a boss who wasn\'t on the call. Wherever you give exact words, fill the "what it\'s about" part beside them in one short sentence from the transcript. When you can choose, pick a line that makes sense on its own.',
+    '15. A quote that points at something it doesn\'t name ("an issue", "that problem", "it") means nothing to a boss who wasn\'t on the call. Wherever you give exact words or their goal in their words, fill the "what it\'s about" part beside them in one short sentence from the transcript. When you can choose, pick a line that makes sense on its own.',
     '16. Before you send the code, re-read each answer against the transcript and your chat, and take out anything you can\'t back up.',
     '',
     'THE CODE IN STEP 3, IN THIS SHAPE',
