@@ -598,6 +598,57 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .np-who { font-size: 12.5px; color: #5d6677; margin-top: 2px; } .np-c { font-size: 14.5px; line-height: 1.4; } .np-c.fl { color: #1d7d84; }
 .np-gate { margin-top: 14px; background: #fcefe2; border-radius: 12px; padding: 11px 18px; } .np-gate .np-big { font-size: 16px; }
 .np-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+/* The prospect's pages (pz-), Nov 17 2026: one headline, one picture per page. */
+.np-head.big { font-size: 44px; line-height: 1.0; }
+.pz-p1 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; margin-top: 16px; } .pz-p1.one { grid-template-columns: 1fr; }
+.pz-quote { background: #1f3a5f; color: #fff; border-radius: 14px; padding: 18px 24px; min-width: 0; }
+.pz-q { margin-top: 8px; font-size: 26px; line-height: 1.22; font-weight: 600; } .pz-q.m { font-size: 21px; } .pz-q.s { font-size: 17px; line-height: 1.32; } .pz-q.xs { font-size: 14.5px; line-height: 1.38; font-weight: 500; }
+.pz-qwho { margin-top: 10px; font-size: 13.5px; color: #c9d6e6; }
+.pz-worth { background: #fcefe2; border-radius: 14px; padding: 18px 22px; min-width: 0; } .pz-worth .np-lab { color: #b25e12; }
+.pz-worth p { margin: 6px 0 0; font-size: 18px; line-height: 1.36; font-weight: 600; color: #1c2433; } .pz-worth p.m { font-size: 16px; } .pz-worth p.s, .pz-worth p.xs { font-size: 14px; font-weight: 500; }
+.pz-gl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 7px; }
+.pz-g { border-radius: 12px; padding: 12px 16px; background: #f4f6f9; border-top: 6px solid #c3cbd6; min-width: 0; }
+.pz-g.ok { border-top-color: #2e7d4f; } .pz-g.focus { border-top-color: #f0b37a; } .pz-g.gap { border-top-color: #d9771f; background: #fcefe2; }
+.pz-gt { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 22px; color: #1f3a5f; line-height: 1; }
+.pz-gs { margin-top: 6px; font-size: 13.5px; font-weight: 700; color: #5d6677; } .pz-g.ok .pz-gs { color: #2e7d4f; } .pz-g.focus .pz-gs { color: #b25e12; } .pz-g.gap .pz-gs { color: #d9771f; }
+.pz-gd { margin-top: 3px; font-size: 14.5px; color: #3a4558; line-height: 1.35; }
+.pz-sch, .pz-scr { display: grid; grid-template-columns: 200px minmax(0, 1fr) minmax(0, 1fr); gap: 22px; }
+.pz-sch { padding: 0 18px 5px; margin-top: 10px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; color: #1d7d84; }
+.pz-scr { padding: 15px 18px; border-radius: 12px; margin-bottom: 10px; background: #f4f6f9; align-items: start; }
+.pz-scr.gap { background: #fcefe2; box-shadow: inset 6px 0 0 #d9771f; }
+.pz-nm { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 24px; color: #1f3a5f; line-height: 1; }
+.pz-pill { display: inline-block; margin-top: 7px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: #eceff3; color: #5d6677; }
+.pz-pill.ok { background: #e5f3ea; color: #2e7d4f; } .pz-pill.focus { background: #fff; color: #b25e12; border: 1.5px solid #f0b37a; } .pz-pill.gap { background: #d9771f; color: #fff; }
+.pz-heard { font-size: 16px; line-height: 1.42; } .pz-best { font-size: 16px; line-height: 1.42; color: #1f3a5f; font-weight: 600; }
+.pz-gauge { display: flex; gap: 40px; margin-top: 6px; padding: 4px 18px 0; align-items: flex-start; }
+.pz-bar { display: flex; gap: 4px; margin-top: 5px; } .pz-bar span { width: 30px; height: 26px; border-radius: 5px; background: #e6eaf0; color: #8a93a3; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.pz-bar span.on { background: #1f3a5f; color: #fff; } .pz-bar span.goal { box-shadow: inset 0 0 0 2.5px #d9771f; color: #d9771f; } .pz-bar span.on.goal { color: #fff; }
+.pz-key { margin-top: 5px; font-size: 12.5px; color: #5d6677; }
+.pz-dots { display: flex; gap: 6px; align-items: center; margin-top: 7px; } .pz-dots span { width: 20px; height: 20px; border-radius: 50%; background: #e6eaf0; } .pz-dots span.on { background: #2e7d4f; } .pz-dots b { margin-left: 6px; font-size: 14px; color: #1f3a5f; }
+.pz-moves { display: grid; gap: 16px; margin-top: 14px; }
+.pz-mv { background: #f4f6f9; border-radius: 14px; padding: 16px 20px; min-width: 0; }
+.pz-num { width: 34px; height: 34px; border-radius: 50%; background: #1f3a5f; color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 20px; }
+.pz-mv h3 { margin: 10px 0 0; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 25px; line-height: 1.04; color: #1f3a5f; }
+.pz-area { margin-top: 4px; font-size: 13px; color: #5d6677; }
+.pz-do { margin-top: 12px; background: #fff; border-left: 5px solid #d9771f; border-radius: 8px; padding: 10px 12px; font-size: 15px; line-height: 1.4; font-weight: 600; } .pz-do .np-l2 { color: #b25e12; }
+.pz-stats { display: grid; gap: 16px; margin-top: 16px; }
+.pz-st { display: flex; gap: 14px; align-items: center; border: 1.5px solid #d5dbe3; border-radius: 14px; padding: 12px 18px; min-width: 0; }
+.pz-v { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 46px; color: #d9771f; line-height: 1; } .pz-t { font-size: 15px; line-height: 1.35; } .pz-t i { color: #8a93a3; font-size: 12.5px; }
+.pz-tl { position: relative; margin-top: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.pz-tl:before { content: ''; position: absolute; left: 14px; right: 14px; top: 13px; height: 4px; background: linear-gradient(90deg, #1f3a5f, #1d7d84); border-radius: 2px; }
+.pz-node { position: relative; min-width: 0; } .pz-node .np-when { margin-top: 10px; }
+.pz-dot { width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 5px solid #1f3a5f; position: relative; box-sizing: border-box; }
+.pz-node:nth-child(2) .pz-dot { border-color: #1e5c75; } .pz-node:nth-child(3) .pz-dot { border-color: #1d7d84; background: #1d7d84; }
+.pz-node h3 { margin: 2px 0 0; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 25px; color: #1f3a5f; line-height: 1.02; }
+.pz-node p { margin: 6px 0 0; font-size: 14.5px; line-height: 1.42; } .pz-get { margin-top: 7px; font-size: 14px; line-height: 1.38; color: #1d7d84; font-weight: 600; }
+.pz-p4 { display: grid; grid-template-columns: 1fr 1.1fr; gap: 22px; margin-top: 18px; align-items: start; } .pz-p4 > div { min-width: 0; }
+.pz-p4 p { margin: 6px 0 0; font-size: 14.5px; line-height: 1.45; } .pz-p4 .np-l { margin-top: 2px; }
+.pz-next { background: #1f3a5f; color: #fff; border-radius: 14px; padding: 16px 22px; }
+.pz-dt { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 28px; margin-top: 3px; line-height: 1.05; }
+.pz-next ul { margin: 8px 0 0; padding-left: 18px; font-size: 14.5px; line-height: 1.42; color: #e6edf6; }
+.pz-bring { margin-top: 8px; font-size: 14px; color: #c9d6e6; } .pz-bring b { color: #fff; }
+.px-moment { margin-top: 18px; }
+
 .np-table th { text-align: left; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; color: #1d7d84; padding: 5px 10px; border-bottom: 1px solid #d5dbe3; }
 .np-table td { padding: 8px 10px; font-size: 14px; border-bottom: 1px solid #edf0f4; vertical-align: top; line-height: 1.4; } .np-table td.k { font-weight: 600; color: #1f3a5f; white-space: nowrap; }
 .doc-foot { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 12px; }
@@ -712,8 +763,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
   .doc.flow { padding: 12px 0 30px; }
   .doc.flow .doc-pages { width: auto; }
   .doc.flow .doc-page { width: auto; height: auto; margin: 0 10px 14px; padding: 20px 18px 16px; }
-  .doc.flow .doc-cards, .doc.flow .doc-tl, .doc.flow .doc-split, .doc.flow .doc-shift-low, .doc.flow .px-grid, .doc.flow .px-chips, .doc.flow .np-cards, .doc.flow .np-tiles, .doc.flow .np-two, .doc.flow .np-row, .doc.flow .np-colh { grid-template-columns: 1fr !important; }
-  .doc.flow .np-colh { display: none; } .doc.flow .np-head { font-size: 30px; }
+  .doc.flow .doc-cards, .doc.flow .doc-tl, .doc.flow .doc-split, .doc.flow .doc-shift-low, .doc.flow .px-grid, .doc.flow .px-chips, .doc.flow .np-cards, .doc.flow .np-tiles, .doc.flow .np-two, .doc.flow .np-row, .doc.flow .np-colh, .doc.flow .pz-p1, .doc.flow .pz-gl, .doc.flow .pz-sch, .doc.flow .pz-scr, .doc.flow .pz-moves, .doc.flow .pz-stats, .doc.flow .pz-tl, .doc.flow .pz-p4 { grid-template-columns: 1fr !important; }
+  .doc.flow .np-colh, .doc.flow .pz-sch, .doc.flow .pz-tl:before { display: none; } .doc.flow .np-head { font-size: 30px; } .doc.flow .pz-gauge { flex-wrap: wrap; gap: 16px; }
   .doc.flow .doc-account { font-size: 21px; }
   .doc.flow .doc-table { display: block; overflow-x: auto; }
 }
@@ -1974,32 +2025,44 @@ const PX_AREAS = [
     qs: ['When a crew plans its day, is it mostly a form getting signed, or a real conversation?', 'How long does it take a foreman to complete one today?', 'What paperwork could your crews stop tomorrow without anyone missing it?'],
     best: 'They talk through the day\'s work out loud first: the real hazards, who does what, what good looks like. The paperwork follows the conversation.',
     why: 'Crews get time back, and the plan sticks because they said it out loud.', stat: 'Reducing administrative work is a top-three AI wish for 49% of leaders.',
-    first: "Listen to three of your crews' planning talks this week, and agree with your leaders what a good one sounds like." },
+    first: "Listen to three of your crews' planning talks this week, and agree with your leaders what a good one sounds like.",
+    hook: 'Your crews already plan. Make the talk count, not the form.', move: 'Make the talk count, not the form',
+    bestShort: 'Talk through the work first. The paperwork follows the conversation.', gain: 'The biggest gain is the talk itself.', heardQ: ['q1', 'q3', 'q2'] },
   { key: 'pxChange', pain: "Plans don't keep up when the work changes", goal: 'Plans that keep up with the work',
     qs: ['When the work changes mid-shift, what happens to the plan?', 'How do crews talk about what could change today: weather, other trades, materials?', 'When something went wrong last year, had the work changed from what was planned?'],
     best: "They name what could change today and agree how they'll adapt. When the task changes, they stop and re-plan.",
     why: 'Change is where plans most often fall short, and where good planners stand out.', stat: 'The best planners score 3X higher when actively discussing change.',
-    first: 'Add one question to every plan: what could change today, and what will we do if it does?' },
+    first: 'Add one question to every plan: what could change today, and what will we do if it does?',
+    hook: 'The work will change today. Make sure the plan does too.', move: 'Plan for what could change',
+    bestShort: 'Name what could change today, and stop and re-plan when it does.', gain: 'The biggest gain is when the work changes.', heardQ: ['q3', 'q1', 'q2'] },
   { key: 'pxLate', pain: "Leaders hear about problems too late and crews don't speak up", was: ['Leaders hear about problems too late'], goal: 'Leaders see it early',
     qs: ['How do leaders know whether this morning\'s plans were any good?', 'How many plans does a superintendent or manager actually see in a week?', 'What would you want to know before 7 a.m. that you find out later?'],
     best: 'Leaders hear a couple of real plans every week, say one thing back to the crew, and spot a weak plan the same day.',
     why: 'The plan is the earliest, cheapest place to catch risk.', stat: '59% say planning weaknesses reach leaders too late.', src: 'survey',
-    first: 'Ask each superintendent to listen in on two plans a week and give the crew one piece of feedback.' },
+    first: 'Ask each superintendent to listen in on two plans a week and give the crew one piece of feedback.',
+    hook: 'The warning is already in the field. Get it to leaders the same day.', move: 'Read the warning the same day',
+    bestShort: 'Hear a couple of real plans a week and spot a weak one the same day.', gain: 'The biggest gain is speed.', heardQ: ['q3', 'q1', 'q2'] },
   { key: 'pxSilo', retired: true, pain: 'Safety and operations plan separately', goal: 'One plan safety and operations both own',
     qs: ['Who owns the morning plan today: safety, operations or both?', 'When safety and operations see a good plan differently, how does that get settled?', 'Do your operations leaders ever review plans with your safety team?'],
     best: 'Operations sets what a good plan looks like; safety supports and coaches. They review plans together.',
     why: 'Shared plans and joint reviews keep supervisors from balancing production and safety alone.', stat: '',
-    first: 'Agree, on one page, what a good plan sounds like, signed by an operations leader and a safety leader.' },
+    first: 'Agree, on one page, what a good plan sounds like, signed by an operations leader and a safety leader.',
+    hook: 'One plan that safety and operations both own.', move: 'Write one plan together',
+    bestShort: 'Operations sets what good looks like, safety coaches, and they review plans together.', gain: 'The biggest gain is one shared plan.', heardQ: ['q1', 'q2', 'q3'] },
   { key: 'pxLessons', pain: 'Lessons stay on the job where they happened', goal: 'Lessons that travel to the next job',
     qs: ['When a crew finds a better way to plan, how does anyone else hear about it?', 'How do lessons from a close call get into the next plan?', 'Can you compare planning between your projects or regions today?'],
     best: 'They share real examples of good plans across crews and regions, and carry what changed into the next project.',
     why: 'Every job teaches something. The best companies make sure the next crew hears it.', stat: '56% want AI to find patterns across projects, the top AI use case.', src: 'survey',
-    first: 'Pick three good plans a month and share them with every crew, with a line on why they are good.' },
+    first: 'Pick three good plans a month and share them with every crew, with a line on why they are good.',
+    hook: 'Every job teaches something. Make sure the next crew hears it.', move: 'Pass one good plan to every crew',
+    bestShort: 'Pass good plans across crews and projects, and carry what changed into the next job.', gain: 'The biggest gain is sharing what works.', heardQ: ['q2', 'q1', 'q3'] },
   { key: 'pxBench', pain: 'Not enough experienced leaders to go around', goal: 'A deeper bench of field leaders',
     qs: ['How many of your foremen are new to the role in the last year or two?', 'How do you know which foremen need help planning?', 'How do your best planners help the newer ones today?'],
     best: 'They know who their best planners are, recognize them in front of the crew, and pair them with newer foremen.',
     why: 'Better leaders tend to plan better, keep their people and see more of what is coming.', stat: '69% rank frontline leadership development one of their top three 2027 priorities.', src: 'survey',
-    first: 'Name your three best planners, and recognize one this month for a plan others can learn from.' }
+    first: 'Name your three best planners, and recognize one this month for a plan others can learn from.',
+    hook: 'Your best planners are your best teachers. Put them to work.', move: 'Let your best planners teach',
+    bestShort: 'Know who your best planners are, recognize them, and pair them with newer foremen.', gain: 'The biggest gain is your bench.', heardQ: ['q2', 'q3', 'q1'] }
 ];
 const PX_BASE = ['pxWho', 'pxToday', 'pxTop'], PX_END = 'pxNext';
 const PX_SCALE = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -2013,13 +2076,13 @@ SECTIONS.push(
       { key: 'contact', label: 'Who you talked to', type: 'text' },
       { key: 'role', label: 'Their role', type: 'text', placeholder: 'e.g. safety director' },
       { key: 'type', label: 'The work they do', type: 'select', buttons: true, options: ['', 'General contractor', 'Trade contractor', 'Utility or energy', 'Owner'] },
-      { key: 'leaders', label: 'How many foremen or crew leaders', type: 'text', placeholder: 'e.g. about 40' },
-      { key: 'others', label: 'Who else should see this plan?', type: 'text', placeholder: 'e.g. VP of operations, regional safety managers' }
+      { key: 'leaders', label: 'How many foremen or crew leaders', type: 'text', placeholder: 'e.g. about 40', fill: 'Just the number or range they said, like 40 or six or seven.' },
+      { key: 'others', label: 'Who else should see this plan?', type: 'text', placeholder: 'e.g. VP of operations, regional safety managers', fill: 'Names or roles only, like "the VP of operations and their IT lead".' }
     ],
     leaves: d => [d.contact && d.contact + (d.role ? ', ' + d.role : ''), d.type, d.leaders && d.leaders + ' crew leaders']
   },
   {
-    key: 'pxToday', set: 'prospect', branch: 'what', title: 'Where they are today', short: 'where they are today', tiers: [],
+    key: 'pxToday', set: 'prospect', branch: 'what', title: 'Where they are today', short: 'where they are today', tiers: [], show: 6,
     intro: 'How their crews plan today, in their own words. Ask it like a conversation; it becomes page one of their plan.',
     ask: ['What do they like about how it works today?', 'Who looks at the plans once they are done?'],
     fields: [
@@ -2027,20 +2090,25 @@ SECTIONS.push(
       { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', buttons: true, options: PX_SCALE, pair: 'target', pairLabel: 'On a scale of 1 to 10, how effective are those conversations today, and what number would mean success?', shortLabel: 'Today' },
       { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', buttons: true, options: PX_SCALE, shortLabel: 'What would mean success' },
       { key: 'worth', label: 'What would tell you this was worth it?', type: 'textarea', placeholder: 'Their words. A story counts as much as a number.' },
+      { key: 'working', label: "What's already working for them?", type: 'table', help: 'Habits that work today, in their words. They become the strengths on page 2 of their plan.', addLabel: "Add what's working",
+        columns: [{ key: 'what', label: "What's working", multi: true }, { key: 'shift', label: 'Which of the three', type: 'select', options: ['', 'Better planning', 'Better learning', 'Better leadership'], width: '200px' }], defaultRows: () => [],
+        fill: 'Habits or routines they have today that work, one short line each, with the one of the three it fits best.' },
       { key: 'together', label: 'How closely do safety and operations plan the work together, 1 to 5?', type: 'select', buttons: true, options: ['', '1', '2', '3', '4', '5'] },
       { key: 'callIt', label: 'What do you call it?', type: 'select', buttons: true, options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
       { key: 'count', label: 'How many do you take part in yourself in a month?', type: 'text' },
       { key: 'measure', label: 'How do you measure whether they work today?', type: 'textarea' },
       { key: 'system', label: 'What do you use to capture them today?', type: 'text', placeholder: 'e.g. paper, a form app' }
     ],
-    leaves: d => [d.doing, d.worth && 'Worth it: ' + d.worth, d.callIt && 'Calls it: ' + d.callIt, d.score && 'Today: ' + d.score + ' of 10' + (d.target ? ', goal ' + d.target : ''), d.system && 'Uses: ' + d.system]
+    leaves: d => [d.doing, d.worth && 'Worth it: ' + d.worth, ...(d.working || []).filter(r => r.what).slice(0, 2).map(r => 'Working: ' + r.what), d.callIt && 'Calls it: ' + d.callIt, d.score && 'Today: ' + d.score + ' of 10' + (d.target ? ', goal ' + d.target : ''), d.system && 'Uses: ' + d.system]
   },
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
     intro: 'Read them the five areas and ask which three matter most this year. Tap each one they pick, and its three quick questions open right under it.',
     hint: 'Write their words under each one; the plan pairs them with what the best planners do. If none fit, pick Something else at the bottom.',
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
-    fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain) }],
+    fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain) },
+      { key: 'moment', label: 'What did they say that stuck with you? Their exact words.', type: 'textarea', placeholder: 'The line that shows what this costs them today. It goes on the cover of their plan, in quote marks.', fill: 'Copy one or two whole sentences from the transcript, word for word: the line that best shows what this costs them today. Under 30 words if you can. Exact words only: no fixing or shortening inside the line.' },
+      { key: 'momentWho', label: 'Who said it', type: 'text', placeholder: 'e.g. Sam, safety lead', fill: 'Their first name, and their role if it was said.' }],
     leaves: d => (d.areas || []).slice(0, 4)
   },
   ...PX_AREAS.map(a => ({
@@ -2057,7 +2125,7 @@ SECTIONS.push(
     fields: [
       { key: 'date', label: 'Follow-up meeting', type: 'date' },
       { key: 'who', label: 'Who joins from FactorLab', type: 'text' },
-      { key: 'them', label: 'Who joins from their side', type: 'text' },
+      { key: 'them', label: 'Who joins from their side', type: 'text', fill: 'Names or roles only, like "the VP of operations and their IT lead".' },
       { key: 'angle', label: 'What to lead with', type: 'textarea' }
     ],
     leaves: d => [d.date && 'Follow-up: ' + fmtDate(d.date), d.who && 'FactorLab: ' + d.who, d.them && 'Them: ' + d.them]
@@ -3307,7 +3375,7 @@ function sectionHtml(p, s) {
     html += pxTopHtml(p, s, d);
   } else {
     const shown = s.fields.filter(f => !f.showIf || f.showIf(d));
-    const fold = shown.length > STEP_SHOW + 1 ? shown.slice(STEP_SHOW) : [];
+    const show = s.show || STEP_SHOW, fold = shown.length > show + 1 ? shown.slice(show) : [];
     const top = shown.slice(0, shown.length - fold.length), paired = new Set(top.filter(f => f.pair).map(f => f.pair));
     top.forEach(f => {
       if (paired.has(f.key)) return;   // drawn beside its pair
@@ -3382,7 +3450,8 @@ function pxTopHtml(p, s, d) {
   return `<div class="field"><div class="field-label">${esc(f.label)} <span class="px-count">${picked.length} of 3 picked</span></div>
     <div class="px-cards">${cards}</div>
     <div class="checks" style="margin-top:10px"><label class="check ${other ? 'on' : ''}"><input type="checkbox" data-sec="pxTop" data-field="areas" data-other-chk="1" ${other ? 'checked' : ''}>None of these fit: ${OTHER}</label></div>
-    ${other ? `<input type="text" class="other-box" data-sec="pxTop" data-field="areas" data-other-text="checks" value="${esc(extra.join(', '))}" placeholder="Type it in" aria-label="Their top three: something else">` : ''}</div>`;
+    ${other ? `<input type="text" class="other-box" data-sec="pxTop" data-field="areas" data-other-text="checks" value="${esc(extra.join(', '))}" placeholder="Type it in" aria-label="Their top three: something else">` : ''}</div>
+    <div class="px-moment">${s.fields.slice(1).map(q => fieldHtml(s, q, d)).join('')}</div>`;
 }
 function listHtml(items, attr, placeholder) {
   return items.map((x, i) => `<div class="list-item"><input type="text" ${attr} data-idx="${i}" value="${esc(x)}"><button class="x" title="Remove" data-action="remove-item" ${attr} data-idx="${i}">&times;</button></div>`).join('')
@@ -3761,7 +3830,7 @@ function docWrap(p, customer, pages) {
   const foot = customer ? '' : 'FactorLab internal' + (m.csm ? ' · ' + esc(m.csm) : '') + ' · Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)));   // the customer copy carries just page numbers
   return `<div class="doc"><div class="doc-pages">${pages.map((pg, i) => `<section class="doc-page">
     <header class="doc-head"><div><div class="doc-eyebrow">${planYear(p)} Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div><div class="doc-logos">${their}${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</div></header>
-    ${pg.head ? `<div class="np-top"><div class="np-kicker">${esc(pg.kicker || '')}</div><h2 class="np-head">${esc(pg.head)}</h2>${pg.sub ? `<p class="np-sub">${esc(pg.sub)}</p>` : ''}</div>` : pg.title ? `<h2 class="doc-title">${esc(pg.title)}</h2>` : ''}
+    ${pg.head ? `<div class="np-top"><div class="np-kicker">${esc(pg.kicker || '')}</div><h2 class="np-head${pg.big ? ' big' : ''}">${pg.big ? pg.head : esc(pg.head)}</h2>${pg.sub ? `<p class="np-sub">${esc(pg.sub)}</p>` : ''}</div>` : pg.title ? `<h2 class="doc-title">${esc(pg.title)}</h2>` : ''}
     <div class="doc-body">${pg.body}</div>
     <footer class="doc-foot"><span>${foot}</span><span>Page ${i + 1} of ${n}</span></footer></section>`).join('')}</div></div>`;
 }
@@ -3959,17 +4028,17 @@ const PX_HELPS = [
 const PX_OFFER = '';
 /* ---------- The plan pages, reworked Nov 17 2026 ----------
    From the Nov 13 review (Keith, Brian, John, Gretchen, Colby), a sample plan John made,
-   Barry (Nov 9) and Justin (Nov 16). One headline per page, so the eye knows where to land. What they told us
-   fits on the prospect's page 1 and nowhere else; every other page is FactorLab's point of view. Better planning,
+   Barry (Nov 9) and Justin (Nov 16). One headline per page, so the eye knows where to land. On the customer copy
+   every page is FactorLab's point of view; the prospect's pages pair their words with ours (see prospectPages). Better planning,
    better learning and better leadership frame both copies ("those should be the three categories no matter what
    they tell us", Keith). No offer or price on the prospect's pages (Keith: hold it for the follow-up). Every line
    is their answer or standard FactorLab words below, never written on the fly. The standard words are a draft:
    John signs off the CS lines, Brian and Gretchen the prospect lines. Nothing is cut off with "...": an item too
    long for its box is left in the builder. */
 const NP_SHIFTS = [
-  { key: 'plan', label: 'Better planning', std: 'Crews talk through hazards, who does what and what could change, before work starts.', help: 'Record and score every planning talk, and see which plans are strong.', px: "The best planners talk through the day's work out loud before it starts." },
-  { key: 'learn', label: 'Better learning', std: "Good plans and lessons from one crew reach the next crew's plan.", help: 'Weekly summaries in plain English: what went well, what to improve.', px: "The best companies carry what one crew learns into the next crew's plan." },
-  { key: 'lead', label: 'Better leadership', std: 'Leaders see where crews need support, and close the loop with them.', help: 'Dashboards and game tape point coaching where it counts.', px: 'The best leaders hear a couple of real plans every week and coach where it counts.' }
+  { key: 'plan', label: 'Better planning', std: 'Crews talk through hazards, who does what and what could change, before work starts.', help: 'Record and score every planning talk, and see which plans are strong.', bestShort: 'Talk through the work first. The paperwork follows the conversation.', px: "The best planners talk through the day's work out loud before it starts." },
+  { key: 'learn', label: 'Better learning', std: "Good plans and lessons from one crew reach the next crew's plan.", help: 'Weekly summaries in plain English: what went well, what to improve.', bestShort: 'Pass good plans across crews and projects, and carry what changed into the next job.', px: "The best companies carry what one crew learns into the next crew's plan." },
+  { key: 'lead', label: 'Better leadership', std: 'Leaders see where crews need support, and close the loop with them.', help: 'Dashboards and game tape point coaching where it counts.', bestShort: 'Hear a couple of real plans a week and coach where it counts.', px: 'The best leaders hear a couple of real plans every week and coach where it counts.' }
 ];
 const PX_SHIFT = { pxPaper: 'plan', pxChange: 'plan', pxLessons: 'learn', pxLate: 'lead', pxBench: 'lead', pxSilo: 'lead' };   // where each prospect area sits
 /* How it will work: the customer's workflow and how FactorLab supports each step (John's version, page 2). */
@@ -3992,74 +4061,124 @@ function npQuote(s) {
   if (s.length > 420) s = (s.match(/^(.*?[.!?]){1,2}/) || [s.slice(0, 420)])[0].trim();
   return `<div class="np-q ${s.length > 240 ? 's' : s.length > 140 ? 'm' : ''}">"${esc(s)}"</div>`;
 }
-function npPage(n, kicker, head, sub, body) { return { kicker: String(n).padStart(2, '0') + ' / ' + kicker, head, sub, body }; }
+function npPage(n, kicker, head, sub, body, big) { return { kicker: String(n).padStart(2, '0') + ' / ' + kicker, head, sub, body, big }; }   // big: the head is HTML already escaped, set larger (the prospect's pages)
 const npCap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 const npAn = n => /^(8|11|18)$/.test(String(n)) ? 'an' : 'a';
 
-/* ---- The prospect's four pages (Keith's order: what you told us, where you're doing good and where you can
-   improve, then partnering with FactorLab and how we move you in 90 days). ---- */
+/* ---- The prospect's four pages, reworked again Nov 17 2026 (Trey: the Nov 13 feedback, "tell me something I
+   don't know", Keith). Each page leads with our read, backed by their own words, and passes the ten-second test:
+   a boss who wasn't on the call gets the point from the headline and one picture. 01 What we heard: our read
+   of their biggest gain as the headline, the line that stuck with us (their exact words), what would make it
+   worth it, and the three shifts at a glance. 02 Where you stand: what we heard next to what the best planners
+   do, for each shift, and the gap they named. 03 Three moves to start this week, with sourced survey numbers.
+   04 Partnering with FactorLab: 90 days as a timeline and the next meeting, with who to bring (Brian and John:
+   open the door for the next meeting). No offer (Keith). Every line is their answer or standard words. ---- */
+const PX_WHY = yr => `You'll put time and money into your field leaders in ${yr}. FactorLab shows you what's working, crew by crew: every recorded planning talk is transcribed and scored the same way, with a weekly summary in plain English.`;
+const PX_NEXT_SHOW = ['Planning scores and weekly summaries, with real examples from crews like yours', 'What your first two weeks would look like'];
+const PZ_GUESS = [['learn', /lesson|share|shar|review|card|observation|crew of the week|learn|summar|trend/i], ['lead', /leader|super|manager|coach|feedback|recogni|mentor|foreman of|walk/i]];
+function pzShiftOf(row) {
+  const v = String(row.shift || '').toLowerCase();
+  if (/plan/.test(v)) return 'plan'; if (/learn/.test(v)) return 'learn'; if (/lead/.test(v)) return 'lead';
+  const g = PZ_GUESS.find(x => x[1].test(row.what || '')); return g ? g[0] : 'plan';
+}
+const pzDay = iso => { const [y, mo, d] = String(iso || '').split('-').map(Number); if (!y || !mo || !d) return ''; const dt = new Date(y, mo - 1, d); return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); };
+const pzEsc2 = s => esc(s).replace(/^(.{20,}?[.!?])\s+(?=\S)/, '$1<br>');   // a two-sentence headline breaks after the first
+function pzAnswer(p, a, n) {   // their own answer for an area, the question that tells the most first
+  const d = p.data[a.key] || {};
+  for (const k of a.heardQ || ['q1', 'q2', 'q3']) { const x = npFit(d[k], n); if (x) return x; }
+  return '';
+}
 function prospectPages(p, customer) {
-  const m = p.meta, d = k => p.data[k] || {}, w = d('pxWho'), t = d('pxToday'), nx = d('pxNext'), chosen = pxChosen(p), pages = [];
-  const picks = d('pxTop').areas || [], extra = picks.filter(x => !pxByPain(x));
-  const score = +t.score || 0, target = +t.target || 0, worth = (t.worth || '').trim(), together = +t.together || 0;
-  if (customer && !worth && !t.doing && !score && !target && !together && !chosen.length && !extra.length) return [{ title: 'Your ' + planYear(p) + ' plan', body: '<p class="doc-empty" style="margin-top:30px;font-size:15px">Your plan builds here as we talk it through.</p>' }];
+  const m = p.meta, d = k => p.data[k] || {}, w = d('pxWho'), t = d('pxToday'), nx = d('pxNext'), top = d('pxTop'), pages = [], yr = planYear(p);
+  const picks = top.areas || [], extra = picks.filter(x => !pxByPain(x));
+  const chosen = [...new Set(picks.map(pxByPain).filter(Boolean))].concat(pxChosen(p)).filter((a, i, arr) => arr.indexOf(a) === i && picks.some(x => pxByPain(x) === a)).slice(0, 3);
+  const score = +t.score || 0, target = +t.target || 0, worth = String(t.worth || '').trim().replace(/^"|"$/g, ''), together = +t.together || 0;
+  const moment = String(top.moment || '').trim().replace(/^["“]|["”]$/g, ''), momentWho = npFit(top.momentWho, 70).replace(/[.]+$/, '');
+  const working = (t.working || []).filter(r => (r.what || '').trim());
+  if (customer && !worth && !t.doing && !score && !target && !together && !chosen.length && !extra.length && !working.length && !moment) return [{ title: 'Your ' + yr + ' plan', body: '<p class="doc-empty" style="margin-top:30px;font-size:15px">Your plan builds here as we talk it through.</p>' }];
   let n = 0;
 
-  // ---- 01 What we heard ----
-  const short = (x, k) => npFit(x, k).replace(/[.!?]+$/, '');   // a name or role, never a paragraph
-  const who1 = short(w.contact, 60), role1 = short(w.role, 50), lead1 = short(w.leaders, 40);
-  const contact = who1 ? who1 + (role1 ? ', ' + role1 : '') : '';
-  const rest = [short(w.type, 60), lead1 && (/^\d[\d,+\s-]*$/.test(lead1) ? lead1 + ' foremen and crew leaders' : lead1)].filter(Boolean);
-  const sub1 = (contact ? 'From our conversation with ' + contact + '.' : 'From our conversation.') + (rest.length ? ' ' + npCap(rest.join(', ')) + '.' : '');
-  let b1 = worth ? `<div class="np-banner"><div class="np-lab">You'd call this worth it if</div>${npQuote(worth)}</div>` : '';
-  const doing = { 'Every crew, every day': ['Every crew', 'talks through a plan before work, every day.'], 'Most crews, most days': ['Most crews', 'talk through a plan before work, most days.'], 'Some crews': ['Some crews', 'talk through a plan before work today.'], 'Not yet': ['Starting fresh', 'Planning talks before work are where to start.'] }[t.doing] || (t.doing ? [npFit(t.doing, 24) || 'In your words', npFit(t.doing, 24) ? 'how your crews plan before work today.' : npFit(t.doing, 110)] : null);
-  const tiles = [
-    score || target ? `<div class="np-tile"><div class="v">${esc(score || '?')} &rarr; ${esc(target || '?')}</div><div class="t">How effective your crews' planning talks are today, and the number that would mean success. Your own rating, out of 10.</div></div>` : '',
-    doing ? `<div class="np-tile light"><div class="v">${esc(doing[0])}</div><div class="t">${esc(doing[1])}</div></div>` : '',
-    together ? `<div class="np-tile light"><div class="v">${together} of 5</div><div class="t">How closely safety and operations plan the work together today. Your rating.</div></div>` : ''
-  ].filter(Boolean);
-  if (tiles.length) b1 += `<div class="np-tiles" style="grid-template-columns:repeat(${tiles.length},minmax(0,1fr))">${tiles.join('')}</div>`;
-  const callIt = npFit(t.callIt, 40), sys = npFit(t.system, 40);
-  if (callIt || sys) b1 += `<p class="np-note">${callIt ? 'You call it ' + (/^[aeiou]/i.test(callIt) ? 'an' : 'a') + ' ' + esc(callIt.toLowerCase()) : 'Today it\'s captured'}${sys ? (callIt ? ', captured on ' : ' on ') + esc(sys.toLowerCase()) : ''}.</p>`;
-  if (chosen.length || extra.length) b1 += `<div class="np-l">Your top three for ${planYear(p)}</div><div class="np-chips">${chosen.map((a, i) => `<span class="np-chip"><b>${i + 1}</b> ${esc(a.goal)}</span>`).join('')}${extra.map(x => npFit(x, 60)).filter(Boolean).map(x => `<span class="np-chip">${esc(x)}</span>`).join('')}</div>`;
-  if (!b1) b1 = '<p class="doc-empty">Fill in Where they are today and Their top three.</p>';
-  pages.push(npPage(++n, 'What we heard', "Here's what you told us.", sub1, b1));
-
-  // ---- 02 Where you stand: the three shifts, from their answers only ----
-  const ok = { plan: [], learn: [], lead: [] }, focus = { plan: [], learn: [], lead: [] };
-  if (t.doing === 'Every crew, every day') ok.plan.push("Every crew already talks through a plan before work, every day. That's the habit the best planners build on.");
-  if (t.doing === 'Most crews, most days') ok.plan.push("Most crews already talk through a plan before work. That's the habit the best planners build on.");
-  if (score >= 7) ok.plan.push(`You already rate your crews' planning talks ${npAn(score)} ${score} out of 10.`);
-  if (together >= 4) ok.lead.push(`Safety and operations already plan the work closely together: ${together} of 5.`);
+  // Where they stand on each shift: the biggest gain (their #1 pick), a strength, in their top three, or not this year.
+  const gapA = chosen[0], gap = gapA ? (PX_SHIFT[gapA.key] || 'plan') : '';
+  const strong = { plan: [], learn: [], lead: [] }, focus = { plan: [], learn: [], lead: [] };
+  working.forEach(r => { if (npFit(r.what, 150)) strong[pzShiftOf(r)].push(npFit(r.what, 150)); });   // a strength too long to print stays in the builder
+  if (t.doing === 'Every crew, every day') strong.plan.push('Every crew talks through a plan before work, every day.');
+  if (t.doing === 'Most crews, most days') strong.plan.push('Most crews talk through a plan before work, most days.');
+  if (score >= 7) strong.plan.push(`You rate your crews' planning talks ${npAn(score)} ${score} out of 10.`);
+  if (together >= 4) strong.lead.push(`Safety and operations plan the work closely together: ${together} of 5.`);
   chosen.forEach(a => focus[PX_SHIFT[a.key] || 'plan'].push(a));
-  const anyOk = ok.plan.length || ok.learn.length || ok.lead.length;
-  if (anyOk || chosen.length || !customer) {
-    const card = (s, i) => {
-      const items = ok[s.key].map(x => `<span class="np-tag ok">Working for you</span><p>${esc(x)}</p>`)
-        .concat(focus[s.key].map(a => `<span class="np-tag focus">Your focus</span><p><b>${esc(a.goal)}.</b> Today: ${esc(a.pain.charAt(0).toLowerCase() + a.pain.slice(1))}.</p>`));
-      return `<div class="np-card"><div class="np-n">0${i + 1}</div><h3>${esc(s.label)}</h3>${items.length ? items.join('<div class="np-gap"></div>') : `<span class="np-tag off">Not in your top three this year</span><p>${esc(s.px)} Worth a look once your top three are moving.</p>`}</div>`;
+  const status = k => k === gap ? 'gap' : strong[k].length ? 'ok' : focus[k].length ? 'focus' : 'off';
+  const SL = { gap: 'Biggest gain', ok: 'Strength', focus: 'In your top three', off: 'Not this year' };
+  const anyStrong = NP_SHIFTS.some(s => strong[s.key].length);
+  const dot = x => x && !/[.!?]$/.test(x) ? x + '.' : x;
+  const glanceLine = s => dot(glanceLine0(s));
+  const glanceLine0 = s => {
+    const st = status(s.key), a = focus[s.key][0];
+    if (st === 'ok') return strong[s.key].map(x => npFit(x, 120)).find(Boolean) || s.px;
+    if (a) return pzAnswer(p, a, 130) || a.pain + '.';
+    return s.px;
+  };
+
+  // ---- 01 What we heard ----
+  const short = (x, k) => npFit(x, k).replace(/[.!?]+$/, '');
+  const who1 = short(w.contact, 60), role1 = short(w.role, 50), type1 = short(w.type, 40), lead1 = short(w.leaders, 50);
+  const leadPh = lead1 ? (/foremen|foreman|leaders|crew|supervisor/i.test(lead1) ? lead1 : lead1 + ' foremen and crew leaders') : '';
+  const rest = [type1, leadPh].filter(Boolean).map((x, i) => i ? x.charAt(0).toLowerCase() + x.slice(1) : x).join(', ');
+  const sub1 = (who1 ? 'From our call with ' + who1 + (role1 ? ', ' + role1 : '') + '.' : 'From our call.') + (rest ? ' ' + npCap(rest) + '.' : '');
+  const mq = moment.length <= 600 ? npCap(moment) : '';   // a quote that starts mid-sentence gets a capital, nothing else changes
+  const qSize = s => s.length > 300 ? 'xs' : s.length > 190 ? 's' : s.length > 110 ? 'm' : '';
+  const wq = worth.length > 330 ? ((worth.match(/^(.*?[.!?]){1,2}/) || [''])[0].trim() || '') : worth;
+  const cards = [mq ? `<div class="pz-quote"><div class="np-lab">The line that stuck with us</div><div class="pz-q ${qSize(mq)}">&ldquo;${esc(mq)}&rdquo;</div>${momentWho ? `<div class="pz-qwho">${esc(momentWho)}</div>` : ''}</div>` : '',
+    wq ? `<div class="pz-worth ${mq ? '' : 'solo'}"><div class="np-lab">You'd call this worth it when</div><p class="${qSize(wq)}">${esc(dot(wq))}</p></div>` : ''].filter(Boolean);
+  let b1 = cards.length ? `<div class="pz-p1 ${cards.length === 1 ? 'one' : ''}">${cards.join('')}</div>` : '';
+  if (chosen.length || anyStrong) b1 += `<div class="np-l">Where you stand, at a glance</div><div class="pz-gl">${NP_SHIFTS.map(s => { const st = status(s.key); return `<div class="pz-g ${st}"><div class="pz-gt">${esc(s.label)}</div><div class="pz-gs">${SL[st]}</div><div class="pz-gd">${esc(glanceLine(s))}</div></div>`; }).join('')}</div>`;
+  if (extra.length) b1 += `<p class="np-note">Also on your list: ${esc(extra.map(x => npFit(x, 60)).filter(Boolean).join(', '))}.</p>`;
+  if (!b1) b1 = '<p class="doc-empty">Fill in Where they are today and Their top three.</p>';
+  pages.push(npPage(++n, 'What we heard', pzEsc2(gapA ? gapA.hook : "Here's what we heard, and where we'd start."), sub1, b1, true));
+
+  // ---- 02 Where you stand: what we heard next to what the best planners do ----
+  if (chosen.length || anyStrong || !customer) {
+    const heard = s => {
+      const mine = focus[s.key].map(a => pzAnswer(p, a, 170) || a.pain + '.'), good = strong[s.key].map(x => npFit(x, 150)).filter(Boolean).slice(0, 2);
+      const parts = s.key === gap ? mine.concat(good) : good.concat(mine);   // the biggest gain leads with what they told us about it
+      let out = []; for (const x of parts) { if ((out.join(' ') + ' ' + x).length > 260) break; out.push(/[.!?]$/.test(x) ? x : x + '.'); }
+      return out.join(' ') || 'Not in your top three this year.';
     };
-    let b2 = `<div class="np-cards">${NP_SHIFTS.map(card).join('')}</div>`;
-    if (score && target && target > score) b2 += `<div class="np-banner amber"><div class="np-lab">The gap you named</div><div class="np-big">You rate your crews' planning talks ${npAn(score)} ${score} today, and you want ${npAn(target)} ${target}. The next page is where we'd start.</div></div>`;
-    else if (chosen.length) b2 += `<div class="np-banner amber"><div class="np-lab">Where we'd start</div><div class="np-big">Your top three. The next page shows a first step for each.</div></div>`;
-    pages.push(npPage(++n, 'Where you stand', anyOk ? "You have a habit to build on. Here's where to focus." : "Here's your starting point, and where to focus.", 'The three things that set the best planners apart, and where your answers put you on each.', b2));
+    const best = s => { const a = focus[s.key][0]; return a ? a.bestShort : s.bestShort; };
+    const order = NP_SHIFTS.slice();
+    let b2 = `<div class="pz-sch"><span></span><span>What we heard</span><span>What the best planners do</span></div>`
+      + order.map(s => { const st = status(s.key); return `<div class="pz-scr ${st}"><div><div class="pz-nm">${esc(s.label)}</div><span class="pz-pill ${st}">${SL[st]}</span></div><div class="pz-heard">${esc(heard(s))}</div><div class="pz-best">${esc(best(s))}</div></div>`; }).join('');
+    if (score || target || together) {
+      const bar = score || target ? `<div><div class="np-l2">Your crews' planning talks, your own rating</div><div class="pz-bar">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => `<span class="${i <= score ? 'on' : ''} ${i === target ? 'goal' : ''}">${i}</span>`).join('')}</div><div class="pz-key">${score ? `Today: ${score}` : ''}${score && target ? ' · ' : ''}${target ? `The number that would mean success: ${target}` : ''}</div></div>` : '';
+      const dots = together ? `<div><div class="np-l2">Safety and operations plan together</div><div class="pz-dots">${[1, 2, 3, 4, 5].map(i => `<span class="${i <= together ? 'on' : ''}"></span>`).join('')}<b>${together} of 5</b></div></div>` : '';
+      b2 += `<div class="pz-gauge">${bar}${dots}</div>`;
+    }
+    const head2 = (anyStrong ? 'You have a habit to build on.' : "Here's your starting point.") + (gapA ? ' ' + gapA.gain : '');
+    pages.push(npPage(++n, 'Where you stand', pzEsc2(head2), 'The three shifts that set the best planners apart. What we heard from you, next to what the best planners do.', b2, true));
   }
 
-  // ---- 03 How to close the gaps: best practices that don't assume SmartTagIt (Brian) ----
+  // ---- 03 Three moves to start this week (best practices that don't assume SmartTagIt, Brian) ----
   if (chosen.length || !customer) {
     const words = ['One move', 'Two moves', 'Three moves'][chosen.length - 1] || 'Three moves';
-    const stats = chosen.filter(a => a.stat && (a.src || !customer)).map(a => a.stat + (a.src ? '' : ' (source to confirm)'));
-    const b3 = chosen.length ? `<div class="np-cards" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr))">${chosen.map(a => `<div class="np-move"><h3>${esc(a.goal)}</h3><div class="np-l2">What the best planners do</div><p>${esc(a.best)}</p><div class="np-start"><div class="np-l2">Start here</div><p>${esc(a.first)}</p></div></div>`).join('')}</div>${stats.length ? `<p class="np-note">${esc(stats.join(' '))}${chosen.some(a => a.stat && a.src) ? ' Source: ' + esc(OUTLOOK.source) + '.' : ''}</p>` : ''}`
+    const all = ['', 'it', 'both', 'all three'][chosen.length] || 'all three';
+    const stats = [];
+    chosen.forEach(a => { if (a.stat && (a.src || !customer)) stats.push([a.stat, !a.src]); });
+    OUTLOOK.stats.forEach(s => { if (stats.length < 2 && !stats.some(x => x[0].startsWith(s[0]))) stats.push([s[0] + ' ' + s[1] + '.', false]); });
+    const split = s => { const mm = s.match(/^([\d.]+%|\d+X)\s+(.*)$/); return mm ? [mm[1], mm[2]] : ['', s]; };
+    let b3 = chosen.length ? `<div class="pz-moves" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr))">${chosen.map((a, i) => `<div class="pz-mv"><div class="pz-num">${i + 1}</div><h3>${esc(a.move)}</h3><div class="pz-area">${esc((NP_SHIFTS.find(s => s.key === (PX_SHIFT[a.key] || 'plan')) || {}).label || '')}</div><div class="pz-do"><div class="np-l2">Start here</div>${esc(a.first)}</div></div>`).join('')}</div>`
       : '<p class="doc-empty" style="margin-top:10px">Pick their top three in the plan builder.</p>';
-    pages.push(npPage(++n, 'How to close the gaps', words + ' you can start this month.', 'What the best planners do, and one first step for each of your top three. None of it needs new software.', b3));
+    const st2 = stats.slice(0, 2);
+    if (st2.length) b3 += `<div class="pz-stats" style="grid-template-columns:repeat(${st2.length},minmax(0,1fr))">${st2.map(s => { const [v, tx] = split(s[0]); return `<div class="pz-st">${v ? `<div class="pz-v">${esc(v)}</div>` : ''}<div class="pz-t">${esc(tx)}${s[1] ? ' <i>(source to confirm)</i>' : ''}</div></div>`; }).join('')}</div><p class="np-note">Source: ${esc(OUTLOOK.source)}.</p>`;
+    if (extra.length) b3 += `<p class="np-note">Also on your list: ${esc(extra.map(x => npFit(x, 60)).filter(Boolean).join(', '))}. We'll cover it at our next meeting.</p>`;
+    pages.push(npPage(++n, 'How to close the gaps', pzEsc2(words + ' you can start this week.'), chosen.length ? `You can do ${all} without new software. ${chosen.length > 1 ? "They're" : "It's"} what the best planners do.` : '', b3, true));
   }
 
-  // ---- 04 Partnering with FactorLab: 2 weeks, 30 days, 90 days, and the walkthrough (no offer) ----
-  const callTalk = callIt ? callIt.toLowerCase() : 'morning planning talk';
-  let b4 = `<div class="np-cards">${PX_90.map(x => `<div class="np-stage"><div class="np-when">${esc(x.when)}</div><h3>${esc(x.title)}</h3><p>${esc(x.does)}</p><div class="np-get"><b>You get:</b> ${esc(x.get.charAt(0).toLowerCase() + x.get.slice(1))}</div></div>`).join('')}</div>
-    <div class="np-two"><div><div class="np-l">How FactorLab helps</div><p>${esc(PX_HELPS[0])}</p></div><div><div class="np-l">Built for the work you already do</div><p>Your crews keep their ${esc(callTalk)}. We help you hear it, measure it and coach it. ${esc(PX_HELPS[1])}</p></div></div>
-    <div class="np-banner"><div class="np-lab">Your next step</div><div class="np-big">${nx.date ? "Let's walk through this plan together on " + esc(fmtDate(nx.date)) + '.' : "Let's walk through this plan together."} We'll show you how teams like yours put it to work.</div></div>`;
-  pages.push(npPage(++n, 'Partnering with FactorLab', score && target && target > score ? `How we'd help you get from ${npAn(score)} ${score} toward ${npAn(target)} ${target}.` : "How FactorLab would help you get there.", "If you take a first step with us, here's what you get, and when.", b4));
+  // ---- 04 Partnering with FactorLab: 90 days and the next meeting (no offer) ----
+  const bring = npFit(nx.them, 80) || npFit(w.others, 80);
+  let b4 = `<div class="pz-tl">${PX_90.map(x => `<div class="pz-node"><div class="pz-dot"></div><div class="np-when">${esc(x.when)}</div><h3>${esc(x.title)}</h3><p>${esc(x.does)}</p><div class="pz-get">You get: ${esc(x.get.charAt(0).toLowerCase() + x.get.slice(1))}</div></div>`).join('')}</div>
+    <div class="pz-p4"><div><div class="np-l">Why teams add FactorLab</div><p>${esc(PX_WHY(yr))} ${esc(PX_HELPS[1])}</p></div>
+    <div class="pz-next"><div class="np-lab">At our next meeting</div><div class="pz-dt">${nx.date ? esc(pzDay(nx.date)) : "Let's pick a time"}</div><ul>${PX_NEXT_SHOW.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${bring ? `<div class="pz-bring">Worth bringing: <b>${esc(bring)}</b></div>` : ''}</div></div>`;
+  pages.push(npPage(++n, 'Partnering with FactorLab', pzEsc2(score && target && target > score ? `How we'd help you get from ${npAn(score)} ${score} toward ${npAn(target)} ${target}.` : 'What 90 days with FactorLab could look like.'), "If you take a first step with us, here's what you get, and when.", b4, true));
 
   // ---- FactorLab only ----
   if (!customer) {
@@ -5838,7 +5957,8 @@ function fillQuestions(p) {
   });
   return { steps, qs };
 }
-function fillDescribe(q, p) {
+function fillDescribe(q, p) { const base = fillDescribe0(q, p); return q.f && q.f.fill ? base + ' ' + q.f.fill : base; }
+function fillDescribe0(q, p) {
   const f = q.f, opts = (f.options || []).filter(o => o && o !== 'Other');
   if (q.ph) {
     const now = (((p.data.milestones || {}).phases || {})[q.ph.key] || []).filter(m => m.text).map(m => m.text);
