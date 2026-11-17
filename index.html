@@ -4122,8 +4122,12 @@ function prospectPages(p, customer) {
   // ---- 01 What we heard ----
   const short = (x, k) => npFit(x, k).replace(/[.!?]+$/, '');
   const who1 = short(w.contact, 60), role1 = short(w.role, 50), type1 = short(w.type, 40), lead1 = short(w.leaders, 50);
-  const leadPh = lead1 ? (/foremen|foreman|leaders|crew|supervisor/i.test(lead1) ? lead1 : lead1 + ' foremen and crew leaders') : '';
-  const rest = [type1, leadPh].filter(Boolean).map((x, i) => i ? x.charAt(0).toLowerCase() + x.slice(1) : x).join(', ');
+  // How many foremen: only the number or range they said ("six or seven", "about 40"); anything else stays in the builder.
+  const W = '(?:\\d[\\d,]*|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|a hundred|hundred|a dozen|dozen)';
+  const cnt = (String(w.leaders || '').trim().match(new RegExp('^(?:(?:about|around|roughly|over|under|more than|fewer than|nearly|close to|maybe)\\s+)?' + W + '(?:\\+|\\s*(?:to|or|-|and)\\s*' + W + ')?(?:\\s+or so)?(?![\\w])', 'i')) || [''])[0];
+  const TYPE = { 'General contractor': 'A general contractor', 'Trade contractor': 'A trade contractor', 'Utility or energy': 'A utility or energy company', 'Owner': 'An owner' };
+  const typePh = TYPE[type1] || type1, crews = cnt ? cnt.toLowerCase() + ' foremen and crew leaders' : '';
+  const rest = crews ? (typePh ? typePh + ' with ' + crews : crews) : '';   // the type alone reads oddly, so it waits for a count
   const sub1 = (who1 ? 'From our call with ' + who1 + (role1 ? ', ' + role1 : '') + '.' : 'From our call.') + (rest ? ' ' + npCap(rest) + '.' : '');
   const mq = moment.length <= 600 ? npCap(moment) : '';   // a quote that starts mid-sentence gets a capital, nothing else changes
   const qSize = s => s.length > 300 ? 'xs' : s.length > 190 ? 's' : s.length > 110 ? 'm' : '';
