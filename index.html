@@ -865,7 +865,7 @@ table.grid td .other-box { margin-top: 4px; }
 .fill-now { font-size: 12px; color: var(--faint); white-space: pre-wrap; }
 .fill-quote { font-size: 12.5px; color: var(--muted); font-style: italic; overflow-wrap: anywhere; }
 .fill-flag { display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 600; color: var(--amber); background: var(--amber-soft); border-radius: 999px; padding: 1px 8px; vertical-align: 1px; }
-.fill-flag.add { color: var(--navy); background: var(--navy-soft); }
+.fill-flag.add { color: var(--navy); background: var(--navy-soft); } .fill-flag.warn { color: #fff; background: #c2410c; }
 .toast { position: fixed; left: 50%; bottom: 72px; transform: translate(-50%, 20px); background: var(--ink); color: var(--surface); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 60; max-width: calc(100vw - 32px); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 @media print { .toast { display: none !important; } }
@@ -2074,8 +2074,8 @@ SECTIONS.push(
     hint: "Start by telling them what you'll cover and why: about ten quick questions on how their crews plan today and what matters most this year, then a plan built around their answers. Open the Customer window to show them the list as you go.",
     ask: ['What made them take the call?', 'Who else would care about better planning there?'],
     fields: [
-      { key: 'contact', label: 'Who you talked to', type: 'text' },
-      { key: 'role', label: 'Their role', type: 'text', placeholder: 'e.g. safety director' },
+      { key: 'contact', label: 'Who you talked to', type: 'text', fillMust: true, fill: 'Everyone from their side who was on the call, by name, like "Sam and Pat".' },
+      { key: 'role', label: 'Their role', type: 'text', placeholder: 'e.g. safety director', fill: 'Each person\'s role, if it was said, like "Sam, safety lead; Pat, project lead".' },
       { key: 'type', label: 'The work they do', type: 'select', buttons: true, options: ['', 'General contractor', 'Trade contractor', 'Utility or energy', 'Owner'] },
       { key: 'leaders', label: 'How many foremen or crew leaders', type: 'text', placeholder: 'e.g. about 40', fill: 'Just the number or range they said, like 40 or six or seven. No other words.' },
       { key: 'others', label: 'Who else should see this plan?', type: 'text', placeholder: 'e.g. VP of operations, regional safety managers', fill: 'Names or roles only, written to the customer, like "Sam and your IT lead".' }
@@ -2107,9 +2107,9 @@ SECTIONS.push(
     intro: 'Read them the five areas and ask which three matter most this year. Tap each one they pick, and its three quick questions open right under it.',
     hint: 'Write their words under each one, as a full statement: answers print on their plan without the question. If none fit, pick Something else at the bottom.',
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
-    fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain) },
-      { key: 'moment', label: 'What did they say that stuck with you? Their exact words.', type: 'textarea', placeholder: 'The line that shows what this costs them today. It goes on the cover of their plan, in quote marks.', fill: 'Always answer this one: every call has a line worth quoting. Copy one or two whole sentences the customer said, word for word: the line that best shows what this costs them today. Under 30 words if you can. Exact words only: no fixing or shortening inside the line.' },
-      { key: 'momentWho', label: 'Who said it', type: 'text', placeholder: 'e.g. Sam, safety lead', fill: 'Their first name, and their role if it was said.' }],
+    fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain), fill: 'Only areas they said matter to them, in their own words. Put the one they spent the most time on, or said costs them the most, first: it leads their plan. If they never ranked them, give your best order and ask in step 1.' },
+      { key: 'moment', label: 'What did they say that stuck with you? Their exact words.', type: 'textarea', placeholder: 'The line that shows what this costs them today. It goes on the cover of their plan, in quote marks.', fillMust: true, fill: 'Every call has a line worth quoting. Copy one or two whole sentences a customer said (never FactorLab), word for word: the line that best shows what this costs them today. Pick a line the transcript wrote down correctly. Under 30 words if you can. Exact words only: no fixing or shortening inside the line.' },
+      { key: 'momentWho', label: 'Who said it', type: 'text', placeholder: 'e.g. Sam, safety lead', fillMust: true, fill: 'Their first name, and their role if it was said. If the transcript only says "Speaker 1", ask in step 1.' }],
     leaves: d => (d.areas || []).slice(0, 4)
   },
   ...PX_AREAS.map(a => ({
@@ -2124,7 +2124,7 @@ SECTIONS.push(
     intro: 'Their plan is walked through at a second meeting, not on this call. Book it before you hang up.',
     ask: ['Who on their side should be in the follow-up?', 'What would make the follow-up worth their time?'],
     fields: [
-      { key: 'date', label: 'Follow-up meeting', type: 'date' },
+      { key: 'date', label: 'Follow-up meeting', type: 'date', fill: 'Only a meeting booked to go through this plan. A start date, go-live or contract date is never this.' },
       { key: 'who', label: 'Who joins from FactorLab', type: 'text' },
       { key: 'them', label: 'Who joins from their side', type: 'text', fill: 'Names or roles only, written to the customer, like "Sam and your IT lead".' },
       { key: 'angle', label: 'What to lead with', type: 'textarea' }
@@ -5971,7 +5971,7 @@ function fillQuestions(p) {
   });
   return { steps, qs };
 }
-function fillDescribe(q, p) { const base = fillDescribe0(q, p); return q.f && q.f.fill ? base + ' ' + q.f.fill : base; }
+function fillDescribe(q, p) { const base = fillDescribe0(q, p), f = q.f || {}; return (f.fillMust ? 'Always answer. ' : '') + base + (f.fill ? ' ' + f.fill : ''); }
 function fillDescribe0(q, p) {
   const f = q.f, opts = (f.options || []).filter(o => o && o !== 'Other');
   if (q.ph) {
@@ -6013,34 +6013,49 @@ function fillPrompt(p, withTranscript) {
   const { steps, qs } = fillQuestions(p), px = p.meta.template === 'prospect';
   const L = [
     px ? "You're helping someone at FactorLab fill in a short 2027 planning profile from a discovery call with a company that isn't a FactorLab customer yet. Use their words." : "You're helping a customer success manager at FactorLab fill in a customer success plan from a call they had with a customer.",
-    withTranscript ? 'Read the call transcript (and any documents) at the end of this message. Then answer the plan questions below.' : 'Read the call transcript (and any documents) attached to this message. Then answer the plan questions below.',
+    withTranscript ? 'Read the call transcript (and any documents) at the end of this message. Then follow HOW THIS CHAT GOES, just below.' : 'Read the call transcript (and any documents) attached to this message. Then follow HOW THIS CHAT GOES, just below.',
     '',
-    'RULES',
-    '1. Use only what was said in the transcript or written in the documents. Never make up names, numbers, dates or quotes.',
-    "2. Skip any question the call didn't cover. Leave it out completely. The only exception: a question marked \"Always answer\" is never skipped.",
-    "3. Use the customer's own words where you can. Keep answers short and plain, the way a superintendent talks.",
-    '4. For every answer, add "quote": the exact words from the call that back it up (one short line).',
-    '5. Set "sure": false when it was only implied, unclear, or you are inferring it. Otherwise "sure": true.',
-    "6. Write targets as things we'll measure together, starting from a baseline. Don't promise results (like doubling quality) and don't predict incidents or injuries.",
-    '7. Anything important that fits no question goes in "other".',
-    '8. Questions the CSM should still ask go in "followups", with the step they belong to.',
-    "9. Reply once, with only the JSON, in one code block. No other text, and don't repeat it.",
-    '10. Never write placeholders like "Not discussed", "Unknown" or "N/A". Leave the question or the part of a row out instead.',
+    'HOW THIS CHAT GOES',
+    'The person who pasted this is a FactorLab teammate who was on the call. They may not be technical, so keep every message short and plain, and start each one with where they are (Step 1 of 3, Step 2 of 3, Step 3 of 3).',
+    'Step 1 of 3, a few quick questions. Read everything first. Then send one short message: "Step 1 of 3: I read the call. I have N quick questions, one at a time, then I\'ll give you the code to paste back into the plan. You can reply skip, or just give me the code, at any time." Then ask Question 1.',
+    '- Question 1 is always who was on the call: list everyone from the customer\'s side (name and role) and everyone from FactorLab, the way you understood them, and ask them to confirm or fix it. Transcripts often label people "Speaker 1": say who you think each one is.',
+    '- Then ask only what would change the plan and that the transcript doesn\'t settle: their top three and which comes first, if they never said; a number whose meaning isn\'t clear (what it counts, each project or all of them); who said the line you\'d quote; a date that may not be a meeting; a name the transcript may have misheard. No more than 5 questions in all, fewer is better.',
+    '- One question per message, labeled like "Question 2 of 4". Give your best guess so they can reply "yes", or fix it.',
+    'Step 2 of 3, use their answers. They were on the call, so their answers are facts. For an answer they gave you, set "quote" to "Confirmed in this chat" and "sure" to true.',
+    'Step 3 of 3, the code. Send: "Step 3 of 3: here\'s your code. Copy everything in the box below and paste it into the plan, in the box called Paste the AI\'s reply, then press Check the answers." Then the JSON in one code block. Nothing after it.',
+    'If they say "just give me the code", go straight to step 3, and set "sure": false on anything you would have asked about.',
+    '',
+    'RULES FOR THE ANSWERS',
+    '1. Use only what was said in the transcript or written in the documents, plus their answers in this chat. Never make up names, numbers, dates or quotes.',
+    "2. Only the customer's people describe the customer. Anyone from FactorLab (often showing the product or explaining how it works) is never the customer: what they said is never the customer's situation, need or goal. If the customer only reacted to something FactorLab showed, write what they said it would change in their work.",
+    "3. Skip any question the call didn't cover. Leave it out completely. The only exception: a question marked \"Always answer\" is never skipped.",
+    "4. Use the customer's own words where you can. Keep answers short and plain, the way a superintendent talks.",
+    '5. For every answer, add "quote": the exact words a customer said that back it up (one short line), copied exactly as the transcript has them.',
+    '6. Set "sure": false when it was only implied, unclear, or you are inferring it. Otherwise "sure": true.',
+    "7. Write targets as things we'll measure together, starting from a baseline. Don't promise results (like doubling quality) and don't predict incidents or injuries.",
+    '8. Every number says what it counts and what it covers: each project or all of them, per week or per month. If the call didn\'t say, ask in step 1, or set "sure": false.',
+    "9. Automatic transcripts mishear words (like \"pre-test\" for pre-task, or a company's name spelled wrong). Fix misheard words in answers. A quote can't be changed, so quote a line the transcript got right.",
+    '10. Only put a date where it was agreed for that exact thing. A start date or go-live is not a follow-up meeting.',
     '11. Write every answer so it makes sense on its own to someone who never saw the question: a full statement, never just "Yes", "Both" or "Not yet". Answers print without their questions. Write them as plain statements about their work ("Cards are reviewed every Saturday"), not "They said..." or "They\'d...". Never refer to something shown or mentioned on the call ("the summary", "the five bullets", "that report") without saying what it is.',
+    '12. Anything important that fits no question goes in "other". So does anything that must never reach the customer\'s plan: doubts about a person, internal politics, pricing, contract terms, other vendors. Keep those out of the answers.',
+    '13. Questions the teammate should still ask the customer go in "followups", with the step they belong to.',
+    '14. Never write placeholders like "Not discussed", "Unknown" or "N/A". Leave the question or the part of a row out instead.',
+    '15. Before you send the code, re-read each answer against the transcript and your chat, and take out anything you can\'t back up.',
     '',
-    'REPLY IN THIS SHAPE',
+    'THE CODE IN STEP 3, IN THIS SHAPE',
     '{',
     '  "answers": [ { "id": "Q1", "answer": "...", "quote": "...", "sure": true } ],',
     '  "followups": [ { "step": "S1", "question": "..." } ],',
     '  "other": [ { "note": "...", "quote": "..." } ]',
     '}',
     '"answer" is text, a list like ["...", "..."], or a list of rows like [{ ... }], as each question says.',
-    'For Account basics, the "id" is the word before the colon (' + (px ? 'account, context' : 'account, mode, day1, context') + '). In a row, leave out any part the call didn\'t cover.',
+    'For Account basics, the "id" is the word before the colon (' + (px ? 'account, csm, context' : 'account, contact, mode, day1, context') + '). In a row, leave out any part the call didn\'t cover.',
     '',
     ...fillAbout(p),
     'THE PLAN QUESTIONS',
     'Account basics',
     '  account: The ' + (px ? '' : 'customer ') + 'company name. Short text.',
+    ...(px ? ['  csm: Everyone from FactorLab who was on the call, by name, like "John and Trey". Always answer. Short text.'] : ['  contact: Everyone from the customer\'s side who was on the call, by name, with their role if it was said. Always answer. Short text.']),
     ...(px ? [] : ['  mode: What the account needs this year. One of: ' + Object.keys(MODES).filter(k => k !== 'prospect').join(' | ') + '. Or your own short words.',
       '  day1: The day the first workflow goes live, only if a date was agreed. A date, YYYY-MM-DD.']),
     '  context: A short summary of the call: who was on it, what they want, what was agreed, what is still open. Text.'
@@ -6159,22 +6174,36 @@ function cleanRow(f, r) {
 }
 const showRow = (f, r) => f.columns.filter(c => r[c.key]).map((c, i) => i ? c.label + ': ' + r[c.key] : r[c.key]).join(' · ');
 /* One review item per answer that would change something. kind: set (replaces), add (adds to what's there). */
+/* Is a quote really in the transcript? Words only (case, punctuation and line breaks don't count); a short
+   line must be there whole, a longer one may differ by a few words (a speaker label in the middle). */
+function fillNorm(s) { return String(s || '').toLowerCase().replace(/[‘’`]/g, "'").replace(/[^a-z0-9']+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function quoteFound(q, tn) {
+  const n = fillNorm(q).replace(/\b\d{1,2} \d{2}( \d{2})?\b/g, ' ').replace(/\s+/g, ' ').trim(), w = n.split(' ');
+  if (!n || w.length < 4 || tn.includes(n)) return true;
+  if (w.length < 8) return false;
+  let hit = 0, tot = 0;
+  for (let i = 0; i + 3 <= w.length; i++) { tot++; if (tn.includes(w.slice(i, i + 3).join(' '))) hit++; }
+  return hit / tot >= 0.85;
+}
 function fillItems(p, obj) {
   const { steps, qs } = fillQuestions(p), items = [];
   let ans = obj.answers || [];
   if (!Array.isArray(ans)) ans = Object.entries(ans).map(([id, v]) => Object.assign({ id }, v && typeof v === 'object' && !Array.isArray(v) && 'answer' in v ? v : { answer: v }));
-  ['account', 'mode', 'day1', 'context'].forEach(k => { if (obj[k] != null && !ans.some(a => same(a.id, k))) ans.push({ id: k, answer: obj[k] }); });
+  ['account', 'contact', 'csm', 'mode', 'day1', 'context'].forEach(k => { if (obj[k] != null && !ans.some(a => same(a.id, k))) ans.push({ id: k, answer: obj[k] }); });
+  const tn = fillNorm([].concat((fill && fill.planId === p.id ? [fill.paste].concat((fill.docs || []).map(d => d.text)) : [])).join(' '));   // the transcript, when it's on this page
   const stepOf = sid => steps.find(st => same(st.sid, sid));
   ans.forEach(a => {
     if (!a) return;
     let id = String(a.id || '').trim();
     if (/^q?\s*\d+$/i.test(id)) id = 'Q' + id.replace(/\D/g, '');
     const base = { quote: asText(a.quote), sure: a.sure !== false && a.sure !== 'false', on: true };
+    if (tn && base.quote && !/^confirmed/i.test(base.quote) && !quoteFound(base.quote, tn)) base.qmiss = true;   // words the transcript doesn't have
     const m = p.meta, v = a.answer;
-    if (['account', 'mode', 'day1', 'context'].includes(id.toLowerCase())) {
+    if (['account', 'contact', 'csm', 'mode', 'day1', 'context'].includes(id.toLowerCase())) {
       id = id.toLowerCase();
       const step = 'Account basics', label = META_Q.find(x => x[0] === id)[1];
       if (id === 'account') { const t = asText(v).replace(/\s*\n\s*/g, ' '); if (!t || same(t, m.account)) return; items.push(Object.assign(base, { key: 'm|account', step, label, val: t, show: t, now: m.account, on: !m.account })); }
+      if (id === 'contact' || id === 'csm') { const t = asText(v).replace(/\s*\n\s*/g, ' '); if (!t || same(t, m[id])) return; items.push(Object.assign(base, { key: 'm|' + id, step, label: id === 'csm' && p.meta.template === 'prospect' ? 'Who ran the call' : label, val: t, show: t, now: m[id], on: !m[id] })); }
       if (id === 'mode') {
         const t = asText(v), k = Object.keys(MODES).find(x => same(x, t) || same(MODES[x].label, t)), val = k || t;
         if (!t || val === m.mode || (!k && m.mode === 'other' && same(t, m.modeOther))) return;
@@ -6187,6 +6216,7 @@ function fillItems(p, obj) {
     const q = qs.find(x => x.id === id); if (!q) return;
     const s = q.s, f = q.f, d = p.data[s.key] || {}, step = s.title, label = q.label;
     const it = Object.assign(base, { key: 'd|' + s.key + '|' + f.key, sec: s.key, step, label, addOn: steps.find(st => st.sid === q.sid).addOn });
+    if (s.key === 'pxTop' && f.key === 'moment' && tn && !quoteFound(asText(v), tn)) it.qmiss = it.momentMiss = true;   // the cover quote must be their exact words
     if (q.ph) {
       const now = ((d.phases || {})[q.ph.key]) || [], add = [];
       (Array.isArray(v) ? v : asList(v)).forEach(x => {
@@ -6206,7 +6236,7 @@ function fillItems(p, obj) {
         let t = f.type === 'date' ? parseLooseDate(asText(v)) : asText(v);
         if (f.type === 'text') t = t.replace(/\s*\n\s*/g, ' ');
         if (!t || same(t, cur0)) return;
-        items.push(Object.assign(it, { val: t, show: f.type === 'date' ? fmtDate(t) : t, now: f.type === 'date' ? fmtDate(cur0) : cur0, on: !cur0 }));
+        items.push(Object.assign(it, { val: t, show: f.type === 'date' ? fmtDate(t) : t, now: f.type === 'date' ? fmtDate(cur0) : cur0, on: !cur0 && !it.momentMiss }));
         return;
       }
       case 'select': {
@@ -6280,6 +6310,7 @@ function fillApply(p, items) {
       else if (f.type === 'select') { d[b] = it.val; if (it.extra) d[b + 'Other'] = it.extra; }
       else d[b] = it.val;
     }
+    if (it.qmiss) addNote(it.sec || 'basics', 'Check the transcript: ' + it.label + (it.momentMiss ? ' (not found word for word, so it may not be their exact words)' : ' (its quote wasn\'t found word for word)'));
     if (!it.sure) addNote(it.sec, 'Check with them: ' + it.label + (Array.isArray(it.val) && it.val.length && it.val[0].row ? ' (' + it.val.map(c => c.row[Object.keys(c.row)[0]]).filter(Boolean).join(', ') + ')' : ''));
   });
   syncProspect(p);   // answers about a pain area put that area in the plan
@@ -6289,20 +6320,20 @@ function fillApply(p, items) {
 function fillHtml(p) {
   const st = fillState(p), docs = st.docs, hasText = docs.length || (st.paste || '').trim();
   const head = `<div class="sec-branch">From a call</div><div class="sec-head"><h2>Fill this plan from a call</h2></div>
-    <p class="sec-intro">For a call you had without the plan open. Your own AI (ChatGPT, Claude, Gemini or Copilot) reads the transcript and answers this plan's questions. You check every answer before it goes in. Nothing is sent from this page, and the transcript isn't saved.</p>`;
+    <p class="sec-intro">For a call you had without the plan open. Your own AI (ChatGPT, Claude, Gemini or Copilot) reads the transcript, checks a few things with you, then answers this plan's questions. You check every answer before it goes in. Nothing is sent from this page, and the transcript isn't saved.</p>`;
   if (st.items) {
     const order = ['Account basics'].concat(fillQuestions(p).steps.map(x => x.s.title), ['Notes to sort']), groups = [];
     st.items.forEach((it, i) => { let g = groups.find(x => x.step === it.step); if (!g) groups.push(g = { step: it.step, list: [] }); g.list.push([it, i]); });
     groups.sort((x, y) => order.indexOf(x.step) - order.indexOf(y.step));
     const on = st.items.filter(x => x.on).length;
     return head + `<div class="fill-review">
-      <div class="fill-bar"><b>${st.items.length} answer${st.items.length === 1 ? '' : 's'} found.</b> Untick anything that's wrong. Answers marked “Check with them” also go in that step's notes, so you can confirm them.
+      <div class="fill-bar"><b>${st.items.length} answer${st.items.length === 1 ? '' : 's'} found.</b> Untick anything that's wrong. Answers marked “Check with them” also go in that step's notes, so you can confirm them.${(st.paste || '').trim() || st.docs.length ? ' Every quote was checked against the transcript.' : ' Quotes weren\'t checked: the transcript isn\'t on this page.'}
         <span class="fill-bar-act"><button class="qs-more" data-action="fill-tick" data-on="1">Tick all</button><button class="qs-more" data-action="fill-tick" data-on="">Untick all</button></span></div>
       ${st.items.length ? groups.map(g => `<div class="fill-group"><div class="fill-step">${esc(g.step)}</div>${g.list.map(([it, i]) => `<label class="fill-item ${it.on ? 'on' : ''}"><input type="checkbox" data-fill-item="${i}" ${it.on ? 'checked' : ''}>
-        <span class="fill-body"><span class="fill-q">${esc(it.label)}${it.sure ? '' : '<span class="fill-flag">Check with them</span>'}${it.addOn ? '<span class="fill-flag add">Adds this step</span>' : ''}</span>
+        <span class="fill-body"><span class="fill-q">${esc(it.label)}${it.sure ? '' : '<span class="fill-flag">Check with them</span>'}${it.qmiss ? `<span class="fill-flag warn">${it.momentMiss ? 'Not their exact words: not found in the transcript' : 'Quote not found in the transcript'}</span>` : ''}${it.addOn ? '<span class="fill-flag add">Adds this step</span>' : ''}</span>
         <span class="fill-a">${esc(it.show)}</span>
         ${it.now ? `<span class="fill-now">${it.add ? esc(it.now) : 'Now: ' + esc(it.now) + (it.on ? '' : '. Tick to replace it.')}</span>` : ''}
-        ${it.quote ? `<span class="fill-quote">“${esc(it.quote)}”</span>` : ''}</span></label>`).join('')}</div>`).join('') : '<p class="empty-note">Nothing new in the reply. Everything it found is already in the plan.</p>'}
+        ${it.quote ? (/^confirmed/i.test(it.quote) ? '<span class="fill-quote">You confirmed this in your AI chat</span>' : `<span class="fill-quote">“${esc(it.quote)}”</span>`) : ''}</span></label>`).join('')}</div>`).join('') : '<p class="empty-note">Nothing new in the reply. Everything it found is already in the plan.</p>'}
       <div class="sec-foot"><button class="btn ghost" data-action="fill-back">Back</button><button class="btn primary" data-action="fill-apply" ${on ? '' : 'disabled'}>Add ${on} answer${on === 1 ? '' : 's'} to the plan</button></div></div>`;
   }
   return head + `
@@ -6314,7 +6345,7 @@ function fillHtml(p) {
     </div></div>
     <div class="fill-step-card"><div class="fill-num">2</div><div class="fill-main">
       <div class="field-label">Copy it into your AI</div>
-      <div class="help">Paste it into ChatGPT, Claude, Gemini or Copilot and send. Use your company account if you have one, since the call has customer details in it.</div>
+      <div class="help">Paste it into ChatGPT, Claude, Gemini or Copilot and send. It asks you up to five quick questions, one at a time (who was on the call first), then gives you a box of code. Answer in a few words, or reply “just give me the code”. Use your company account if you have one, since the call has customer details in it.</div>
       <div class="fill-actions"><button class="btn primary" data-action="fill-copy" ${hasText ? '' : 'disabled'}>Copy for your AI</button><button class="btn" data-action="fill-copy-q">Copy the questions only</button></div>
       ${st.copied ? `<div class="fill-ok">${esc(st.copied)}</div>` : ''}
       ${st.manual ? `<div class="help" style="margin-top:8px">This browser blocked copying. Select everything in the box (Ctrl+A or Cmd+A), copy it, then paste it into your AI.</div><textarea class="fill-manual" readonly>${esc(st.manual)}</textarea>` : ''}
@@ -6322,6 +6353,7 @@ function fillHtml(p) {
     </div></div>
     <div class="fill-step-card"><div class="fill-num">3</div><div class="fill-main">
       <div class="field-label">Paste the AI's reply</div>
+      <div class="help">Copy the code box from its last message (Step 3 of 3) and paste it here.</div>
       <textarea data-fill="reply" placeholder="Copy the AI's whole reply and paste it here" style="min-height:110px">${esc(st.reply)}</textarea>
       <label class="fill-drop small" data-drop="reply"><input type="file" data-fill-file="reply" accept=".json,.txt,text/*,application/json" hidden>If it gave you a file instead, drop it here or <u>choose it</u>.</label>
       ${st.err ? `<div class="fill-err">${esc(st.err)}</div>` : ''}
