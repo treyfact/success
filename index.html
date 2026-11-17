@@ -604,6 +604,7 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .pz-quote { background: #1f3a5f; color: #fff; border-radius: 14px; padding: 18px 24px; min-width: 0; }
 .pz-q { margin-top: 8px; font-size: 26px; line-height: 1.22; font-weight: 600; } .pz-q.m { font-size: 21px; } .pz-q.s { font-size: 17px; line-height: 1.32; } .pz-q.xs { font-size: 14.5px; line-height: 1.38; font-weight: 500; }
 .pz-qwho { margin-top: 10px; font-size: 13.5px; color: #c9d6e6; }
+.pz-qwhy { margin-top: 8px; font-size: 14.5px; line-height: 1.38; color: #dbe5f1; font-style: italic; }
 .pz-worth { background: #fcefe2; border-radius: 14px; padding: 18px 22px; min-width: 0; } .pz-worth .np-lab { color: #b25e12; }
 .pz-worth p { margin: 6px 0 0; font-size: 18px; line-height: 1.36; font-weight: 600; color: #1c2433; } .pz-worth p.m { font-size: 16px; } .pz-worth p.s, .pz-worth p.xs { font-size: 14px; font-weight: 500; }
 .pz-gl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 7px; }
@@ -1097,8 +1098,9 @@ const PROOF_FIELD = () => ({ key: 'proof', label: "They'll call this worth it wh
   noteCols: ['what', 'kind', 'when'], defaultRows: () => [], addLabel: 'Add what they said' });
 const SEEN_FIELD = () => ({ key: 'seen', label: "What they've seen or said so far", type: 'table',
   help: 'Their words, with who said it and when. Stories and quotes, not dollar figures.',
-  columns: [{ key: 'what', label: 'What they saw or said', width: '60%', multi: true }, { key: 'who', label: 'Who' }, { key: 'when', label: 'When' }],
-  noteCols: ['what', 'who', 'when'], defaultRows: () => [], addLabel: 'Add what they saw or said' });
+  columns: [{ key: 'what', label: 'What they saw or said', width: '42%', multi: true }, { key: 'about', label: "What it's about", width: '26%', multi: true }, { key: 'who', label: 'Who' }, { key: 'when', label: 'When' }],
+  noteCols: ['what', 'about', 'who', 'when'], defaultRows: () => [], addLabel: 'Add what they saw or said',
+  fill: 'When "what" is their words and points at something it does not name ("the issue", "that problem", "it"), "about" says what it was in one short sentence, from the transcript, so a reader who was not on the call understands it.' });
 const SEEN_MONEY = /\$|%|\bROI\b|\bdollars?\b|\bsaved \d/i;   // seen-and-said stays in their words, not money
 function proofTag(k) { return /number/i.test(k || '') ? "A number we'll track" : /see|hear/i.test(k || '') ? "Something you'll see and hear" : (k || ''); }
 const SECTIONS = [
@@ -2109,6 +2111,7 @@ SECTIONS.push(
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
     fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain), fill: 'Only areas they said matter to them, in their own words. Put the one they spent the most time on, or said costs them the most, first: it leads their plan. If they never ranked them, give your best order and ask in step 1.' },
       { key: 'moment', label: 'What did they say that stuck with you? Their exact words.', type: 'textarea', placeholder: 'The line that shows what this costs them today. It goes on the cover of their plan, in quote marks.', fillMust: true, fill: 'Every call has a line worth quoting. Copy one or two whole sentences a customer said (never FactorLab), word for word: the line that best shows what this costs them today. Pick a line the transcript wrote down correctly. Under 30 words if you can. Exact words only: no fixing or shortening inside the line.' },
+      { key: 'momentWhy', label: "What it's about, for someone who wasn't on the call", type: 'text', placeholder: 'e.g. a problem last Friday that four observation cards had flagged, read a day late', help: 'One short line. It prints under the quote, so a boss who reads the plan knows what the issue or problem was.', fillMust: true, fill: 'One short sentence saying what the line is about, so someone who was not on the call understands it: what the issue, problem or "that" was, and when, if said. Only what the transcript says, like "A problem on one of their jobs last Friday that four observation cards had already flagged, but nobody read them until Saturday".' },
       { key: 'momentWho', label: 'Who said it', type: 'text', placeholder: 'e.g. Sam, safety lead', fillMust: true, fill: 'Their first name, and their role if it was said. If the transcript only says "Speaker 1", ask in step 1.' }],
     leaves: d => (d.areas || []).slice(0, 4)
   },
@@ -3930,7 +3933,7 @@ function docValue(p, has) {
   const d = k => p.data[k] || {}, rows = (k, f) => has(k) ? (d(k)[f] || []) : [];
   const proof = rows('goal', 'proof').concat(rows('fcObjective', 'proof')).filter(r => (r.what || '').trim());
   const seen = rows('targets', 'seen').concat(rows('fcMeasures', 'seen')).filter(r => (r.what || '').trim())
-    .map(r => '"' + r.what.trim().replace(/^"|"$/g, '') + '"' + (r.who || r.when ? ' ' + [r.who, r.when].filter(Boolean).join(', ') : ''));
+    .map(r => '"' + r.what.trim().replace(/^"|"$/g, '') + '"' + ((r.about || '').trim() ? ' (' + r.about.trim().replace(/^\(|\)$/g, '').replace(/[.]+$/, '') + ')' : '') + (r.who || r.when ? ' ' + [r.who, r.when].filter(Boolean).join(', ') : ''));
   const sc = [].concat(rows('targets', 'measures'), rows('fcMeasures', 'rows'), rows('fcValue', 'rows'));
   const measured = sc.filter(r => r.measure && r.baseline).map(r => r.measure + ': baseline ' + r.baseline + (r.current ? ', now ' + r.current : ''));
   const results = rows('results', 'rows').filter(r => r.measure && (r.before || r.now)).map(r => r.measure + ': ' + (r.before || '?') + ' to ' + (r.now || '?'));
@@ -4118,12 +4121,13 @@ function prospectPages(p, customer) {
   const SL = { gap: 'Your biggest opportunity', ok: 'Already working for you', focus: 'One of your priorities', off: '' };
   const shown = NP_SHIFTS.filter(s => status(s.key) !== 'off');   // a shift they didn't bring up stays off their pages
   const anyStrong = NP_SHIFTS.some(s => strong[s.key].length);
+  let tall = false, snug = false;   // a long quote card leaves less room for the cards under it
   const dot = x => x && !/[.!?]$/.test(x) ? x + '.' : x;
   const glanceLine = s => dot(glanceLine0(s));
   const glanceLine0 = s => {
     const st = status(s.key), a = focus[s.key][0];
-    if (st === 'ok') return strong[s.key][0];
-    if (a) return pzAnswer(p, a, 150) || a.pain + '.';
+    if (st === 'ok') return snug ? npFit(strong[s.key][0], 100) : strong[s.key][0];
+    if (a) return pzAnswer(p, a, snug ? 100 : 150) || a.pain + '.';
     return s.px;
   };
 
@@ -4135,14 +4139,15 @@ function prospectPages(p, customer) {
   const cnt = (String(w.leaders || '').trim().match(new RegExp('^(?:(?:about|around|roughly|over|under|more than|fewer than|nearly|close to|maybe)\\s+)?' + W + '(?:\\+|\\s*(?:to|or|-|and)\\s*' + W + ')?(?:\\s+or so)?(?![\\w])', 'i')) || [''])[0];
   const crews = cnt ? cnt.toLowerCase() : '';   // the type of work they do is something they know, so it stays off their page
   const sub1 = (who1 ? 'Based on our conversation with ' + who1 + (role1 ? ', ' + role1 : '') + '.' : 'Based on our conversation.') + (crews ? ` You told us you have ${crews} foremen and crew leaders running your crews.` : '');
-  const mq = moment.length <= 600 ? npCap(moment) : '';   // a quote that starts mid-sentence gets a capital, nothing else changes
+  const mq = moment.length <= 600 ? npCap(moment) : '', mwhy = npFit(top.momentWhy, 200).replace(/^\(|\)$/g, '').replace(/[.]+$/, '');   // what the line is about, for a reader who wasn't on the call   // a quote that starts mid-sentence gets a capital, nothing else changes
   const qSize = s => s.length > 300 ? 'xs' : s.length > 190 ? 's' : s.length > 110 ? 'm' : '';
+  const topLen = (mq + ' ' + mwhy).length; tall = topLen > 480 || worth.length > 260; snug = topLen > 300;
   const wq = worth.length > 330 ? ((worth.match(/^(.*?[.!?]){1,2}/) || [''])[0].trim() || '') : worth;
-  const cards = [mq ? `<div class="pz-quote"><div class="np-lab">The line that stuck with us</div><div class="pz-q ${qSize(mq)}">&ldquo;${esc(mq)}&rdquo;</div>${momentWho ? `<div class="pz-qwho">${esc(momentWho)}</div>` : ''}</div>` : '',
+  const cards = [mq ? `<div class="pz-quote"><div class="np-lab">The line that stuck with us</div><div class="pz-q ${qSize(mq + ' ' + mwhy)}">&ldquo;${esc(mq)}&rdquo;</div>${mwhy ? `<div class="pz-qwhy">(${esc(npCap(mwhy))}.)</div>` : ''}${momentWho ? `<div class="pz-qwho">${esc(momentWho)}</div>` : ''}</div>` : '',
     wq ? `<div class="pz-worth ${mq ? '' : 'solo'}"><div class="np-lab">What success looks like to you</div><p class="${qSize(wq)}">${esc(dot(wq))}</p></div>` : ''].filter(Boolean);
   if (!mq && !customer) cards.unshift('<div class="pz-quote miss"><div class="np-lab">The line that stuck with us</div><p>Add their exact words on Their top three (What did they say that stuck with you?). On their copy this card is left out.</p></div>');
   let b1 = cards.length ? `<div class="pz-p1 ${cards.length === 1 ? 'one' : ''}">${cards.join('')}</div>` : '';
-  if (shown.length) b1 += `<div class="np-l">Where you stand, at a glance</div><div class="pz-gl" style="grid-template-columns:repeat(${shown.length},minmax(0,1fr))">${shown.map(s => { const st = status(s.key); return `<div class="pz-g ${st}"><div class="pz-gt">${esc(s.label)}</div><div class="pz-gs">${SL[st]}</div><div class="pz-gd">${esc(glanceLine(s))}</div></div>`; }).join('')}</div>`;
+  if (shown.length) b1 += `<div class="np-l">Where you stand, at a glance</div><div class="pz-gl" style="grid-template-columns:repeat(${shown.length},minmax(0,1fr))">${shown.map(s => { const st = status(s.key); return `<div class="pz-g ${st}"><div class="pz-gt">${esc(s.label)}</div><div class="pz-gs">${SL[st]}</div>${tall ? '' : `<div class="pz-gd">${esc(glanceLine(s))}</div>`}</div>`; }).join('')}</div>`;   // under a long quote the cards keep just their labels; page 2 has the detail
   if (extra.length) b1 += `<p class="np-note">Also on your list: ${esc(extra.map(x => npFit(x, 60)).filter(Boolean).join(', '))}.</p>`;
   if (!b1) b1 = '<p class="doc-empty">Fill in Where they are today and Their top three.</p>';
   pages.push(npPage(++n, 'What we heard', pzEsc2(gapA ? gapA.hook : "Here's what we heard, and where we'd start."), sub1, b1, true));
@@ -4200,8 +4205,8 @@ function prospectPages(p, customer) {
     const rows = [['Follow-up meeting', nx.date ? fmtDate(nx.date) : 'Not booked yet'], ['From FactorLab', nx.who], ['From their side', nx.them], ['What to lead with', nx.angle], ['Have ready if they ask buying questions', PX_OFFER || 'The offer, once Brian writes it. Keep it off their pages (Keith).'], ['Who else should see this plan', w.others], ['How they measure it today', t.measure], ['How many they join a month', t.count], ['Who ran the call', m.csm], ['What we know so far', m.context && trunc(m.context, 600)], ['Where it came from', m.sources], ...notes.slice(0, 4).map(x => ['Notes: ' + x[0], trunc(x[1], 300)])].filter(r => r[1]);
     /* Fit the page: long notes are shortened and the rest stays in the plan builder. */
     const full = rows.filter(r => String(r[1] || '').trim()), cut = x => { x = String(x).trim().replace(/\s+/g, ' '); return x.length > 330 ? x.slice(0, 320).replace(/\s+\S*$/, '') + '... (more in the plan builder)' : x; };
-    let room = 560, shown = [];
-    for (const r of full) { const h = Math.ceil(cut(r[1]).length / 115) * 19 + 18; if (h > room) break; room -= h; shown.push(r); }
+    let room = 540, shown = [];
+    for (const r of full) { const h = Math.ceil(cut(r[1]).length / 100) * 19 + 20; if (h > room) break; room -= h; shown.push(r); }
     const left = full.length - shown.length;
     pages.push({ title: 'FactorLab only', body: `<table class="doc-table doc-run"><tbody>${shown.map(r => `<tr><th>${esc(r[0])}</th><td>${esc(cut(r[1]))}</td></tr>`).join('')}</tbody></table>${left ? `<p class="doc-note">+ ${left} more in the plan builder</p>` : ''}` });
   }
@@ -6040,7 +6045,8 @@ function fillPrompt(p, withTranscript) {
     '12. Anything important that fits no question goes in "other". So does anything that must never reach the customer\'s plan: doubts about a person, internal politics, pricing, contract terms, other vendors. Keep those out of the answers.',
     '13. Questions the teammate should still ask the customer go in "followups", with the step they belong to.',
     '14. Never write placeholders like "Not discussed", "Unknown" or "N/A". Leave the question or the part of a row out instead.',
-    '15. Before you send the code, re-read each answer against the transcript and your chat, and take out anything you can\'t back up.',
+    '15. A quote that points at something it doesn\'t name ("an issue", "that problem", "it") means nothing to a boss who wasn\'t on the call. Wherever you give exact words, fill the "what it\'s about" part beside them in one short sentence from the transcript. When you can choose, pick a line that makes sense on its own.',
+    '16. Before you send the code, re-read each answer against the transcript and your chat, and take out anything you can\'t back up.',
     '',
     'THE CODE IN STEP 3, IN THIS SHAPE',
     '{',
