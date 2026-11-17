@@ -614,12 +614,12 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .pz-gd { margin-top: 3px; font-size: 14.5px; color: #3a4558; line-height: 1.35; }
 .pz-sch, .pz-scr { display: grid; grid-template-columns: 200px minmax(0, 1fr) minmax(0, 1fr); gap: 22px; }
 .pz-sch { padding: 0 18px 5px; margin-top: 10px; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; color: #1d7d84; }
-.pz-scr { padding: 15px 18px; border-radius: 12px; margin-bottom: 10px; background: #f4f6f9; align-items: start; }
+.pz-scr { padding: 12px 18px; border-radius: 12px; margin-bottom: 8px; background: #f4f6f9; align-items: start; }
 .pz-scr.gap { background: #fcefe2; box-shadow: inset 6px 0 0 #d9771f; }
 .pz-nm { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 24px; color: #1f3a5f; line-height: 1; }
 .pz-pill { display: inline-block; margin-top: 7px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: #eceff3; color: #5d6677; }
 .pz-pill.ok { background: #e5f3ea; color: #2e7d4f; } .pz-pill.focus { background: #fff; color: #b25e12; border: 1.5px solid #f0b37a; } .pz-pill.gap { background: #d9771f; color: #fff; }
-.pz-heard { font-size: 16px; line-height: 1.42; } .pz-best { font-size: 16px; line-height: 1.42; color: #1f3a5f; font-weight: 600; }
+.pz-heard { font-size: 15px; line-height: 1.4; } .pz-best { font-size: 15px; line-height: 1.4; color: #1f3a5f; font-weight: 600; }
 .pz-gauge { display: flex; gap: 40px; margin-top: 6px; padding: 4px 18px 0; align-items: flex-start; }
 .pz-bar { display: flex; gap: 4px; margin-top: 5px; } .pz-bar span { width: 30px; height: 26px; border-radius: 5px; background: #e6eaf0; color: #8a93a3; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
 .pz-bar span.on { background: #1f3a5f; color: #fff; } .pz-bar span.goal { box-shadow: inset 0 0 0 2.5px #d9771f; color: #d9771f; } .pz-bar span.on.goal { color: #fff; }
@@ -648,6 +648,7 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .pz-next ul { margin: 8px 0 0; padding-left: 18px; font-size: 14.5px; line-height: 1.42; color: #e6edf6; }
 .pz-bring { margin-top: 8px; font-size: 14px; color: #c9d6e6; } .pz-bring b { color: #fff; }
 .px-moment { margin-top: 18px; }
+.pz-quote.miss { background: #fff; color: #5d6677; border: 2px dashed #c3cbd6; } .pz-quote.miss .np-lab { color: #8a93a3; } .pz-quote.miss p { margin: 8px 0 0; font-size: 14px; line-height: 1.4; }
 
 .np-table th { text-align: left; font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; color: #1d7d84; padding: 5px 10px; border-bottom: 1px solid #d5dbe3; }
 .np-table td { padding: 8px 10px; font-size: 14px; border-bottom: 1px solid #edf0f4; vertical-align: top; line-height: 1.4; } .np-table td.k { font-weight: 600; color: #1f3a5f; white-space: nowrap; }
@@ -2026,43 +2027,43 @@ const PX_AREAS = [
     best: 'They talk through the day\'s work out loud first: the real hazards, who does what, what good looks like. The paperwork follows the conversation.',
     why: 'Crews get time back, and the plan sticks because they said it out loud.', stat: 'Reducing administrative work is a top-three AI wish for 49% of leaders.',
     first: "Listen to three of your crews' planning talks this week, and agree with your leaders what a good one sounds like.",
-    hook: 'Your crews already plan. Make the talk count, not the form.', move: 'Make the talk count, not the form',
-    bestShort: 'Talk through the work first. The paperwork follows the conversation.', gain: 'The biggest gain is the talk itself.', heardQ: ['q1', 'q3', 'q2'] },
+    hook: 'Your crews already plan every day. Make the conversation count as much as the form.', move: 'Make the planning conversation count',
+    bestShort: 'Talk through the work first. The paperwork follows the conversation.', gain: 'Your biggest opportunity: making the planning conversation count.', heardQ: ['q1', 'q3', 'q2'] },
   { key: 'pxChange', pain: "Plans don't keep up when the work changes", goal: 'Plans that keep up with the work',
     qs: ['When the work changes mid-shift, what happens to the plan?', 'How do crews talk about what could change today: weather, other trades, materials?', 'When something went wrong last year, had the work changed from what was planned?'],
     best: "They name what could change today and agree how they'll adapt. When the task changes, they stop and re-plan.",
     why: 'Change is where plans most often fall short, and where good planners stand out.', stat: 'The best planners score 3X higher when actively discussing change.',
     first: 'Add one question to every plan: what could change today, and what will we do if it does?',
-    hook: 'The work will change today. Make sure the plan does too.', move: 'Plan for what could change',
-    bestShort: 'Name what could change today, and stop and re-plan when it does.', gain: 'The biggest gain is when the work changes.', heardQ: ['q3', 'q1', 'q2'] },
+    hook: 'The work changes during the day. Make sure the plan changes with it.', move: 'Plan for what could change today',
+    bestShort: 'Name what could change today, and stop and re-plan when it does.', gain: 'Your biggest opportunity: keeping the plan current as the work changes.', heardQ: ['q3', 'q1', 'q2'] },
   { key: 'pxLate', pain: "Leaders hear about problems too late and crews don't speak up", was: ['Leaders hear about problems too late'], goal: 'Leaders see it early',
     qs: ['How do leaders know whether this morning\'s plans were any good?', 'How many plans does a superintendent or manager actually see in a week?', 'What would you want to know before 7 a.m. that you find out later?'],
     best: 'Leaders hear a couple of real plans every week, say one thing back to the crew, and spot a weak plan the same day.',
     why: 'The plan is the earliest, cheapest place to catch risk.', stat: '59% say planning weaknesses reach leaders too late.', src: 'survey',
     first: 'Ask each superintendent to listen in on two plans a week and give the crew one piece of feedback.',
-    hook: 'The warning is already in the field. Get it to leaders the same day.', move: 'Read the warning the same day',
-    bestShort: 'Hear a couple of real plans a week and spot a weak one the same day.', gain: 'The biggest gain is speed.', heardQ: ['q3', 'q1', 'q2'] },
+    hook: 'Your crews already spot the warning signs. Get them to your leaders the same day.', move: 'Get warning signs to leaders the same day',
+    bestShort: 'Hear a couple of real plans a week and spot a weak one the same day.', gain: 'Your biggest opportunity: getting warning signs to leaders faster.', heardQ: ['q3', 'q1', 'q2'] },
   { key: 'pxSilo', retired: true, pain: 'Safety and operations plan separately', goal: 'One plan safety and operations both own',
     qs: ['Who owns the morning plan today: safety, operations or both?', 'When safety and operations see a good plan differently, how does that get settled?', 'Do your operations leaders ever review plans with your safety team?'],
     best: 'Operations sets what a good plan looks like; safety supports and coaches. They review plans together.',
     why: 'Shared plans and joint reviews keep supervisors from balancing production and safety alone.', stat: '',
     first: 'Agree, on one page, what a good plan sounds like, signed by an operations leader and a safety leader.',
     hook: 'One plan that safety and operations both own.', move: 'Write one plan together',
-    bestShort: 'Operations sets what good looks like, safety coaches, and they review plans together.', gain: 'The biggest gain is one shared plan.', heardQ: ['q1', 'q2', 'q3'] },
+    bestShort: 'Operations sets what good looks like, safety coaches, and they review plans together.', gain: 'Your biggest opportunity: one plan that safety and operations share.', heardQ: ['q1', 'q2', 'q3'] },
   { key: 'pxLessons', pain: 'Lessons stay on the job where they happened', goal: 'Lessons that travel to the next job',
     qs: ['When a crew finds a better way to plan, how does anyone else hear about it?', 'How do lessons from a close call get into the next plan?', 'Can you compare planning between your projects or regions today?'],
     best: 'They share real examples of good plans across crews and regions, and carry what changed into the next project.',
     why: 'Every job teaches something. The best companies make sure the next crew hears it.', stat: '56% want AI to find patterns across projects, the top AI use case.', src: 'survey',
     first: 'Pick three good plans a month and share them with every crew, with a line on why they are good.',
-    hook: 'Every job teaches something. Make sure the next crew hears it.', move: 'Pass one good plan to every crew',
-    bestShort: 'Pass good plans across crews and projects, and carry what changed into the next job.', gain: 'The biggest gain is sharing what works.', heardQ: ['q2', 'q1', 'q3'] },
+    hook: 'Every job teaches your crews something. Make sure the next crew hears it.', move: 'Share one good plan with every crew',
+    bestShort: 'Pass good plans across crews and projects, and carry what changed into the next job.', gain: 'Your biggest opportunity: sharing what works across crews.', heardQ: ['q2', 'q1', 'q3'] },
   { key: 'pxBench', pain: 'Not enough experienced leaders to go around', goal: 'A deeper bench of field leaders',
     qs: ['How many of your foremen are new to the role in the last year or two?', 'How do you know which foremen need help planning?', 'How do your best planners help the newer ones today?'],
     best: 'They know who their best planners are, recognize them in front of the crew, and pair them with newer foremen.',
     why: 'Better leaders tend to plan better, keep their people and see more of what is coming.', stat: '69% rank frontline leadership development one of their top three 2027 priorities.', src: 'survey',
     first: 'Name your three best planners, and recognize one this month for a plan others can learn from.',
-    hook: 'Your best planners are your best teachers. Put them to work.', move: 'Let your best planners teach',
-    bestShort: 'Know who your best planners are, recognize them, and pair them with newer foremen.', gain: 'The biggest gain is your bench.', heardQ: ['q2', 'q3', 'q1'] }
+    hook: 'Your best foremen already plan well. Let them teach the newer ones.', move: 'Let your best foremen teach',
+    bestShort: 'Know who your best planners are, recognize them, and pair them with newer foremen.', gain: 'Your biggest opportunity: growing more strong field leaders.', heardQ: ['q2', 'q3', 'q1'] }
 ];
 const PX_BASE = ['pxWho', 'pxToday', 'pxTop'], PX_END = 'pxNext';
 const PX_SCALE = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -2076,8 +2077,8 @@ SECTIONS.push(
       { key: 'contact', label: 'Who you talked to', type: 'text' },
       { key: 'role', label: 'Their role', type: 'text', placeholder: 'e.g. safety director' },
       { key: 'type', label: 'The work they do', type: 'select', buttons: true, options: ['', 'General contractor', 'Trade contractor', 'Utility or energy', 'Owner'] },
-      { key: 'leaders', label: 'How many foremen or crew leaders', type: 'text', placeholder: 'e.g. about 40', fill: 'Just the number or range they said, like 40 or six or seven.' },
-      { key: 'others', label: 'Who else should see this plan?', type: 'text', placeholder: 'e.g. VP of operations, regional safety managers', fill: 'Names or roles only, like "the VP of operations and their IT lead".' }
+      { key: 'leaders', label: 'How many foremen or crew leaders', type: 'text', placeholder: 'e.g. about 40', fill: 'Just the number or range they said, like 40 or six or seven. No other words.' },
+      { key: 'others', label: 'Who else should see this plan?', type: 'text', placeholder: 'e.g. VP of operations, regional safety managers', fill: 'Names or roles only, written to the customer, like "Sam and your IT lead".' }
     ],
     leaves: d => [d.contact && d.contact + (d.role ? ', ' + d.role : ''), d.type, d.leaders && d.leaders + ' crew leaders']
   },
@@ -2104,10 +2105,10 @@ SECTIONS.push(
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
     intro: 'Read them the five areas and ask which three matter most this year. Tap each one they pick, and its three quick questions open right under it.',
-    hint: 'Write their words under each one; the plan pairs them with what the best planners do. If none fit, pick Something else at the bottom.',
+    hint: 'Write their words under each one, as a full statement: answers print on their plan without the question. If none fit, pick Something else at the bottom.',
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
     fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain) },
-      { key: 'moment', label: 'What did they say that stuck with you? Their exact words.', type: 'textarea', placeholder: 'The line that shows what this costs them today. It goes on the cover of their plan, in quote marks.', fill: 'Copy one or two whole sentences from the transcript, word for word: the line that best shows what this costs them today. Under 30 words if you can. Exact words only: no fixing or shortening inside the line.' },
+      { key: 'moment', label: 'What did they say that stuck with you? Their exact words.', type: 'textarea', placeholder: 'The line that shows what this costs them today. It goes on the cover of their plan, in quote marks.', fill: 'Always answer this one: every call has a line worth quoting. Copy one or two whole sentences the customer said, word for word: the line that best shows what this costs them today. Under 30 words if you can. Exact words only: no fixing or shortening inside the line.' },
       { key: 'momentWho', label: 'Who said it', type: 'text', placeholder: 'e.g. Sam, safety lead', fill: 'Their first name, and their role if it was said.' }],
     leaves: d => (d.areas || []).slice(0, 4)
   },
@@ -2125,7 +2126,7 @@ SECTIONS.push(
     fields: [
       { key: 'date', label: 'Follow-up meeting', type: 'date' },
       { key: 'who', label: 'Who joins from FactorLab', type: 'text' },
-      { key: 'them', label: 'Who joins from their side', type: 'text', fill: 'Names or roles only, like "the VP of operations and their IT lead".' },
+      { key: 'them', label: 'Who joins from their side', type: 'text', fill: 'Names or roles only, written to the customer, like "Sam and your IT lead".' },
       { key: 'angle', label: 'What to lead with', type: 'textarea' }
     ],
     leaves: d => [d.date && 'Follow-up: ' + fmtDate(d.date), d.who && 'FactorLab: ' + d.who, d.them && 'Them: ' + d.them]
@@ -2569,6 +2570,7 @@ function readyChecks(plan) {
     { id: 'readytest', label: 'All of the ready-for-the-year questions are answered yes', ok: (d('fcReady').rows || []).filter(r => r.question).every(r => r.ready === 'Yes'), sec: 'fcReady' },
     { id: 'pxToday', label: 'Where they are today: how their crews plan, their 1 to 10 today and the number they want, and the safety and operations rating', ok: !!(d('pxToday').doing && d('pxToday').score && d('pxToday').target && d('pxToday').together), sec: 'pxToday' },
     { id: 'pxTop', label: 'Their top pains are picked (up to three)', ok: pxChosen(plan).length > 0, sec: 'pxTop' },
+    { id: 'pxMoment', label: 'The line that stuck with you, in their exact words (it goes on the cover)', ok: !!String(d('pxTop').moment || '').trim(), sec: 'pxTop' },
     ...pxChosen(plan).map(a => ({ id: 'px-' + a.key, label: 'Their answers on: ' + a.pain.toLowerCase(), ok: ['q1', 'q2', 'q3'].filter(k => (d(a.key)[k] || '').trim()).length >= 2, tip: 'Two of the three questions is enough.', sec: a.key })),
     { id: 'pxNext', label: 'The follow-up meeting is booked', ok: !!d('pxNext').date, sec: 'pxNext' },
     { id: 'proof', label: "They've said what would tell them it worked, and each one says a number or something they'll see and hear", ok: proofRows.length > 0 && proofRows.every(r => r.kind), tip: proofRows.some(r => !r.kind) ? 'Pick a kind for each one' : '', sec: proofSec },
@@ -4074,7 +4076,7 @@ const npAn = n => /^(8|11|18)$/.test(String(n)) ? 'an' : 'a';
    04 Partnering with FactorLab: 90 days as a timeline and the next meeting, with who to bring (Brian and John:
    open the door for the next meeting). No offer (Keith). Every line is their answer or standard words. ---- */
 const PX_WHY = yr => `You'll put time and money into your field leaders in ${yr}. FactorLab shows you what's working, crew by crew: every recorded planning talk is transcribed and scored the same way, with a weekly summary in plain English.`;
-const PX_NEXT_SHOW = ['Planning scores and weekly summaries, with real examples from crews like yours', 'What your first two weeks would look like'];
+const PX_NEXT_SHOW = ['How FactorLab scores planning conversations, and the weekly summary your leaders would get, with real examples', 'What your first two weeks would look like'];
 const PZ_GUESS = [['learn', /lesson|share|shar|review|card|observation|crew of the week|learn|summar|trend/i], ['lead', /leader|super|manager|coach|feedback|recogni|mentor|foreman of|walk/i]];
 function pzShiftOf(row) {
   const v = String(row.shift || '').toLowerCase();
@@ -4083,9 +4085,14 @@ function pzShiftOf(row) {
 }
 const pzDay = iso => { const [y, mo, d] = String(iso || '').split('-').map(Number); if (!y || !mo || !d) return ''; const dt = new Date(y, mo - 1, d); return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); };
 const pzEsc2 = s => esc(s).replace(/^(.{20,}?[.!?])\s+(?=\S)/, '$1<br>');   // a two-sentence headline breaks after the first
-function pzAnswer(p, a, n) {   // their own answer for an area, the question that tells the most first
-  const d = p.data[a.key] || {};
-  for (const k of a.heardQ || ['q1', 'q2', 'q3']) { const x = npFit(d[k], n); if (x) return x; }
+function pzAnswer(p, a, n) {   // their own answer for an area, the question that tells the most first, only if it reads on its own
+  const d = p.data[a.key] || {}, bare = /^(yes|no|yeah|nope|both|not yet|not really|sometimes|kind of|sort of|maybe|none)\b[\s,.:;!-]*/i;
+  for (const k of a.heardQ || ['q1', 'q2', 'q3']) {
+    let v = String(d[k] || '').trim().replace(/\s+/g, ' ');
+    while (bare.test(v)) v = v.replace(bare, '');   // "Both. The JSA form..." keeps the part that explains itself
+    v = npCap(v);
+    const x = npFit(v, n); if (x && x.length >= 25) return x;
+  }
   return '';
 }
 function prospectPages(p, customer) {
@@ -4108,14 +4115,15 @@ function prospectPages(p, customer) {
   if (together >= 4) strong.lead.push(`Safety and operations plan the work closely together: ${together} of 5.`);
   chosen.forEach(a => focus[PX_SHIFT[a.key] || 'plan'].push(a));
   const status = k => k === gap ? 'gap' : strong[k].length ? 'ok' : focus[k].length ? 'focus' : 'off';
-  const SL = { gap: 'Biggest gain', ok: 'Strength', focus: 'In your top three', off: 'Not this year' };
+  const SL = { gap: 'Your biggest opportunity', ok: 'Already working for you', focus: 'One of your priorities', off: '' };
+  const shown = NP_SHIFTS.filter(s => status(s.key) !== 'off');   // a shift they didn't bring up stays off their pages
   const anyStrong = NP_SHIFTS.some(s => strong[s.key].length);
   const dot = x => x && !/[.!?]$/.test(x) ? x + '.' : x;
   const glanceLine = s => dot(glanceLine0(s));
   const glanceLine0 = s => {
     const st = status(s.key), a = focus[s.key][0];
-    if (st === 'ok') return strong[s.key].map(x => npFit(x, 120)).find(Boolean) || s.px;
-    if (a) return pzAnswer(p, a, 130) || a.pain + '.';
+    if (st === 'ok') return strong[s.key][0];
+    if (a) return pzAnswer(p, a, 150) || a.pain + '.';
     return s.px;
   };
 
@@ -4125,40 +4133,42 @@ function prospectPages(p, customer) {
   // How many foremen: only the number or range they said ("six or seven", "about 40"); anything else stays in the builder.
   const W = '(?:\\d[\\d,]*|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|a hundred|hundred|a dozen|dozen)';
   const cnt = (String(w.leaders || '').trim().match(new RegExp('^(?:(?:about|around|roughly|over|under|more than|fewer than|nearly|close to|maybe)\\s+)?' + W + '(?:\\+|\\s*(?:to|or|-|and)\\s*' + W + ')?(?:\\s+or so)?(?![\\w])', 'i')) || [''])[0];
-  const TYPE = { 'General contractor': 'A general contractor', 'Trade contractor': 'A trade contractor', 'Utility or energy': 'A utility or energy company', 'Owner': 'An owner' };
-  const typePh = TYPE[type1] || type1, crews = cnt ? cnt.toLowerCase() + ' foremen and crew leaders' : '';
-  const rest = crews ? (typePh ? typePh + ' with ' + crews : crews) : '';   // the type alone reads oddly, so it waits for a count
-  const sub1 = (who1 ? 'From our call with ' + who1 + (role1 ? ', ' + role1 : '') + '.' : 'From our call.') + (rest ? ' ' + npCap(rest) + '.' : '');
+  const crews = cnt ? cnt.toLowerCase() : '';   // the type of work they do is something they know, so it stays off their page
+  const sub1 = (who1 ? 'Based on our conversation with ' + who1 + (role1 ? ', ' + role1 : '') + '.' : 'Based on our conversation.') + (crews ? ` You told us you have ${crews} foremen and crew leaders running your crews.` : '');
   const mq = moment.length <= 600 ? npCap(moment) : '';   // a quote that starts mid-sentence gets a capital, nothing else changes
   const qSize = s => s.length > 300 ? 'xs' : s.length > 190 ? 's' : s.length > 110 ? 'm' : '';
   const wq = worth.length > 330 ? ((worth.match(/^(.*?[.!?]){1,2}/) || [''])[0].trim() || '') : worth;
   const cards = [mq ? `<div class="pz-quote"><div class="np-lab">The line that stuck with us</div><div class="pz-q ${qSize(mq)}">&ldquo;${esc(mq)}&rdquo;</div>${momentWho ? `<div class="pz-qwho">${esc(momentWho)}</div>` : ''}</div>` : '',
-    wq ? `<div class="pz-worth ${mq ? '' : 'solo'}"><div class="np-lab">You'd call this worth it when</div><p class="${qSize(wq)}">${esc(dot(wq))}</p></div>` : ''].filter(Boolean);
+    wq ? `<div class="pz-worth ${mq ? '' : 'solo'}"><div class="np-lab">What success looks like to you</div><p class="${qSize(wq)}">${esc(dot(wq))}</p></div>` : ''].filter(Boolean);
+  if (!mq && !customer) cards.unshift('<div class="pz-quote miss"><div class="np-lab">The line that stuck with us</div><p>Add their exact words on Their top three (What did they say that stuck with you?). On their copy this card is left out.</p></div>');
   let b1 = cards.length ? `<div class="pz-p1 ${cards.length === 1 ? 'one' : ''}">${cards.join('')}</div>` : '';
-  if (chosen.length || anyStrong) b1 += `<div class="np-l">Where you stand, at a glance</div><div class="pz-gl">${NP_SHIFTS.map(s => { const st = status(s.key); return `<div class="pz-g ${st}"><div class="pz-gt">${esc(s.label)}</div><div class="pz-gs">${SL[st]}</div><div class="pz-gd">${esc(glanceLine(s))}</div></div>`; }).join('')}</div>`;
+  if (shown.length) b1 += `<div class="np-l">Where you stand, at a glance</div><div class="pz-gl" style="grid-template-columns:repeat(${shown.length},minmax(0,1fr))">${shown.map(s => { const st = status(s.key); return `<div class="pz-g ${st}"><div class="pz-gt">${esc(s.label)}</div><div class="pz-gs">${SL[st]}</div><div class="pz-gd">${esc(glanceLine(s))}</div></div>`; }).join('')}</div>`;
   if (extra.length) b1 += `<p class="np-note">Also on your list: ${esc(extra.map(x => npFit(x, 60)).filter(Boolean).join(', '))}.</p>`;
   if (!b1) b1 = '<p class="doc-empty">Fill in Where they are today and Their top three.</p>';
   pages.push(npPage(++n, 'What we heard', pzEsc2(gapA ? gapA.hook : "Here's what we heard, and where we'd start."), sub1, b1, true));
 
   // ---- 02 Where you stand: what we heard next to what the best planners do ----
-  if (chosen.length || anyStrong || !customer) {
+  if (shown.length || !customer) {
     const heard = s => {
-      const mine = focus[s.key].map(a => pzAnswer(p, a, 170) || a.pain + '.'), good = strong[s.key].map(x => npFit(x, 150)).filter(Boolean).slice(0, 2);
-      const parts = s.key === gap ? mine.concat(good) : good.concat(mine);   // the biggest gain leads with what they told us about it
-      let out = []; for (const x of parts) { if ((out.join(' ') + ' ' + x).length > 260) break; out.push(/[.!?]$/.test(x) ? x : x + '.'); }
-      return out.join(' ') || 'Not in your top three this year.';
+      const mine = focus[s.key].map(a => pzAnswer(p, a, 170) || 'You told us this matters: ' + a.pain.charAt(0).toLowerCase() + a.pain.slice(1) + '.'), good = strong[s.key].map(x => npFit(x, 150)).filter(Boolean).slice(0, 2);
+      const good2 = status(s.key) !== 'ok' && good.length ? good.map((x, i) => i ? x : 'Already working: ' + (/^[A-Z][a-z]/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x)) : good;   // under another label, say which part is already working
+      const parts = s.key === gap ? mine.concat(good2) : good2.concat(mine);   // the biggest gain leads with what they told us about it
+      const cap = score || target || together ? 140 : 180;   // three rows, the headline and the ratings all fit one page
+      let out = []; for (const x of parts) { const y = /[.!?]$/.test(x) ? x : x + '.'; if (out.length && (out.join(' ') + ' ' + y).length > cap) break; if (!out.length && y.length > cap + 40) continue; out.push(y); }
+      return out.join(' ');
     };
     const best = s => { const a = focus[s.key][0]; return a ? a.bestShort : s.bestShort; };
-    const order = NP_SHIFTS.slice();
-    let b2 = `<div class="pz-sch"><span></span><span>What we heard</span><span>What the best planners do</span></div>`
+    const order = shown;
+    let b2 = `<div class="pz-sch"><span></span><span>What we heard from you</span><span>What the best teams do</span></div>`
       + order.map(s => { const st = status(s.key); return `<div class="pz-scr ${st}"><div><div class="pz-nm">${esc(s.label)}</div><span class="pz-pill ${st}">${SL[st]}</span></div><div class="pz-heard">${esc(heard(s))}</div><div class="pz-best">${esc(best(s))}</div></div>`; }).join('');
     if (score || target || together) {
-      const bar = score || target ? `<div><div class="np-l2">Your crews' planning talks, your own rating</div><div class="pz-bar">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => `<span class="${i <= score ? 'on' : ''} ${i === target ? 'goal' : ''}">${i}</span>`).join('')}</div><div class="pz-key">${score ? `Today: ${score}` : ''}${score && target ? ' · ' : ''}${target ? `The number that would mean success: ${target}` : ''}</div></div>` : '';
-      const dots = together ? `<div><div class="np-l2">Safety and operations plan together</div><div class="pz-dots">${[1, 2, 3, 4, 5].map(i => `<span class="${i <= together ? 'on' : ''}"></span>`).join('')}<b>${together} of 5</b></div></div>` : '';
+      const bar = score || target ? `<div><div class="np-l2">How you rated your crews' planning conversations, 1 to 10</div><div class="pz-bar">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => `<span class="${i <= score ? 'on' : ''} ${i === target ? 'goal' : ''}">${i}</span>`).join('')}</div><div class="pz-key">${score ? `Today: ${score}` : ''}${score && target ? ' · ' : ''}${target ? `Your goal: ${target}` : ''}</div></div>` : '';
+      const dots = together ? `<div><div class="np-l2">How closely safety and operations plan together, 1 to 5</div><div class="pz-dots">${[1, 2, 3, 4, 5].map(i => `<span class="${i <= together ? 'on' : ''}"></span>`).join('')}<b>${together} of 5</b></div></div>` : '';
       b2 += `<div class="pz-gauge">${bar}${dots}</div>`;
     }
-    const head2 = (anyStrong ? 'You have a habit to build on.' : "Here's your starting point.") + (gapA ? ' ' + gapA.gain : '');
-    pages.push(npPage(++n, 'Where you stand', pzEsc2(head2), 'The three shifts that set the best planners apart. What we heard from you, next to what the best planners do.', b2, true));
+    const head2 = gapA ? gapA.gain : anyStrong ? 'You already have good habits to build on.' : "Here's where you stand.";
+    const sub2 = 'Better planning, learning and leadership set the best teams apart. Here\'s what you told us, next to what those teams do.';
+    pages.push(npPage(++n, 'Where you stand', pzEsc2(head2), sub2, b2, true));
   }
 
   // ---- 03 Three moves to start this week (best practices that don't assume SmartTagIt, Brian) ----
@@ -4168,21 +4178,21 @@ function prospectPages(p, customer) {
     const stats = [];
     chosen.forEach(a => { if (a.stat && (a.src || !customer)) stats.push([a.stat, !a.src]); });
     OUTLOOK.stats.forEach(s => { if (stats.length < 2 && !stats.some(x => x[0].startsWith(s[0]))) stats.push([s[0] + ' ' + s[1] + '.', false]); });
-    const split = s => { const mm = s.match(/^([\d.]+%|\d+X)\s+(.*)$/); return mm ? [mm[1], mm[2]] : ['', s]; };
+    const split = s => { const mm = s.match(/^([\d.]+%|\d+X)\s+(.*)$/); return mm ? [mm[1], (/%$/.test(mm[1]) ? 'of survey respondents ' : '') + mm[2]] : ['', s]; };   // say who the number is about
     let b3 = chosen.length ? `<div class="pz-moves" style="grid-template-columns:repeat(${chosen.length},minmax(0,1fr))">${chosen.map((a, i) => `<div class="pz-mv"><div class="pz-num">${i + 1}</div><h3>${esc(a.move)}</h3><div class="pz-area">${esc((NP_SHIFTS.find(s => s.key === (PX_SHIFT[a.key] || 'plan')) || {}).label || '')}</div><div class="pz-do"><div class="np-l2">Start here</div>${esc(a.first)}</div></div>`).join('')}</div>`
       : '<p class="doc-empty" style="margin-top:10px">Pick their top three in the plan builder.</p>';
     const st2 = stats.slice(0, 2);
     if (st2.length) b3 += `<div class="pz-stats" style="grid-template-columns:repeat(${st2.length},minmax(0,1fr))">${st2.map(s => { const [v, tx] = split(s[0]); return `<div class="pz-st">${v ? `<div class="pz-v">${esc(v)}</div>` : ''}<div class="pz-t">${esc(tx)}${s[1] ? ' <i>(source to confirm)</i>' : ''}</div></div>`; }).join('')}</div><p class="np-note">Source: ${esc(OUTLOOK.source)}.</p>`;
     if (extra.length) b3 += `<p class="np-note">Also on your list: ${esc(extra.map(x => npFit(x, 60)).filter(Boolean).join(', '))}. We'll cover it at our next meeting.</p>`;
-    pages.push(npPage(++n, 'How to close the gaps', pzEsc2(words + ' you can start this week.'), chosen.length ? `You can do ${all} without new software. ${chosen.length > 1 ? "They're" : "It's"} what the best planners do.` : '', b3, true));
+    pages.push(npPage(++n, 'How to close the gaps', pzEsc2(words + ' you can start this week.'), chosen.length ? `You can do ${all} without new software. ${chosen.length > 1 ? "They're" : "It's"} what the best teams do.` : '', b3, true));
   }
 
   // ---- 04 Partnering with FactorLab: 90 days and the next meeting (no offer) ----
-  const bring = npFit(nx.them, 80) || npFit(w.others, 80);
+  const bring = (npFit(nx.them, 80) || npFit(w.others, 80)).replace(/\btheir\b/gi, 'your').replace(/\bthem\b/gi, 'you');   // written to the reader
   let b4 = `<div class="pz-tl">${PX_90.map(x => `<div class="pz-node"><div class="pz-dot"></div><div class="np-when">${esc(x.when)}</div><h3>${esc(x.title)}</h3><p>${esc(x.does)}</p><div class="pz-get">You get: ${esc(x.get.charAt(0).toLowerCase() + x.get.slice(1))}</div></div>`).join('')}</div>
     <div class="pz-p4"><div><div class="np-l">Why teams add FactorLab</div><p>${esc(PX_WHY(yr))} ${esc(PX_HELPS[1])}</p></div>
-    <div class="pz-next"><div class="np-lab">At our next meeting</div><div class="pz-dt">${nx.date ? esc(pzDay(nx.date)) : "Let's pick a time"}</div><ul>${PX_NEXT_SHOW.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${bring ? `<div class="pz-bring">Worth bringing: <b>${esc(bring)}</b></div>` : ''}</div></div>`;
-  pages.push(npPage(++n, 'Partnering with FactorLab', pzEsc2(score && target && target > score ? `How we'd help you get from ${npAn(score)} ${score} toward ${npAn(target)} ${target}.` : 'What 90 days with FactorLab could look like.'), "If you take a first step with us, here's what you get, and when.", b4, true));
+    <div class="pz-next"><div class="np-lab">At our next meeting</div><div class="pz-dt">${nx.date ? esc(pzDay(nx.date)) : "Let's pick a time"}</div><ul>${PX_NEXT_SHOW.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${bring ? `<div class="pz-bring">Worth inviting: <b>${esc(bring)}</b></div>` : ''}</div></div>`;
+  pages.push(npPage(++n, 'Partnering with FactorLab', pzEsc2(score && target && target > score ? `How we'd help your crews go from ${npAn(score)} ${score} toward ${npAn(target)} ${target} out of 10.` : 'What 90 days with FactorLab could look like.'), "If you start with us, here's what you get and when, counting from your first day.", b4, true));
 
   // ---- FactorLab only ----
   if (!customer) {
@@ -6007,7 +6017,7 @@ function fillPrompt(p, withTranscript) {
     '',
     'RULES',
     '1. Use only what was said in the transcript or written in the documents. Never make up names, numbers, dates or quotes.',
-    "2. Skip any question the call didn't cover. Leave it out completely.",
+    "2. Skip any question the call didn't cover. Leave it out completely. The only exception: a question marked \"Always answer\" is never skipped.",
     "3. Use the customer's own words where you can. Keep answers short and plain, the way a superintendent talks.",
     '4. For every answer, add "quote": the exact words from the call that back it up (one short line).',
     '5. Set "sure": false when it was only implied, unclear, or you are inferring it. Otherwise "sure": true.',
@@ -6016,6 +6026,7 @@ function fillPrompt(p, withTranscript) {
     '8. Questions the CSM should still ask go in "followups", with the step they belong to.',
     "9. Reply once, with only the JSON, in one code block. No other text, and don't repeat it.",
     '10. Never write placeholders like "Not discussed", "Unknown" or "N/A". Leave the question or the part of a row out instead.',
+    '11. Write every answer so it makes sense on its own to someone who never saw the question: a full statement, never just "Yes", "Both" or "Not yet". Answers print without their questions. Write them as plain statements about their work ("Cards are reviewed every Saturday"), not "They said..." or "They\'d...".',
     '',
     'REPLY IN THIS SHAPE',
     '{',
