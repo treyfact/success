@@ -625,7 +625,8 @@ html, body { overscroll-behavior-x: none; }   /* a sideways trackpad swipe moves
 .pz-nm { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 24px; color: #1f3a5f; line-height: 1; }
 .pz-pill { display: inline-block; margin-top: 7px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: #eceff3; color: #5d6677; }
 .pz-pill.ok { background: #e5f3ea; color: #2e7d4f; } .pz-pill.focus { background: #fff; color: #b25e12; border: 1.5px solid #f0b37a; } .pz-pill.gap { background: #d9771f; color: #fff; }
-.pz-heard { font-size: 15px; line-height: 1.4; } .pz-best { font-size: 15px; line-height: 1.4; color: #1f3a5f; font-weight: 600; }
+.pz-heard { font-size: 15px; line-height: 1.4; } .pz-heard b { font-weight: 600; color: #1f3a5f; }
+.pz-own { margin-top: 6px; } .pz-own .pz-v { color: #1f3a5f; font-size: 40px; } .pz-own .pz-st { padding: 10px 16px; } .pz-best { font-size: 15px; line-height: 1.4; color: #1f3a5f; font-weight: 600; }
 .pz-gauge { display: flex; gap: 40px; margin-top: 6px; padding: 4px 18px 0; align-items: flex-start; }
 /* On page 1 the ratings are the one picture (Nov 19), so they're set larger, on a panel. */
 .pz-gauge.p1 { margin-top: 18px; padding: 16px 24px 14px; background: #f4f6f9; border-radius: 14px; gap: 56px; }
@@ -2088,6 +2089,24 @@ const PX_AREAS = [
    PX_ACTS: 3 to 7 activities for each of the three shifts. { key, title, first, segs }: title is the move's
    headline on page 3, first is its Start here line, segs lists the segment keys it fits best. Page 3 shows one
    activity per shift: the one the CSM picked, else the first that fits their segment, else the first. */
+/* How each area question reads on their page 2 (Trey, Nov 19: hand-typed answers like "about 1" or "word of mouth"
+   mean nothing without their question). lead: a short lead-in printed before each answer, "Lead: answer.", so any
+   answer reads on its own. num: the questions whose answer is a number; when an answer starts with one, it goes in
+   a big tile under Your numbers, with this label, and stays out of the row. Draft words, like the rest of PX_AREAS. */
+const PX_LEADS = {
+  pxPaper: { lead: ['When your crews plan', 'Time for a foreman to complete one', 'Paperwork your crews could drop'], num: { q2: 'minutes for a foreman to complete one plan' } },
+  pxChange: { lead: ['When the work changes mid-shift', 'How crews talk about what could change', 'When something went wrong last year'] },
+  pxLate: { lead: ['How leaders know a plan was good', 'Plans a superintendent or manager sees in a week', "What you'd want to know before 7 a.m."], num: { q2: 'plans a superintendent or manager sees in a week' } },
+  pxSilo: { lead: ['Who owns the morning plan', 'When safety and operations see a plan differently', 'Operations and safety reviewing plans together'] },
+  pxLessons: { lead: ['When a crew finds a better way to plan', 'How a close call gets into the next plan', 'Comparing planning across projects or regions'] },
+  pxBench: { lead: ['Foremen new to the role in the last year or two', 'How you know which foremen need help', 'How your best planners help newer ones'], num: { q1: 'foremen new to the role in the last year or two' } }
+};
+function pzNum(v) {   // a number an answer starts with: "about 30 minutes" -> "~30", "6 or 7" -> "6-7", else ''
+  const m = String(v || '').trim().match(/^(?:probably\s+|maybe\s+)?(about\s+|around\s+|roughly\s+|nearly\s+|close to\s+|over\s+|under\s+|more than\s+|less than\s+)?(\d[\d,]*)(?:\s*(?:-|to|or)\s*(\d[\d,]*))?(?![\d,.]*\s*%)/i);
+  if (!m) return '';
+  const pre = !m[1] ? '' : /over|more/i.test(m[1]) ? '>' : /under|less/i.test(m[1]) ? '<' : '~';
+  return pre + m[2] + (m[3] ? '-' + m[3] : '');
+}
 const PX_SEGMENTS = [];
 const PX_ACTS = { plan: [], learn: [], lead: [] };
 const pxActsOn = () => Object.values(PX_ACTS).some(l => l.length);
@@ -4239,18 +4258,32 @@ function prospectPages(p, customer) {
 
   // ---- 02 Where you stand: what we heard next to what the best planners do ----
   if (shown.length || !customer) {
-    const heard = s => {
-      const mine = focus[s.key].map(a => pzAnswer(p, a, 170) || 'You told us this matters: ' + a.pain.charAt(0).toLowerCase() + a.pain.slice(1) + '.'), good = strong[s.key].map(x => npFit(x, 150)).filter(Boolean).slice(0, 2);
-      const good2 = status(s.key) !== 'ok' && good.length ? good.map((x, i) => i ? x : 'Already working: ' + (/^[A-Z][a-z]/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x)) : good;   // under another label, say which part is already working
-      const parts = s.key === gap ? mine.concat(good2) : good2.concat(mine);   // the biggest gain leads with what they told us about it
-      const cap = 180;   // three rows and the headline fit one page (the ratings moved to page 1)
-      let out = []; for (const x of parts) { const y = /[.!?]$/.test(x) ? x : x + '.'; if (out.length && (out.join(' ') + ' ' + y).length > cap) break; if (!out.length && y.length > cap + 40) continue; out.push(y); }
-      return out.join(' ');
+    // Their numbers (Trey, Nov 19: fill the page with what they told us): an area answer that starts with a number,
+    // for a question in PX_LEADS num, becomes a big tile with what it counts; the row then skips that answer.
+    const tiles = [], tiled = new Set();
+    chosen.forEach(a => Object.entries((PX_LEADS[a.key] || {}).num || {}).forEach(([q, label]) => { const v = pzNum((p.data[a.key] || {})[q]); if (v && tiles.length < 3) { tiles.push([v, label]); tiled.add(a.key + '.' + q); } }));
+    const clean = v => String(v || '').trim().replace(/\s+/g, ' ').replace(/[.!?;,:\s]+$/, '');
+    const answers = a => { const d = p.data[a.key] || {}, L = (PX_LEADS[a.key] || {}).lead || [];
+      return (a.heardQ || ['q1', 'q2', 'q3']).filter(q => !tiled.has(a.key + '.' + q)).map(q => { const v = clean(d[q]); if (!v) return null; const i = +q.slice(1) - 1; return { lead: L[i] || '', text: v, full: v.length > 230 ? npFit(v, 230).replace(/[.!?]+$/, '') : v }; }).filter(x => x && x.full); };
+    const heard = (s, cap) => {
+      const mine = [].concat(...focus[s.key].map(a => { const xs = answers(a); return xs.length ? xs : [{ lead: '', full: 'You told us this matters: ' + a.pain.charAt(0).toLowerCase() + a.pain.slice(1) }]; }));
+      const good = strong[s.key].map(x => npFit(x, 150)).filter(Boolean).slice(0, 2).map((x, i) => ({ lead: i === 0 && status(s.key) !== 'ok' ? 'Already working' : '', full: x.replace(/[.!?]+$/, '') }));   // under another label, say which part is already working
+      const parts = s.key === gap ? mine.concat(good) : good.concat(mine);   // the biggest gain leads with what they told us about it
+      let len = 0; const out = [];
+      for (const x of parts) { const n = (x.lead ? x.lead.length + 2 : 0) + x.full.length + 2; if (out.length && len + n > cap) continue; if (!out.length && n > cap + 40) continue; out.push(x); len += n; }
+      const low = x => /^[A-Z][a-z]/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x;   // "Already working: most crews..." ("JSA" stays)
+      return { len, html: out.map(x => (x.lead ? `<b>${esc(x.lead)}:</b> ` : '') + esc(x.lead === 'Already working' ? low(x.full) : x.full) + '.').join(' ') };
     };
-    const best = s => { const a = focus[s.key][0]; return a ? a.bestShort : s.bestShort; };
+    const best = s => { const bs = [...new Set(focus[s.key].map(a => a.bestShort))]; return bs.length ? bs.join(' ') : s.bestShort; };
     const order = shown;
+    // As much of what they said as fits: the longest that keeps every row, and the numbers, on the page.
+    const rowH = (s, h) => 32 + 21 * Math.max(2, Math.ceil(h.len / 44), Math.ceil(best(s).length / 40));
+    const fit = room => { for (let cap = 620; cap >= 140; cap -= 20) { const r = order.map(s => heard(s, cap)); if (order.reduce((t, s, i) => t + rowH(s, r[i]), 0) <= room) return r; } return null; };
+    let hs = tiles.length ? fit(315) : null;
+    if (!hs) { tiles.length = 0; tiled.clear(); hs = fit(440) || order.map(s => heard(s, 140)); }   // no room for the numbers: they go back in the rows
     let b2 = `<div class="pz-sch"><span></span><span>What we heard from you</span><span>What the best teams do</span></div>`
-      + order.map(s => { const st = status(s.key); return `<div class="pz-scr ${st}"><div><div class="pz-nm">${esc(s.label)}</div><span class="pz-pill ${st}">${SL[st]}</span></div><div class="pz-heard">${esc(heard(s))}</div><div class="pz-best">${esc(best(s))}</div></div>`; }).join('');
+      + order.map((s, i) => { const st = status(s.key); return `<div class="pz-scr ${st}"><div><div class="pz-nm">${esc(s.label)}</div><span class="pz-pill ${st}">${SL[st]}</span></div><div class="pz-heard">${hs[i].html}</div><div class="pz-best">${esc(best(s))}</div></div>`; }).join('');
+    if (tiles.length) b2 += `<div class="np-l">Your numbers</div><div class="pz-stats pz-own" style="grid-template-columns:repeat(${tiles.length},minmax(0,1fr))">${tiles.map(([v, t]) => `<div class="pz-st"><div class="pz-v">${esc(v)}</div><div class="pz-t">${esc(t)}</div></div>`).join('')}</div>`;
     const head2 = gapA ? gapA.gain : anyStrong ? 'You already have good habits to build on.' : "Here's where you stand.";
     const sub2 = 'Better planning, learning and leadership set the best teams apart. Here\'s what you told us, next to what those teams do.';
     pages.push(npPage(++n, 'Where you stand', pzEsc2(head2), sub2, b2, true));
