@@ -268,6 +268,7 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 .fin-tailor { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 18px 6px; margin: 0 0 16px; max-width: 720px; }
 .fin-tailor .fin-h { font-family: 'FL Condensed', 'Arial Narrow', sans-serif; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; color: var(--muted); margin-bottom: 2px; }
 .fin-tailor .ready-list li { font-size: 14px; } .fin-tailor .ready-list li:last-child { border-bottom: 0; }
+.help-list { margin: 2px 0 8px; padding-left: 18px; font-size: 12.5px; line-height: 1.45; color: var(--muted); } .help-list li { margin: 2px 0; } .help-list b { color: var(--ink); font-weight: 600; }
 .ready-list .mark.look { border: 1.5px dashed var(--line); }
 .aud.main { background: var(--navy); border-color: var(--navy); color: #fff; } .aud.main span { color: #dbe4f1; }
 @media (max-width: 700px) { .fin-pick { grid-template-columns: 1fr; } }
@@ -2033,7 +2034,7 @@ const SECTIONS = [
    the first step); the rest is their own answers. It doesn't depend on SmartTagIt, but it leads there.
    PX_AREAS is a DRAFT built from the 2027 Outlook and the Daily Planning Success Guide: Gretchen and Brian
    are drafting the final areas and questions with Trey and Scott. Change them here; keys stay the same.
-   Nov 6 2026, Gretchen and Trey: five areas, not six. Two were renamed (the old names stay in `was`, so saved
+   Nov 20 2026: a sixth, safety observations (pxObserve); six is the most. Nov 6 2026, Gretchen and Trey: five areas, not six. Two were renamed (the old names stay in `was`, so saved
    picks still match), and "Safety and operations plan separately" became a 1 to 5 rating everyone answers on
    Where they are today (`retired`: no longer offered, but a plan that already picked it keeps its step). */
 const PX_AREAS = [
@@ -2058,6 +2059,17 @@ const PX_AREAS = [
     first: 'Ask each superintendent to listen in on two plans a week and give the crew one piece of feedback.',
     hook: 'Your crews already spot the warning signs. Get them to your leaders the same day.', move: 'Get warning signs to leaders the same day',
     bestShort: 'Hear a couple of real plans a week and spot a weak one the same day.', gain: 'Your biggest opportunity: getting warning signs to leaders faster.', heardQ: ['q3', 'q1', 'q2'] },
+  /* Nov 20, 2026 (Brian, Gretchen, Trey): safety observations, near misses and good catches cover most of what
+     customers use FactorLab for beyond planning, so they're a sixth area, a peer of the others; six is the most.
+     Engagement and quality are Brian's words ("engagement is the first line of defense... the second line is
+     quality"); the first step joins two of his Better Learning activities. Draft, like the rest. */
+  { key: 'pxObserve', pain: "Safety observations are few, thin or go nowhere", goal: 'Safety observations that count',
+    qs: ['Who turns in safety observations, near misses or good catches today, and is it everyone who could?', 'When one comes in, how much does it say: is there enough detail to act on?', 'What happens after someone turns one in, and do they hear back?'],
+    best: 'Everyone who can take part does. Observations are specific enough to act on, and people hear back what changed because of theirs.',
+    why: 'Engagement is the first line of defense. Quality is the second.', stat: '',
+    first: 'Trace what happens after a near miss, observation or good catch is turned in, and tell the crew what changed because of it.',
+    hook: 'Your people already notice what could go wrong. Get more of them speaking up, in detail.', move: 'Close the loop on every observation',
+    bestShort: 'Everyone takes part, with real detail, and hears back what changed.', gain: 'Your biggest opportunity: more people speaking up, with detail worth acting on.', heardQ: ['q3', 'q1', 'q2'] },
   { key: 'pxSilo', retired: true, pain: 'Safety and operations plan separately', goal: 'One plan safety and operations both own',
     qs: ['Who owns the morning plan today: safety, operations or both?', 'When safety and operations see a good plan differently, how does that get settled?', 'Do your operations leaders ever review plans with your safety team?'],
     best: 'Operations sets what a good plan looks like; safety supports and coaches. They review plans together.',
@@ -2099,6 +2111,7 @@ const PX_LEADS = {
   pxLate: { lead: ['How leaders know a plan was good', 'Plans a superintendent or manager sees in a week', "What you'd want to know before 7 a.m."], num: { q2: 'plans a superintendent or manager sees in a week' } },
   pxSilo: { lead: ['Who owns the morning plan', 'When safety and operations see a plan differently', 'Operations and safety reviewing plans together'] },
   pxLessons: { lead: ['When a crew finds a better way to plan', 'How a close call gets into the next plan', 'Comparing planning across projects or regions'] },
+  pxObserve: { lead: ['Who turns in observations today', 'How much detail they have', 'What happens after one is turned in'] },
   pxBench: { lead: ['Foremen new to the role in the last year or two', 'How you know which foremen need help', 'How your best planners help newer ones'], num: { q1: 'foremen new to the role in the last year or two' } }
 };
 function pzNum(v) {   // a number an answer starts with: "about 30 minutes" -> "~30", "6 or 7" -> "6-7", else ''
@@ -2107,8 +2120,39 @@ function pzNum(v) {   // a number an answer starts with: "about 30 minutes" -> "
   const pre = !m[1] ? '' : /over|more/i.test(m[1]) ? '>' : /under|less/i.test(m[1]) ? '<' : '~';
   return pre + m[2] + (m[3] ? '-' + m[3] : '');
 }
-const PX_SEGMENTS = [];
-const PX_ACTS = { plan: [], learn: [], lead: [] };
+// Filled Nov 20, 2026 from Brian's "Prospect Success Plan Framework" (working concept), his words with the
+// dashes turned into colons. segs come from his two worked examples (Systems & Methodology, People-First); the
+// other segments have no picks of their own yet, so they get the first activity of each list.
+const PX_SEGMENTS = [
+  { key: 'tech', label: 'Tech Switch', sign: 'Names a dedicated safety app or appears in a safety-software case study.', focus: 'Value beyond form completion.' },
+  { key: 'ai', label: 'Innovation & AI', sign: 'Publicly describes meaningful AI/ML use, or has relevant digital/innovation leadership.', focus: 'Data quality and usable insights.' },
+  { key: 'systems', label: 'Systems & Methodology', sign: 'Discusses or takes part in organizations or methods such as LCI/CSRA, lean, Last Planner, SIF/STCKY, energy-based safety, HOP or learning teams.', focus: 'Disciplined improvement.' },
+  { key: 'people', label: 'People-First', sign: 'Explicit employee ownership, servant leadership, respect for people, or people-first language.', focus: 'Participation and trust.' },
+  { key: 'multi', label: 'Multi-category', sign: 'Characteristics of all four segments.', focus: '' }
+];
+const PX_ACTS = {
+  plan: [
+    { key: 'planWhy', title: 'Align on the "why"', first: 'Meet with a senior operations leader or executive and align on the purpose of the daily planning activity; record a short leader video explaining what good planning enables. Share and discuss the importance with crew leaders.', segs: [] },
+    { key: 'planStandard', title: 'Define a quality standard', first: 'Build a one-page checklist that covers more than hazard identification. Include scope, sequence, risks, controls, and crew participation. Share and discuss how to include this in daily planning with crew leaders.', segs: [] },
+    { key: 'planInput', title: 'Invite crew input', first: 'Meet with two crews to identify a changing condition or concern before work begins, add it to the daily plan.', segs: ['people'] },
+    { key: 'planCoach', title: 'Coach real conversations', first: 'Observe five foremen during a planning discussion and give one practical suggestion each.', segs: [] },
+    { key: 'planSample', title: 'Sample for quality', first: 'Review 10 to 15 plans for specificity and useful controls, not just completion. Identify common catches as well as missed elements. Provide feedback to the crew leader.', segs: ['systems'] }
+  ],
+  learn: [
+    { key: 'learnGap', title: 'Find the feedback gap', first: 'Trace what happens after a near miss, observation, or good catch is submitted.', segs: [] },
+    { key: 'learnHuddle', title: 'Start a weekly learning huddle', first: 'Or add it to a meeting you already hold. Each week, discuss one real event, its contributing conditions, and document one change to test in the field.', segs: ['systems'] },
+    { key: 'learnPatterns', title: 'Look for repeat patterns', first: 'Review a month of existing records to identify the top three recurring risks or coordination issues.', segs: [] },
+    { key: 'learnRight', title: 'Capture what went right', first: 'Share one weekly example of crew input that recognized a risk early, prevented a problem or improved execution.', segs: ['people'] },
+    { key: 'learnLoop', title: 'Close the loop', first: 'Tell crews which decision or work-process change resulted from their feedback.', segs: [] }
+  ],
+  lead: [
+    { key: 'leadExpect', title: 'Set shared expectations', first: 'Have Safety and Operations name three field behaviors leaders will consistently reinforce.', segs: [] },
+    { key: 'leadRoutine', title: 'Create a field coaching routine', first: 'Ask superintendents to join one planning conversation weekly and give specific feedback.', segs: ['systems'] },
+    { key: 'leadQuestions', title: 'Use better questions', first: 'Coach leaders to raise one open-ended question in the field, such as "What changed?", "What concerns you?" or "What support do you need?", and follow up on any issue raised.', segs: ['people'] },
+    { key: 'leadRecognize', title: 'Recognize strong field leadership', first: 'Highlight a concrete example of strong planning, risk identification, or crew participation.', segs: [] },
+    { key: 'leadBarriers', title: 'Follow through on barriers', first: 'Have each leader resolve and communicate progress on one crew-raised issue monthly.', segs: [] }
+  ]
+};
 const pxActsOn = () => Object.values(PX_ACTS).some(l => l.length);
 const PX_ACT_FIELD = { plan: 'actPlan', learn: 'actLearn', lead: 'actLead' };
 const NP_SHIFT_LABELS = [['plan', 'Better planning'], ['learn', 'Better learning'], ['lead', 'Better leadership']];   // the same three as NP_SHIFTS, needed before it
@@ -2158,8 +2202,8 @@ SECTIONS.push(
   },
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
-    intro: 'Read them the five areas and ask which three matter most this year. Tap each one they pick, and its three quick questions open right under it.',
-    hint: 'Write their words under each one, as a full statement: answers print on their plan without the question. If none fit, pick Something else at the bottom.',
+    intro: 'Ask what matters most to them this year before naming any area, then read them the six and ask which three matter most. Tap each one they pick, and its three quick questions open right under it.',
+    hint: 'Write their words under each one, as a full statement: answers print on their plan without the question. If something else matters more, like permits or inspections, pick Another option at the bottom and steer the conversation there.',
     ask: ['Which of these costs them the most today?', 'If they could fix one by spring, which would it be?'],
     fields: [{ key: 'areas', label: 'Pick up to three', type: 'checks', options: PX_AREAS.filter(a => !a.retired).map(a => a.pain), fill: 'Only areas they said matter to them, in their own words. Put the one they spent the most time on, or said costs them the most, first: it leads their plan. If they never ranked them, give your best order and ask in step 1.' },
       { key: 'moment', label: 'What did they say that stuck with you? Their exact words.', type: 'textarea', placeholder: 'The line that shows what this costs them today. It goes on the cover of their plan, in quote marks.', fillMust: true, fill: 'Every call has a line worth quoting. Copy one or two whole sentences a customer said (never FactorLab), word for word: the line that best shows what this costs them today. Pick a line the transcript wrote down correctly. Under 30 words if you can. Exact words only: no fixing or shortening inside the line.' },
@@ -2185,7 +2229,7 @@ SECTIONS.push(
       { key: 'them', label: 'Who joins from their side', type: 'text', fill: 'Names or roles only, written to the customer, like "Sam and your IT lead".' },
       { key: 'angle', label: 'What to lead with', type: 'textarea' },
       // After the call (Brian, Nov 18): hidden until PX_SEGMENTS and PX_ACTS have Brian's words in them.
-      { key: 'segment', label: 'Which kind of company are they?', type: 'select', get options() { return [''].concat(PX_SEGMENTS.map(s => s.label)); }, showIf: () => PX_SEGMENTS.length > 0, help: 'Your call after the meeting. It picks the activity for each of the three on page 3. Never shows on their copy.' },
+      { key: 'segment', label: 'Which kind of company are they?', type: 'select', buttons: true, get options() { return [''].concat(PX_SEGMENTS.map(s => s.label)); }, showIf: () => PX_SEGMENTS.length > 0, help: 'Your call after the meeting: it picks the action for each of the three on page 3, and never shows on their copy. A guide to which actions to lead with, not proof of a problem (Brian).', get helpList() { return PX_SEGMENTS.map(x => [x.label, x.sign + (x.focus ? ' Focus: ' + x.focus.charAt(0).toLowerCase() + x.focus.slice(1) : '')]); } },
       ...NP_SHIFT_LABELS.map(([k, lab]) => ({ key: PX_ACT_FIELD[k], label: 'Activity for ' + lab.toLowerCase(), type: 'select', get options() { return [''].concat(PX_ACTS[k].map(a => a.title)); }, showIf: () => PX_ACTS[k].length > 0, help: 'Leave it blank and the plan picks the one that fits their kind of company.' }))
     ],
     leaves: d => [d.date && 'Follow-up: ' + fmtDate(d.date), d.who && 'FactorLab: ' + d.who, d.them && 'Them: ' + d.them]
@@ -2519,6 +2563,12 @@ const MORE_ASK = {
     'How do new crews find out how the work was done last time?',
     'Who carries the know-how from job to job today?',
     'What would it be worth if a lesson reached every job within a week?'
+  ],
+  pxObserve: [
+    'How many observations, near misses or good catches came in last month, and from how many people?',
+    'Which ones led to a change on the job?',
+    'What keeps people from turning one in?',
+    'What would it be worth if they heard about a hazard the day someone saw it?'
   ],
   pxBench: [
     'How long does it take a new foreman to plan like their best ones?',
@@ -3499,7 +3549,7 @@ function fieldHtml(s, f, d) {
   if (!f) return '';
   const v = d[f.key];
   const attr = `data-sec="${s.key}" data-field="${f.key}"`;
-  const label = `<label>${esc(f.label)}</label>${f.help ? `<div class="help">${esc(f.help)}</div>` : ''}`;
+  const label = `<label>${esc(f.label)}</label>${f.help ? `<div class="help">${esc(f.help)}</div>` : ''}${f.helpList ? `<ul class="help-list">${f.helpList.map(([b, t]) => `<li><b>${esc(b)}:</b> ${esc(t)}</li>`).join('')}</ul>` : ''}`;   // helpList: short [name, what it means] pairs under the help line
   switch (f.type) {
     case 'text': return `<div class="field">${label}<input type="text" ${attr} value="${esc(v)}" placeholder="${esc(f.placeholder || '')}"></div>`;
     case 'textarea': return `<div class="field">${label}<textarea ${attr} placeholder="${esc(f.placeholder || '')}">${esc(v)}</textarea></div>`;
@@ -3530,7 +3580,8 @@ function fieldHtml(s, f, d) {
 function pxTopHtml(p, s, d) {
   const f = s.fields[0], arr = Array.isArray(d.areas) ? d.areas : [], picked = PX_AREAS.filter(a => arr.some(x => pxByPain(x) === a));
   const steps = ((p.meta.flow || {}).steps || []).map(x => pxArea(x.key)).filter(Boolean);
-  const list = PX_OFFERED().concat(steps.filter(a => a.retired)), full = picked.length >= 3;
+  const extra = arr.filter(x => !pxByPain(x)), other = extra.length > 0 || otherOpen['pxTop|areas'];
+  const list = PX_OFFERED().concat(steps.filter(a => a.retired)), full = picked.length + (extra.length ? 1 : 0) >= 3;   // another option counts as one of the three (Gretchen, Nov 20)
   const cards = list.map(a => {
     const on = picked.includes(a), open = on || steps.includes(a), as = sectionByKey(a.key, p), ad = p.data[a.key] || {};
     const pain = arr.find(x => pxByPain(x) === a) || a.pain;
@@ -3539,11 +3590,10 @@ function pxTopHtml(p, s, d) {
       ${open ? `<div class="px-card-qs">${!on ? '<div class="help" style="margin-top:8px">Not in their top three. Their answers are kept.</div>' : ''}${as.fields.map(q => fieldHtml(as, q, ad)).join('')}</div>` : ''}
     </div>`;
   }).join('');
-  const extra = arr.filter(x => !pxByPain(x)), other = extra.length > 0 || otherOpen['pxTop|areas'];
-  return `<div class="field"><div class="field-label">${esc(f.label)} <span class="px-count">${picked.length} of 3 picked</span></div>
+  return `<div class="field"><div class="field-label">${esc(f.label)} <span class="px-count">${picked.length + (extra.length ? 1 : 0)} of 3 picked</span></div>
     <div class="px-cards">${cards}</div>
-    <div class="checks" style="margin-top:10px"><label class="check ${other ? 'on' : ''}"><input type="checkbox" data-sec="pxTop" data-field="areas" data-other-chk="1" ${other ? 'checked' : ''}>None of these fit: ${OTHER}</label></div>
-    ${other ? `<input type="text" class="other-box" data-sec="pxTop" data-field="areas" data-other-text="checks" value="${esc(extra.join(', '))}" placeholder="Type it in" aria-label="Their top three: something else">` : ''}</div>
+    <div class="checks" style="margin-top:10px"><label class="check ${other ? 'on' : ''}"><input type="checkbox" data-sec="pxTop" data-field="areas" data-other-chk="1" ${other ? 'checked' : ''} ${!other && full ? 'disabled' : ''}>Another option</label></div>
+    ${other ? `<input type="text" class="other-box" data-sec="pxTop" data-field="areas" data-other-text="checks" value="${esc(extra.join(', '))}" placeholder="Type it in, like permits or inspections" aria-label="Their top three: another option">` : ''}</div>
     <div class="px-moment">${s.fields.slice(1).map(q => fieldHtml(s, q, d)).join('')}</div>`;
 }
 function listHtml(items, attr, placeholder) {
@@ -4149,7 +4199,7 @@ const NP_SHIFTS = [
   { key: 'learn', label: 'Better learning', std: "Good plans and lessons from one crew reach the next crew's plan.", help: 'Weekly summaries in plain English: what went well, what to improve.', bestShort: 'Pass good plans across crews and projects, and carry what changed into the next job.', px: "The best companies carry what one crew learns into the next crew's plan." },
   { key: 'lead', label: 'Better leadership', std: 'Leaders see where crews need support, and close the loop with them.', help: 'Dashboards and game tape point coaching where it counts.', bestShort: 'Hear a couple of real plans a week and coach where it counts.', px: 'The best leaders hear a couple of real plans every week and coach where it counts.' }
 ];
-const PX_SHIFT = { pxPaper: 'plan', pxChange: 'plan', pxLessons: 'learn', pxLate: 'lead', pxBench: 'lead', pxSilo: 'lead' };   // where each prospect area sits
+const PX_SHIFT = { pxPaper: 'plan', pxChange: 'plan', pxLessons: 'learn', pxObserve: 'learn', pxLate: 'lead', pxBench: 'lead', pxSilo: 'lead' };   // observations sit in learning for now (Brian, Nov 20: a word of their own may follow, from the CS team)   // where each prospect area sits
 /* How it will work: the customer's workflow and how FactorLab supports each step (John's version, page 2). */
 const NP_MODEL = [
   { step: 'Capture', who: 'Foremen and crews', does: 'Capture the daily planning talk the way crews already do it.', fl: 'Every recorded talk is transcribed, translated and scored.' },
