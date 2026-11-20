@@ -5135,7 +5135,7 @@ function renderShare() {
    going. The Customer window shows them what you'll cover and why, with the step you're on lit up. Their
    answers and the plan stay off it: the plan is walked through at the follow-up meeting. */
 function pxAgendaHtml(p) {
-  const order = navOrder(p).filter(k => k !== PX_END), idx = order.indexOf(currentSec), goals = pxChosen(p).map(a => a.goal);
+  const order = navOrder(p).filter(k => k !== PX_END), idx = order.indexOf(currentSec), goals = pxChosen(p).map(a => a.goal).concat(((p.data.pxTop || {}).areas || []).filter(x => !pxByPain(x)).map(x => npFit(x, 60)).filter(Boolean));   // their own other option shows too
   const why = k => ({ basics: ['About you', 'So the plan fits your company and your crews.'], pxToday: ['Where your planning stands today', 'How your crews plan now, in your words, and what good would look like.'],
     pxTop: ['What matters most this year', goals.length ? goals.join(' · ') : "You pick the three areas that matter most, with a few quick questions on each. We'll focus there."] }[k] || [secName(k), '']);
   const rows = order.map((k, i) => { const w = why(k); return `<li class="${i === idx ? 'now' : i < idx ? 'done' : ''}"><span>${i + 1}</span><div><b>${esc(w[0])}</b><p>${esc(w[1])}</p></div></li>`; });
