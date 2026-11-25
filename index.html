@@ -438,9 +438,21 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
   .present-body.editing .doc-over::after { content: 'This page runs over the bottom now. Shorten a line you changed.'; position: absolute; left: 0; right: 0; bottom: 4px; background: #fff; text-align: center; color: #b3302b; font-size: 13px; font-weight: 600; }
 }
 @media print { .edit-banner { display: none !important; } }
+/* The Customer window as slides (Present the plan): one page at a time, arrows at the top */
+body.slides { margin: 0; background: #e9ecf1; }
+body.slides .doc { padding: 20px 0; background: transparent; min-height: 0; }
+body.slides .doc-page { display: none; margin: 0 auto; }
+body.slides .doc-page.on { display: flex; }
+.slide-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 16px; background: #1c2433; color: #fff; font-family: 'FL Body', sans-serif; }
+.slide-bar button { background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 8px; height: 40px; min-width: 52px; font-size: 28px; line-height: 1; cursor: pointer; }
+.slide-bar button:hover:not(:disabled) { background: rgba(255,255,255,.18); }
+.slide-bar button:disabled { opacity: .3; cursor: default; }
+.slide-bar .slide-full { position: absolute; right: 16px; font-size: 14px; padding: 0 14px; height: 34px; }
+.slide-count { font-size: 15px; min-width: 112px; text-align: center; letter-spacing: .02em; }
+@media (max-width: 560px) { .slide-bar .slide-full { display: none; } }
 .present { display: none; position: fixed; inset: 0; background: var(--surface); z-index: 50; overflow-y: auto; }
 .present.show { display: block; }
-.present-bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 24px; background: var(--surface); border-bottom: 1px solid var(--line); z-index: 2; }
+.present-bar { position: sticky; top: 0; display: flex; flex-wrap: wrap; row-gap: 8px; gap: 10px; align-items: center; padding: 10px 24px; background: var(--surface); border-bottom: 1px solid var(--line); z-index: 2; }
 .present-body { padding: 0; }
 .p-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); }
 .p-title { font-size: 30px; font-weight: 700; margin: 4px 0 4px; letter-spacing: -.01em; }
@@ -971,6 +983,7 @@ table.grid td .other-box { margin-top: 4px; }
   <div class="menu" id="callMenu">
     <button class="btn" id="callBtn" aria-haspopup="true">During a call</button>
     <div class="menu-list">
+      <button data-click="slidesBtn">Present the plan<small>Their plan as slides, one page at a time</small></button>
       <button data-click="shareBtn">Customer window<small>A clean window to share on screen</small></button>
       <button data-click="noteBtn">Note<small>The whole plan as one simple note</small></button>
       <button data-click="timerBtn">Timer<small>A small meeting timer</small></button>
@@ -984,6 +997,7 @@ table.grid td .other-box { margin-top: 4px; }
   <button class="btn moved" id="noteBtn" title="Fill in the whole plan as one simple note, in its own window">Note</button>
   <button class="btn moved" id="timerBtn" title="Pop out a meeting timer">Timer</button>
   <button class="btn moved" id="focusBtn" title="Hide the side panels while you work through the plan">Focus</button>
+  <button class="btn moved" id="slidesBtn" title="Opens their plan as slides in a window to share on screen, one page at a time.">Present the plan</button>
   <button class="btn moved" id="shareBtn" title="Opens a clean window to share on screen. It shows only what the customer should see and updates as you type.">Customer window</button>
   <button class="btn primary" id="presentBtn">View plan</button>
   <div class="menu" id="pdfMenu">
@@ -1038,6 +1052,7 @@ table.grid td .other-box { margin-top: 4px; }
     <b>Plan view</b>
     <label class="toggle-row"><input type="checkbox" id="customerView"> Customer view (hides FactorLab-only)</label>
     <div class="spacer"></div>
+    <button class="btn" id="presentSlides" title="Their plan as slides, one page at a time, in a window to share on screen.">Present</button>
     <button class="btn" id="editWords" title="Change the words on any page. Your changes save with the plan.">Edit the words</button>
     <button class="btn" id="printBtn">Print or save as PDF</button>
     <button class="btn" id="closePresent">Back to editing</button>
@@ -2640,6 +2655,11 @@ const pxInline = (p, k) => !!p && p.meta.template === 'prospect' && (k === 'pxWh
 function pxChosen(p) { return ((p.meta.flow || {}).steps || []).map(x => pxArea(x.key)).filter(Boolean).slice(0, 3); }
 
 /* Starting points. Guided keeps today's setup. The others store their steps on the plan (meta.flow). */
+/* Quick Plan (Nov 25, 2026: Scott F, "three things that matter" over 14 pages; Katie, one person can't answer it
+   all; Trey said yes). The Guided steps a customer answers, kept short: the change hypothesis stays, since the
+   Daily Planning Success Guide makes it a Step 1 deliverable. Recognition, economics and risks are one
+   "Change the steps" away. Guided and Flintco plans are untouched. */
+const QUICK_STEPS = ['goal', 'hypothesis', 'targets', 'owners', 'milestones'];
 const FLINTCO_STEPS = ['fcObjective', 'fcSimplify', 'fcValue', 'fcConverge', 'fcStandards', 'fcTrades', 'fcIncidents', 'fcRhythm', 'fcGovern', 'fcMeasures', 'fcYearEnd', 'fcPunch', 'fcReady'];
 const GUIDED_STEPS = () => SECTIONS.filter(s => s.core).map(s => s.key);
 /* Every multiple choice has "Something else", which opens a box to type in. A typed answer is saved
@@ -3200,6 +3220,7 @@ function startHtml() {
     <h1 class="start-h">Pick a starting point</h1>
     <div class="start-list">
       ${opt('guided', 'Guided Plan', 'Start here if you\'re unsure. The core steps every account needs; build out as you learn the account.', (GUIDED_STEPS().length + 1) + ' steps')}
+      ${opt('quick', 'Quick Plan', 'For a customer with limited time: their goal, the change, where they stand, who owns it and what happens next. Add steps later if you need them.', (QUICK_STEPS.length + 1) + ' steps')}
       ${opt('flintco', 'Flintco Plan', "Barry's 2027 model plan, step by step, from the objective to the ready test.", (FLINTCO_STEPS.length + 1) + ' steps')}
       ${opt('custom', 'Custom Build', 'Choose the steps, their order and the questions before you start.', 'You pick')}
     </div>
@@ -3234,8 +3255,8 @@ function switchStart(p, t) {
     return;
   }
   if (t === now && !(t === 'guided' && p.meta.flow)) { fadeSwap(() => { repick = false; currentSec = 'basics'; renderAll(); }); return; }
-  if (!confirm('Switch this plan to the ' + (t === 'flintco' ? 'Flintco Plan' : 'Guided Plan') + ' steps? Answers in other steps are set aside and come back if you switch back.')) return;
-  const shape = shelf[t] || (t === 'flintco' ? seedFlow('flintco') : { sections: [] });
+  if (!confirm('Switch this plan to the ' + ({ flintco: 'Flintco Plan', quick: 'Quick Plan' }[t] || 'Guided Plan') + ' steps? Answers in other steps are set aside and come back if you switch back.')) return;
+  const shape = shelf[t] || (t === 'flintco' || t === 'quick' ? seedFlow(t) : { sections: [] });
   shelveCurrent(p, t);
   if (shape.steps) { p.meta.flow = clone(shape); p.meta.sections = []; }
   else { p.meta.flow = null; p.meta.sections = (shape.sections || []).slice(); }   // null rather than delete, so a team code passes the change on
@@ -3265,6 +3286,7 @@ function loadBuilds() { try { return JSON.parse(localStorage.getItem(BUILDS_KEY)
 function storeBuilds(all) { try { localStorage.setItem(BUILDS_KEY, JSON.stringify(all)); return true; } catch (e) { return false; } }
 function seedFlow(kind) {
   if (kind === 'flintco') return { name: 'Flintco Plan', steps: FLINTCO_STEPS.map(k => ({ key: k })), own: {} };
+  if (kind === 'quick') return { name: 'Quick Plan', steps: QUICK_STEPS.map(k => ({ key: k })), own: {} };
   if (kind === 'prospect') return { name: 'Prospect plan', steps: PX_BASE.concat([PX_END]).map(k => ({ key: k })), own: {} };
   if (kind === 'empty') return { name: '', steps: [], own: {} };
   if (kind && kind.startsWith('build:')) { const b = loadBuilds()[kind.slice(6)]; if (b) return clone({ name: b.name, steps: b.steps || [], own: b.own || {} }); }
@@ -3429,7 +3451,7 @@ function finishBuilder() {
   const p = plans[builder.forPlan], f = cleanFlow(builder.draft, p);
   if (!p || !f.steps.length) return;
   if (builder.switchFrom) { shelveCurrent(p, 'custom'); p.meta.sections = []; p.meta.template = 'custom'; }
-  else if (p.meta.template !== 'flintco') p.meta.template = 'custom';
+  else if (p.meta.template !== 'flintco' && p.meta.template !== 'quick') p.meta.template = 'custom';
   p.meta.flow = f;
   builder = null; currentSec = 'basics'; saveSoon(); renderAll(); window.scrollTo(0, 0);
 }
@@ -4915,7 +4937,7 @@ function handleClick(e) {
   if (act === 'start') {
     const t = a.dataset.t, nw = pendingNew || { account: '', mode: 'launch' };
     if (t === 'custom') { fadeSwap(() => { builder = { forPlan: null, draft: seedFlow('guided'), open: null, msg: '' }; renderAll(); }); return; }
-    fadeSwap(() => { pendingNew = null; newPlan(Object.assign({ account: nw.account, mode: nw.mode, modeOther: nw.mode === 'other' ? nw.modeOther : '', rollout: nw.rollout || '', template: t }, t === 'flintco' ? { flow: seedFlow('flintco') } : {})); renderAll(); });
+    fadeSwap(() => { pendingNew = null; newPlan(Object.assign({ account: nw.account, mode: nw.mode, modeOther: nw.mode === 'other' ? nw.modeOther : '', rollout: nw.rollout || '', template: t }, t === 'flintco' || t === 'quick' ? { flow: seedFlow(t) } : {})); renderAll(); });
     return;
   }
   if (act === 'present') { openPresent(); return; }
@@ -5241,7 +5263,10 @@ function renderShare() {
   const s = sectionByKey(currentSec), c = customByKey(currentSec);
   const showNow = p && (currentSec === 'basics' || c || (s && s.branch !== 'internal'));
   d.title = p ? (p.meta.account || 'Success plan') + ' success plan' : 'Success plan';
-  if (p && p.meta.template === 'prospect') { d.body.innerHTML = pxAgendaHtml(p); shareWin.scrollTo(0, y); return; }
+  const slides = !p || p.meta.template !== 'prospect' || shareWin.spbMode === 'slides';   // a prospect's discovery call shows the agenda; the plan itself is shown as slides
+  d.body.classList.toggle('slides', !!(p && slides));
+  if (p && !slides) { d.body.innerHTML = pxAgendaHtml(p); shareWin.scrollTo(0, y); return; }
+  if (p) { d.body.innerHTML = `<div class="slide-bar"><button data-s="prev" aria-label="Previous page">&#8249;</button><span class="slide-count"></span><button data-s="next" aria-label="Next page">&#8250;</button><button data-s="full" class="slide-full">Full screen</button></div><div class="slide-stage">${presentHtml(p, true)}</div>`; return; }
   d.body.innerHTML = p
     ? `<div class="share-now">${showNow ? 'Working on: <b>' + esc(secName(currentSec)) + '</b>' : '&nbsp;'}</div><div class="present-body">${presentHtml(p, true)}</div>`
     : '<div class="present-body"><p class="empty-note">Open a plan to share it.</p></div>';
@@ -5259,30 +5284,50 @@ function pxAgendaHtml(p) {
   rows.push(`<li class="${currentSec === PX_END ? 'now' : ''}"><span>${order.length + 1}</span><div><b>Your plan</b><p>We send you a plan built around your answers, and walk through it with you.</p></div></li>`);
   return `<div class="px-agenda"><div class="px-ag-head"><div class="doc-eyebrow">${planYear(p)} Success plan</div><h1>${esc(p.meta.account || 'Your success plan')}</h1><p>Today's conversation</p></div><ol>${rows.join('')}</ol></div>`;
 }
-function openShare() {
-  if (shareWin && !shareWin.closed) { shareWin.focus(); renderShare(); return; }
+/* Present the plan (Trey, Nov 25: like a slide show during the call). The Customer window shows their copy one page
+   at a time, with arrows at the top and the keyboard's arrow keys; the page is sized to fit the window. The paging
+   runs inside that window (SLIDE_JS), so it keeps its place while the plan re-draws and after the main page reloads. */
+const SLIDE_JS = "(function(){if(window.spbSlides)return;window.spbSlides=1;var i=0;function ps(){return document.querySelectorAll('.slide-stage .doc-page');}"
+  + "function fit(){var d=document.querySelector('.slide-stage .doc-pages');if(!d)return;var b=document.querySelector('.slide-bar');var w=innerWidth-40,h=innerHeight-(b?b.offsetHeight:0)-40;d.style.zoom=Math.max(.2,Math.min(w/1056,h/816));}"
+  + "function show(){var p=ps();if(!p.length)return;i=Math.max(0,Math.min(i,p.length-1));for(var k=0;k<p.length;k++)p[k].classList.toggle('on',k===i);var c=document.querySelector('.slide-count');if(c)c.textContent='Page '+(i+1)+' of '+p.length;var a=document.querySelector('[data-s=prev]'),n=document.querySelector('[data-s=next]');if(a)a.disabled=i===0;if(n)n.disabled=i===p.length-1;var f=document.querySelector('.slide-full');if(f)f.textContent=document.fullscreenElement?'Exit full screen':'Full screen';fit();}"
+  + "document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-s]');if(!b)return;var a=b.getAttribute('data-s');if(a==='prev')i--;if(a==='next')i++;if(a==='full'){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen();}catch(x){}}show();});"
+  + "document.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='PageDown'||k===' '){i++;e.preventDefault();}else if(k==='ArrowLeft'||k==='PageUp'){i--;e.preventDefault();}else if(k==='Home'){i=0;}else if(k==='End'){i=999;}else return;show();});"
+  + "document.addEventListener('fullscreenchange',function(){setTimeout(show,60);});addEventListener('resize',fit);"
+  + "new MutationObserver(show).observe(document.body,{childList:true});window.spbGo=function(n){i=n;show();};show();})();";
+function openSlides() {
+  const p = cur(); if (!p) return;
+  if (p.meta.template === 'prospect' || !shareWin || shareWin.closed) { openShare('slides'); return; }
+  shareWin.spbMode = 'slides'; shareWin.focus(); renderShare();
+}
+function openShare(mode) {
+  if (typeof mode !== 'string') mode = 'agenda';
+  if (shareWin && !shareWin.closed) { shareWin.spbMode = mode; shareWin.focus(); renderShare(); return; }
   const w = Math.min(1200, screen.availWidth - 80), h = Math.min(900, screen.availHeight - 80);
   shareWin = window.open('', 'spbShare', 'width=' + w + ',height=' + h + ',left=40,top=40');
   if (!shareWin) { alert('Your browser blocked the customer window. Allow pop-ups for this page, then click Customer window again.'); return; }
+  shareWin.spbMode = mode;
   shareWin.document.head.innerHTML = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Success plan</title>'
     + document.querySelector('style').outerHTML
     + '<style>.px-agenda{max-width:760px;margin:40px auto;padding:32px 40px;background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(20,30,50,.08)}.px-ag-head h1{font-family:\'FL Condensed\',sans-serif;text-transform:uppercase;font-size:34px;margin:4px 0 2px;color:#1c2433}.px-ag-head p{margin:0 0 18px;color:#5b6575}.px-agenda ol{list-style:none;margin:0;padding:0}.px-agenda li{display:flex;gap:14px;padding:12px 14px;border-radius:10px;margin-bottom:6px}.px-agenda li span{flex:none;width:28px;height:28px;border-radius:50%;background:#e6ebf2;color:#1f3a5f;display:flex;align-items:center;justify-content:center;font-weight:600}.px-agenda li b{font-size:16px;color:#1c2433}.px-agenda li p{margin:3px 0 0;font-size:14px;color:#5b6575;line-height:1.45}.px-agenda li.now{background:#eef3fa;box-shadow:inset 3px 0 0 #1f3a5f}.px-agenda li.now span{background:#1f3a5f;color:#fff}.px-agenda li.done span{background:#2b7a4b;color:#fff}</style>'
     + '<style>body{background:#e9ecf1}.share-now{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 32px;font-size:13px;color:var(--muted)}.share-now b{color:var(--ink)}.leaf{cursor:default}</style>';
   adoptShare(shareWin);
   const sc = shareWin.document.createElement('script');   // after the main page reloads, the window finds it again (Katie's demo, Nov 25: it stopped updating)
-  sc.textContent = 'setInterval(function(){try{if(window.opener&&!window.opener.closed&&window.opener.spbAdopt)window.opener.spbAdopt(window);}catch(e){}},1000);';
+  sc.textContent = 'if(!window.spbAdoptOn){window.spbAdoptOn=1;setInterval(function(){try{if(window.opener&&!window.opener.closed&&window.opener.spbAdopt)window.opener.spbAdopt(window);}catch(e){}},1000);}';
   shareWin.document.head.appendChild(sc);
+  const ss = shareWin.document.createElement('script'); ss.textContent = SLIDE_JS; shareWin.document.head.appendChild(ss);
   renderShare();
 }
 function adoptShare(w) {
   if (w.spbHooked === location.href + loadedAt) return;
   w.spbHooked = location.href + loadedAt;
   w.addEventListener('pagehide', () => { if (shareWin === w) shareWin = null; });
-  w.addEventListener('resize', () => fitDoc(w.document.body));
+  w.addEventListener('resize', () => { if (!w.document.body.classList.contains('slides')) fitDoc(w.document.body); });   // slides size themselves
 }
 const loadedAt = Date.now();
 window.spbAdopt = w => { if (shareWin === w) return; shareWin = w; adoptShare(w); renderShare(); };
-document.getElementById('shareBtn').addEventListener('click', openShare);
+document.getElementById('shareBtn').addEventListener('click', () => openShare('agenda'));
+document.getElementById('slidesBtn').addEventListener('click', openSlides);
+document.getElementById('presentSlides').addEventListener('click', openSlides);
 document.getElementById('noteBtn').addEventListener('click', openNote);
 
 /* ---------- Team code: build one plan together, live, on a call ----------
