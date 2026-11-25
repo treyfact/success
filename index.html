@@ -275,6 +275,7 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 @media (max-width: 700px) { .fin-pick { grid-template-columns: 1fr; } }
 .w-import { font-size: 13px; color: var(--faint) !important; margin: 18px 0 0 !important; }
 .w-import .qs-more { margin: 0 0 0 4px; }
+.w-import.w-saved { margin: 6px 0 0 !important; font-size: 12px; }
 .more-details { border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; margin: 4px 0 18px; background: var(--surface); }
 .more-details > summary { cursor: pointer; padding: 12px 0; font-weight: 600; font-size: 14px; list-style: none; }
 .more-details > summary::-webkit-details-marker { display: none; }
@@ -426,6 +427,17 @@ label .start-tag { margin-left: 8px; vertical-align: 1px; }
 .ready-list label.agree input { margin-top: 2px; flex: none; accent-color: var(--green); }
 
 /* ---------- Present view ---------- */
+@media screen {
+  .edit-banner { max-width: 1056px; margin: 14px auto 0; background: #fff7e6; border: 1px solid #f2d49b; color: #5c4513; border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+  .present-body.editing [data-ek] { outline: 1px dashed transparent; outline-offset: 2px; border-radius: 2px; cursor: text; }
+  .present-body.editing [data-ek]:hover { outline-color: #9fb3cf; }
+  .present-body.editing [data-ek]:focus { outline: 2px solid var(--blue, #2f6fdb); background: #fffdf5; }
+  .present-body.editing .doc-edited { box-shadow: inset 3px 0 0 #f0b44c; }
+  .present-body.editing .doc-over { box-shadow: 0 0 0 3px #d9534f; }
+  .present-body.editing .doc-page { position: relative; }
+  .present-body.editing .doc-over::after { content: 'This page runs over the bottom now. Shorten a line you changed.'; position: absolute; left: 0; right: 0; bottom: 4px; background: #fff; text-align: center; color: #b3302b; font-size: 13px; font-weight: 600; }
+}
+@media print { .edit-banner { display: none !important; } }
 .present { display: none; position: fixed; inset: 0; background: var(--surface); z-index: 50; overflow-y: auto; }
 .present.show { display: block; }
 .present-bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 24px; background: var(--surface); border-bottom: 1px solid var(--line); z-index: 2; }
@@ -862,7 +874,16 @@ table.grid td .other-box { margin-top: 4px; }
 .fill-docs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .fill-doc { display: inline-flex; align-items: center; gap: 6px; background: var(--navy-soft); border-radius: 999px; padding: 3px 4px 3px 12px; font-size: 12.5px; }
 .fill-doc small { color: var(--muted); }
-.fill-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.fill-gap { background: var(--soft); border-radius: 10px; padding: 10px 14px; font-size: 14px; margin: 10px 0 0; }
+.fill-calls { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.fill-call { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fill-call select { width: auto; padding: 6px 8px; font-size: 13px; }
+.fill-call.pasted { flex-direction: column; align-items: stretch; margin-top: 12px; }
+.fill-call-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fill-date { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.fill-date span { color: var(--faint); }
+.fill-date input { width: auto; padding: 5px 8px; font-size: 13px; }
+.fill-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; } .fill-actions a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .fill-ok { background: var(--green-soft); color: var(--green); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 13px; font-weight: 600; }
 .fill-err { background: var(--amber-soft); color: var(--amber); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 13px; }
 .fill-manual { margin-top: 6px; min-height: 120px; font-size: 12px; }
@@ -1017,6 +1038,7 @@ table.grid td .other-box { margin-top: 4px; }
     <b>Plan view</b>
     <label class="toggle-row"><input type="checkbox" id="customerView"> Customer view (hides FactorLab-only)</label>
     <div class="spacer"></div>
+    <button class="btn" id="editWords" title="Change the words on any page. Your changes save with the plan.">Edit the words</button>
     <button class="btn" id="printBtn">Print or save as PDF</button>
     <button class="btn" id="closePresent">Back to editing</button>
     <button class="btn primary" id="hsFromPlan">Save to HubSpot</button>
@@ -2170,6 +2192,7 @@ function pxActFor(p, k) {   // the activity page 3 shows for a shift, or null
   return (seg && list.find(a => (a.segs || []).includes(seg))) || (near && list.find(a => a.key === near)) || list[0];
 }
 const PX_BASE = ['pxWho', 'pxToday', 'pxTop'], PX_END = 'pxNext';
+const pxCalls = t => [].concat((t || {}).callIt || []).filter(Boolean).join(', ');   // what their crews do, as one line (it was a single pick before Nov 25)
 const PX_SCALE = ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 SECTIONS.push(
   {
@@ -2195,16 +2218,16 @@ SECTIONS.push(
       { key: 'score', label: 'How effective are they today, on a scale of 1 to 10?', type: 'select', buttons: true, options: PX_SCALE, pair: 'target', pairLabel: 'On a scale of 1 to 10, how effective are those conversations today, and what number would mean success?', shortLabel: 'Today' },
       { key: 'target', label: 'What number would mean successful, highly engaged crews?', type: 'select', buttons: true, options: PX_SCALE, shortLabel: 'What would mean success' },
       { key: 'worth', label: 'What would tell you this was worth it?', type: 'textarea', placeholder: 'Their words. A story counts as much as a number.', help: 'Write it so their boss would understand it without the call: say what any summary, report or number is.', fill: 'Write it so someone who was not on the call understands it. If they mention something shown on the call (a summary, a report, "the bullets"), say what it is, like "FactorLab\'s weekly summary of their crews\' plans". Leave out counts that only made sense on the call.' },
-      { key: 'working', label: "What's already working for them?", type: 'table', help: 'Habits that work today, in their words. They become the strengths on page 2 of their plan.', addLabel: "Add what's working",
-        columns: [{ key: 'what', label: "What's working", multi: true }, { key: 'shift', label: 'Which of the three', type: 'select', options: ['', 'Better planning', 'Better learning', 'Better leadership'], width: '200px' }], defaultRows: () => [],
+      { key: 'working', label: "What's already working for them?", type: 'table', help: "Habits that work today, in their words. They become the strengths on page 2 of their plan. Picking the area it helps is optional: leave it blank and the plan sorts it from the words.", addLabel: "Add what's working",
+        columns: [{ key: 'what', label: "What's working", multi: true }, { key: 'shift', label: 'Area it helps (optional)', type: 'select', options: ['', 'Better planning', 'Better learning', 'Better leadership'], width: '200px' }], defaultRows: () => [],
         fill: 'Habits or routines they have today that work, one short line each, with the one of the three it fits best.' },
       { key: 'together', label: 'How closely do safety and operations plan the work together, 1 to 5?', type: 'select', buttons: true, options: ['', '1', '2', '3', '4', '5'] },
-      { key: 'callIt', label: 'What do you call it?', type: 'select', buttons: true, options: ['', 'Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard'] },
+      { key: 'callIt', label: 'Which of these do your crews do? Pick all that apply.', type: 'checks', options: ['Pre-task plan', 'JSA', 'JHA', 'Morning huddle', 'Job briefing or tailboard', 'Toolbox talk'], fill: 'Every kind they do, as a list: a JSA on each task, a daily pre-task plan and tailboard talks are all different.' },   // pick more than one (Scott F, Nov 25); plans saved with one answer are turned into a list by migrate()
       { key: 'count', label: 'How many do you take part in yourself in a month?', type: 'text' },
       { key: 'measure', label: 'How do you measure whether they work today?', type: 'textarea' },
-      { key: 'system', label: 'What do you use to capture them today?', type: 'text', placeholder: 'e.g. paper, a form app' }
+      { key: 'system', label: 'What do you use to capture them today?', type: 'select', buttons: true, options: ['', 'Paper', 'A digital form or app', 'Paper and digital'] }   // buttons (Scott F, Nov 25); a typed answer saved before still shows as Something else
     ],
-    leaves: d => [d.doing, d.worth && 'Worth it: ' + d.worth, ...(d.working || []).filter(r => r.what).slice(0, 2).map(r => 'Working: ' + r.what), d.callIt && 'Calls it: ' + d.callIt, d.score && 'Today: ' + d.score + ' of 10' + (d.target ? ', goal ' + d.target : ''), d.system && 'Uses: ' + d.system]
+    leaves: d => [d.doing, d.worth && 'Worth it: ' + d.worth, ...(d.working || []).filter(r => r.what).slice(0, 2).map(r => 'Working: ' + r.what), pxCalls(d) && 'Crews do: ' + pxCalls(d), d.score && 'Today: ' + d.score + ' of 10' + (d.target ? ', goal ' + d.target : ''), d.system && 'Uses: ' + d.system]
   },
   {
     key: 'pxTop', set: 'prospect', branch: 'why', title: 'Their top three', short: 'their top three', tiers: [],
@@ -2770,6 +2793,7 @@ function migrate(p) {
   if (!Array.isArray(p.meta.sections)) p.meta.sections = presetSections(p.meta.tier);
   if (p.data) { const fresh = blankData(); Object.keys(fresh).forEach(k => { if (!p.data[k]) p.data[k] = fresh[k]; }); }   // steps added since the plan was saved start with their usual rows
   if (!Array.isArray(p.meta.needAdded) && p.data) setNeed(p, p.meta.mode || 'launch');
+  const tdy = p.data && p.data.pxToday; if (tdy && typeof tdy.callIt === 'string') tdy.callIt = tdy.callIt ? [tdy.callIt] : [];   // one pick became a list (Scott F, Nov 25)
   const top = p.data && p.data.pxTop; if (top && Array.isArray(top.areas)) top.areas = top.areas.map(x => { const a = pxByPain(x); return a && !a.retired ? a.pain : x; });   // renamed prospect areas (Nov 6 2026)   // plans saved before needs shaped the plan get their need's steps
   p.version = APP_VERSION;
 }
@@ -3023,9 +3047,9 @@ function phaseDate(p, ph) {
 function renderPicker() {
   const sel = document.getElementById('planPicker');
   const ids = Object.keys(plans).sort((a, b) => (plans[a].meta.account || '').localeCompare(plans[b].meta.account || ''));
-  sel.innerHTML = ids.map(id => `<option value="${id}" ${id === currentId ? 'selected' : ''}>${esc(plans[id].meta.account || 'Untitled plan')}</option>`).join('')
+  sel.innerHTML = `<optgroup label="Plans saved in this browser">` + ids.map(id => `<option value="${id}" ${id === currentId ? 'selected' : ''}>${esc(plans[id].meta.account || 'Untitled plan')}</option>`).join('') + `</optgroup>`
     + `<option value="__new">+ New plan</option>`;
-  if (!ids.length) sel.innerHTML = `<option value="">No plans yet</option><option value="__new">+ New plan</option>`;
+  if (!ids.length) sel.innerHTML = `<option value="">No plans in this browser yet</option><option value="__new">+ New plan</option>`;   // Katie, Nov 25: where are my plans?
 }
 
 /* =========================================================
@@ -3151,7 +3175,8 @@ function welcomeHtml() {
       <details class="more-details" ${welcomeLogo ? 'open' : ''}><summary>Their logo <span>optional</span></summary>${logoFieldHtml(welcomeLogo, 'welcome')}</details>
       <div class="actions"><button class="btn primary" data-action="create">Create plan</button></div>
     </div>
-    <p class="w-import">Have a plan file? <button class="qs-more" data-cmd="import">Import it</button></p>
+    <p class="w-import">Have a plan file from a teammate (it ends in .json)? <button class="qs-more" data-cmd="import">Import it</button></p>
+    <p class="w-import w-saved">Plans save in this browser as you type, even if you close it. To keep a copy or hand it to a teammate, save the plan file from the last step.</p>
   </div>`;
 }
 function welcomeAudApply() {
@@ -3590,7 +3615,7 @@ function pxTopHtml(p, s, d) {
   const list = PX_OFFERED().concat(steps.filter(a => a.retired)), full = picked.length + (extra.length ? 1 : 0) >= 3;   // another option counts as one of the three (Gretchen, Nov 20)
   const cards = list.map(a => {
     const on = picked.includes(a), open = on || steps.includes(a), as = sectionByKey(a.key, p), ad = p.data[a.key] || {};
-    const pain = arr.find(x => pxByPain(x) === a) || a.pain, rank = on ? arr.filter(x => pxByPain(x) || x).findIndex(x => pxByPain(x) === a) + 1 : 0;   // the order they were tapped: 1 leads their plan
+    const pain = arr.find(x => pxByPain(x) === a) || a.pain, rank = on ? arr.filter(x => pxByPain(x)).findIndex(x => pxByPain(x) === a) + 1 : 0;   // the order the areas were tapped: 1 leads their plan. Another option never leads, so it takes no number (Katie, Nov 25: a 2 on the first card confused)
     return `<div class="px-card ${on ? 'on' : ''} ${open ? 'open' : ''}">
       <label class="check px-card-head ${!on && full ? 'full' : ''}"><input type="checkbox" data-sec="pxTop" data-field="areas" data-opt="${esc(pain)}" ${on ? 'checked' : ''} ${!on && full ? 'disabled' : ''}>${rank ? `<em class="px-rank" title="${rank === 1 ? 'Leads their plan' : 'Pick ' + rank}">${rank}</em>` : ''}<b>${esc(a.goal)}</b><span>${esc(a.pain)}</span></label>
       ${open ? `<div class="px-card-qs">${!on ? '<div class="help" style="margin-top:8px">Not in their top three. Their answers are kept.</div>' : ''}${as.fields.map(q => fieldHtml(as, q, ad)).join('')}</div>` : ''}
@@ -3836,7 +3861,7 @@ function timelineHtml(p, wide) {
 function readyHtml(p) {
   const checks = readyChecks(p);
   const n = checks.filter(c => c.ok).length;
-  return `<p style="margin:0 0 10px;color:var(--muted)">${n} of ${checks.length} ready. A plan is ready to share when all of these are true.</p>
+  return `<p style="margin:0 0 10px;color:var(--muted)">${n} of ${checks.length} done. This isn't a step: it's a checklist for the whole plan before you send it. Tap a line to go fix it.</p>
     <ul class="ready-list">${checks.map(c => `<li><span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '&#10003;' : ''}</span><button data-goto="${c.sec}">${esc(c.label)}${!c.ok && c.tip ? `<span class="ready-tip">${esc(c.tip)}</span>` : ''}</button></li>`).join('')}</ul>
     ${p.meta.template === 'prospect' ? '' : agreedHtml(p)}`;
 }
@@ -3994,11 +4019,69 @@ function docWrap(p, customer, pages) {
   const m = p.meta, logo = docLogo(), n = pages.length;
   const their = m.logo ? `<img class="doc-their" alt="${esc(m.account || 'Their logo')}" src="${esc(m.logo)}" style="${logoBox(m.logoRatio)}"><span class="doc-logo-sep"></span>` : '';
   const foot = customer ? '' : 'FactorLab internal' + (m.csm ? ' · ' + esc(m.csm) : '') + ' · Updated ' + esc(fmtDate((m.updated || '').slice(0, 10)));   // the customer copy carries just page numbers
-  return `<div class="doc"><div class="doc-pages">${pages.map((pg, i) => `<section class="doc-page">
+  return docEdited(p, `<div class="doc"><div class="doc-pages">${pages.map((pg, i) => `<section class="doc-page">
     <header class="doc-head"><div><div class="doc-eyebrow">${planYear(p)} Success plan${customer ? '' : ' · internal'}</div><div class="doc-account">${esc(m.account || 'Untitled plan')}</div></div><div class="doc-logos">${their}${logo ? `<img class="doc-logo" alt="FactorLab" src="${logo}">` : ''}</div></header>
     ${pg.head ? `<div class="np-top"><div class="np-kicker">${esc(pg.kicker || '')}</div><h2 class="np-head${pg.big ? ' big' : ''}">${pg.big ? pg.head : esc(pg.head)}</h2>${pg.sub ? `<p class="np-sub">${esc(pg.sub)}</p>` : ''}</div>` : pg.title ? `<h2 class="doc-title">${esc(pg.title)}</h2>` : ''}
     <div class="doc-body">${pg.body}</div>
-    <footer class="doc-foot"><span>${foot}</span><span>Page ${i + 1} of ${n}</span></footer></section>`).join('')}</div></div>`;
+    <footer class="doc-foot"><span>${foot}</span><span>Page ${i + 1} of ${n}</span></footer></section>`).join('')}</div></div>`);
+}
+/* Edit the words on the final pages (Katie, Nov 25: "let me have that to work with and then refine it"; Trey
+   picked editing here over a PowerPoint download, so the changes stay with the plan). Every line of text on a
+   page gets a key: its starting words, plus which time those words appear. An edit is saved under that key in
+   meta.docEdits and shows in the plan view, the Customer window and both PDFs. When the answer behind a line
+   changes, its words change, so the old edit no longer matches and the new words show. */
+const docNorm = t => String(t || '').replace(/\s+/g, ' ').trim();
+/* A line is the nearest element holding the words themselves; bold or italics inside it stay part of it. */
+function docLeaves(root) {
+  const out = [], set = new Set();
+  root.querySelectorAll('.doc-page').forEach(pg => pg.querySelectorAll('*').forEach(el => {
+    if (el.closest('.doc-head, .doc-foot, svg, style, script')) return;
+    if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return;
+    if (/^\d{1,2}$/.test(docNorm(el.textContent))) return;   // the numbers on a rating scale
+    for (let a = el.parentElement; a && a !== pg; a = a.parentElement) if (set.has(a)) return;
+    set.add(el); out.push(el);
+  }));
+  return out;
+}
+function docClean(html) {   // keep bold, italics and line breaks; drop everything else
+  const t = document.createElement('template'); t.innerHTML = html;
+  const walk = n => [...n.childNodes].forEach(c => {
+    if (c.nodeType === 3) return;
+    if (c.nodeType !== 1) { c.remove(); return; }
+    walk(c);
+    if (/^(B|STRONG|I|EM|BR)$/.test(c.tagName)) { [...c.attributes].forEach(a => c.removeAttribute(a.name)); return; }
+    c.replaceWith(...c.childNodes, ...(/^(DIV|P)$/.test(c.tagName) ? [document.createElement('br')] : []));
+  });
+  walk(t.content);
+  return t.innerHTML.replace(/(<br>)+$/, '').trim();
+}
+function docEdited(p, html) {
+  const edits = p.meta.docEdits || {};
+  if (!docEditing && !Object.keys(edits).length) return html;
+  const t = document.createElement('template'); t.innerHTML = html;
+  const seen = {};
+  docLeaves(t.content).forEach(el => {
+    const txt = docNorm(el.textContent), k = txt + '|' + (seen[txt] = (seen[txt] || 0) + 1);
+    el.setAttribute('data-ek', k);
+    if (edits[k] != null) { el.innerHTML = edits[k]; el.classList.add('doc-edited'); }
+  });
+  return t.innerHTML;
+}
+var docEditing = false;   // this window only (var: the pages can be drawn before this line runs)
+function docEditSave(el) {
+  const p = cur(); if (!p || !el.dataset.ek) return;
+  const k = el.dataset.ek, orig = k.slice(0, k.lastIndexOf('|')), html = docClean(el.innerHTML), e = Object.assign({}, p.meta.docEdits || {});
+  if (!docNorm(el.textContent) || docNorm(el.textContent) === orig) delete e[k]; else e[k] = html;   // a cleared line, or the starting words, puts the original back
+  if (JSON.stringify(e) === JSON.stringify(p.meta.docEdits || {})) return;
+  p.meta.docEdits = e; saveSoon(); renderShare();
+  openPresent(true);
+}
+function docOverflow(root) {   // a page an edit pushed past its bottom gets a note
+  root.querySelectorAll('.doc-page').forEach(pg => {
+    const bd = pg.querySelector('.doc-body'); if (!bd) return;
+    const bottom = Math.max(...[...bd.querySelectorAll('*')].map(e => e.getBoundingClientRect().bottom), 0), over = bottom - bd.getBoundingClientRect().bottom > 2;
+    pg.classList.toggle('doc-over', over && pg.querySelector('.doc-edited') != null);
+  });
 }
 /* The plan document is the highlights, not the whole builder. Starting rows nobody touched never print,
    steps with their own page stay off the page 1 cards, and anything that doesn't fit is left in the
@@ -4659,6 +4742,7 @@ function go(sec) {
 function handleInput(e) {
   const t = e.target, p = cur();
   if (!p) return;
+  if (t.dataset.fillDoc != null && t.dataset.k) { const st = fillState(p), d = st.docs[+t.dataset.fillDoc]; if (d) { d[t.dataset.k] = t.value; if (t.dataset.k === 'kind' && e.type === 'change') renderWork(); const b = document.querySelector('#work [data-action=fill-copy]'); if (b) b.disabled = !((st.paste || '').trim() || st.docs.some(x => (x.text || '').trim())); } return; }
   if (t.dataset.fill) { fillState(p)[t.dataset.fill] = t.value; if (t.dataset.fill === 'paste') { const b = document.querySelector('#work [data-action=fill-copy]'); if (b) b.disabled = !(t.value.trim() || fill.docs.length); } return; }
   if (t.dataset.fillItem != null) { if (e.type === 'change') { fill.items[+t.dataset.fillItem].on = t.checked; renderWork(); } return; }
   if (t.dataset.agree) {
@@ -4835,6 +4919,7 @@ function handleClick(e) {
     return;
   }
   if (act === 'present') { openPresent(); return; }
+  if (act === 'doc-undo') { if (!confirm('Put back the original words on every page?')) return; cur().meta.docEdits = {}; saveSoon(); renderShare(); openPresent(true); return; }
   if (act === 'present-theirs') { document.getElementById('customerView').checked = true; openPresent(); return; }   // from Finish: what they'll receive
   if (!p) return;
   if (act === 'sort-move' || act === 'sort-delete') {
@@ -4989,13 +5074,22 @@ function exportPdf(customer) {
   printPlan();
 }
 
-function openPresent() {
+function openPresent(keep) {
   const p = cur(); if (!p) return;
-  document.getElementById('presentBody').innerHTML = presentHtml(p, document.getElementById('customerView').checked);
-  document.getElementById('present').classList.add('show');
-  document.getElementById('present').scrollTop = 0;
-  fitDoc(document.getElementById('presentBody'));
+  const box = document.getElementById('present'), y = box.scrollTop, body = document.getElementById('presentBody'), n = Object.keys(p.meta.docEdits || {}).length;
+  body.innerHTML = (docEditing ? `<div class="edit-banner"><b>Editing the words.</b> Click any line on a page and change it. Your changes save with the plan and show in the PDF and the Customer window. Clear a line to put the original back.${n ? ` <button class="qs-more" data-action="doc-undo">Undo all ${n} edit${n === 1 ? '' : 's'}</button>` : ''}</div>` : '') + presentHtml(p, document.getElementById('customerView').checked);
+  body.classList.toggle('editing', docEditing);
+  if (docEditing) body.querySelectorAll('[data-ek]').forEach(el => { el.setAttribute('contenteditable', 'true'); el.setAttribute('spellcheck', 'true'); });
+  const eb = document.getElementById('editWords'); if (eb) { eb.textContent = docEditing ? 'Done editing' : 'Edit the words'; eb.classList.toggle('primary', docEditing); }
+  box.classList.add('show');
+  box.scrollTop = keep ? y : 0;
+  fitDoc(body);
+  if (docEditing) docOverflow(body);
 }
+document.getElementById('editWords').addEventListener('click', () => { docEditing = !docEditing; openPresent(true); });
+document.getElementById('presentBody').addEventListener('focusout', e => { const el = e.target.closest && e.target.closest('[data-ek][contenteditable]'); if (el) docEditSave(el); });
+document.getElementById('presentBody').addEventListener('keydown', e => { const el = e.target.closest && e.target.closest('[data-ek][contenteditable]'); if (el && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); } });
+document.getElementById('presentBody').addEventListener('paste', e => { const el = e.target.closest && e.target.closest('[data-ek][contenteditable]'); if (!el) return; e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
 window.addEventListener('resize', () => { if (document.getElementById('present').classList.contains('show')) fitDoc(document.getElementById('presentBody')); });
 
 document.addEventListener('input', handleInput);
@@ -5004,7 +5098,7 @@ document.addEventListener('click', handleClick);
 document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.sec === 'pxTop') { const p = cur(); if (syncProspect(p)) { saveSoon(); renderAll(); } else if (t.dataset.opt && p && p.meta.template === 'prospect') renderWork(); } });   // their top three set the prospect steps
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.dataset && e.target.dataset.add) { e.preventDefault(); addFromInput(e.target); }
-  if (e.key === 'Escape') { document.getElementById('present').classList.remove('show'); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); }
+  if (e.key === 'Escape') { if (docEditing && e.target.closest && e.target.closest('[data-ek]')) { e.target.blur(); return; } docEditing = false; document.getElementById('present').classList.remove('show'); document.getElementById('moreMenu').classList.remove('open'); document.getElementById('pdfMenu').classList.remove('open'); }
 });
 document.getElementById('planPicker').addEventListener('change', e => {
   const v = e.target.value;
@@ -5031,7 +5125,7 @@ document.addEventListener('click', e => { TOP_MENUS.forEach(m => { if (!e.target
 document.getElementById('callMenu').addEventListener('click', e => { const b = e.target.closest('[data-click]'); if (!b) return; topMenu(''); document.getElementById(b.dataset.click).click(); });
 document.getElementById('importFile').addEventListener('change', e => { if (e.target.files[0]) importFile(e.target.files[0]); e.target.value = ''; });
 document.getElementById('presentBtn').addEventListener('click', openPresent);
-document.getElementById('closePresent').addEventListener('click', () => document.getElementById('present').classList.remove('show'));
+document.getElementById('closePresent').addEventListener('click', () => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); docEditing = false; document.getElementById('present').classList.remove('show'); });
 document.getElementById('hsFromPlan').addEventListener('click', () => { if (!cur()) return; document.getElementById('present').classList.remove('show'); go('hssave'); });
 document.getElementById('customerView').addEventListener('change', openPresent);
 document.getElementById('printBtn').addEventListener('click', printPlan);
@@ -5174,10 +5268,20 @@ function openShare() {
     + document.querySelector('style').outerHTML
     + '<style>.px-agenda{max-width:760px;margin:40px auto;padding:32px 40px;background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(20,30,50,.08)}.px-ag-head h1{font-family:\'FL Condensed\',sans-serif;text-transform:uppercase;font-size:34px;margin:4px 0 2px;color:#1c2433}.px-ag-head p{margin:0 0 18px;color:#5b6575}.px-agenda ol{list-style:none;margin:0;padding:0}.px-agenda li{display:flex;gap:14px;padding:12px 14px;border-radius:10px;margin-bottom:6px}.px-agenda li span{flex:none;width:28px;height:28px;border-radius:50%;background:#e6ebf2;color:#1f3a5f;display:flex;align-items:center;justify-content:center;font-weight:600}.px-agenda li b{font-size:16px;color:#1c2433}.px-agenda li p{margin:3px 0 0;font-size:14px;color:#5b6575;line-height:1.45}.px-agenda li.now{background:#eef3fa;box-shadow:inset 3px 0 0 #1f3a5f}.px-agenda li.now span{background:#1f3a5f;color:#fff}.px-agenda li.done span{background:#2b7a4b;color:#fff}</style>'
     + '<style>body{background:#e9ecf1}.share-now{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 32px;font-size:13px;color:var(--muted)}.share-now b{color:var(--ink)}.leaf{cursor:default}</style>';
-  shareWin.addEventListener('pagehide', () => { shareWin = null; });
-  shareWin.addEventListener('resize', () => fitDoc(shareWin.document.body));
+  adoptShare(shareWin);
+  const sc = shareWin.document.createElement('script');   // after the main page reloads, the window finds it again (Katie's demo, Nov 25: it stopped updating)
+  sc.textContent = 'setInterval(function(){try{if(window.opener&&!window.opener.closed&&window.opener.spbAdopt)window.opener.spbAdopt(window);}catch(e){}},1000);';
+  shareWin.document.head.appendChild(sc);
   renderShare();
 }
+function adoptShare(w) {
+  if (w.spbHooked === location.href + loadedAt) return;
+  w.spbHooked = location.href + loadedAt;
+  w.addEventListener('pagehide', () => { if (shareWin === w) shareWin = null; });
+  w.addEventListener('resize', () => fitDoc(w.document.body));
+}
+const loadedAt = Date.now();
+window.spbAdopt = w => { if (shareWin === w) return; shareWin = w; adoptShare(w); renderShare(); };
 document.getElementById('shareBtn').addEventListener('click', openShare);
 document.getElementById('noteBtn').addEventListener('click', openNote);
 
@@ -5553,7 +5657,7 @@ function paintTeam() {
     btn.innerHTML = 'Team code'; btn.classList.remove('on');
     panel.innerHTML = `<p>Build this plan together with a teammate on a call. Changes show up on both screens as you type.</p>
       ${cur() ? '<button class="btn primary" data-team="start">Start a team code for this plan</button>' : '<p style="color:var(--ink)"><b>Open or create a plan first</b> to start a code. To join a teammate\'s plan, use their code below.</p>'}
-      <p style="margin:14px 0 0">Have a code from a teammate?</p>
+      <p style="margin:14px 0 0">Got a code from a teammate? Paste it here and press Join.</p>
       <div class="team-row"><input type="text" id="teamJoinInput" placeholder="ABCD-1234" maxlength="9" autocomplete="off"><button class="btn" data-team="join">Join</button></div>
       <p style="margin:12px 0 0;font-size:12px">Plans pass between you but aren't stored online. Each person keeps a saved copy in their own browser.</p>`;
     return;
@@ -6094,7 +6198,7 @@ function hubspotSummary(p) {
     const w = d('pxWho'), t = d('pxToday'), nx = d('pxNext');
     L.push('', 'Discovery call: complimentary 2027 plan');
     if (w.contact) L.push('Talked to: ' + w.contact + (w.role ? ', ' + w.role : '') + (w.type ? ' (' + w.type + ')' : ''));
-    if (t.doing || t.callIt) L.push('Planning today: ' + [t.doing, t.callIt && 'calls it ' + t.callIt, t.system && 'on ' + t.system].filter(Boolean).join(', '));
+    if (t.doing || pxCalls(t)) L.push('Planning today: ' + [t.doing, pxCalls(t) && 'crews do ' + pxCalls(t), t.system && 'on ' + t.system.toLowerCase()].filter(Boolean).join(', '));
     if (t.score) L.push('Effective today: ' + t.score + ' of 10' + (t.target ? '; success would be ' + t.target : ''));
     const top = pxChosen(p).map(a => a.pain); if (top.length) L.push('Top pains: ' + top.join('; '));
     if (nx.date) L.push('Follow-up: ' + fmtDate(nx.date) + (nx.who ? ' with ' + nx.who : ''));
@@ -6150,7 +6254,7 @@ function showToast(msg) {
    transcript is never saved: it lives in this window until the answers are added.
    ========================================================= */
 function fillState(p) {
-  if (!fill || fill.planId !== p.id) fill = { planId: p.id, docs: [], paste: '', reply: '', items: null, err: '', copied: '', manual: '' };
+  if (!fill || fill.planId !== p.id) fill = { planId: p.id, docs: [], paste: '', pasteDate: '', reply: '', items: null, err: '', copied: '', manual: '' };   // docs: [{ name, text, kind: 'call' | 'doc', date, pasted }]
   return fill;
 }
 const FILL_SKIP = ['journey'];   // checklists that never come from a call
@@ -6209,16 +6313,51 @@ function fillAbout(p) {
   L.push('');
   return L;
 }
+/* Several calls into one plan (Katie, Nov 25: big accounts take a series of calls, and one person can't answer
+   it all). Every transcript is a call with its date; their own documents are kept apart. Oldest first. */
+function fillCalls() {
+  const st = fill || { docs: [] }, calls = [];
+  if ((st.paste || '').trim()) calls.push({ name: 'Pasted', text: st.paste, date: st.pasteDate || '' });
+  (st.docs || []).forEach(d => { if (d.kind !== 'doc' && (d.text || '').trim()) calls.push(d); });
+  return calls.map((c, i) => [c, i]).sort((x, y) => (x[0].date && y[0].date) ? x[0].date.localeCompare(y[0].date) || x[1] - y[1] : x[1] - y[1]).map(x => x[0]);
+}
+/* What the plan already says, one short line a question, so a later call fills the gaps instead of repeating. */
+let fillBlank = null;
+function fillCurrent(q, p) {
+  if (q.ph) return '';   // milestones already list what's planned
+  const f = q.f, v = (p.data[q.s.key] || {})[f.key];
+  let t = '';
+  if (f.type === 'table') t = touchedRows(p, q.s.key, f.key).map(r => showRow(f, r)).join('; ');
+  else if (Array.isArray(v)) t = v.filter(Boolean).join(', ');
+  else t = String(v || '').trim();
+  const def = ((fillBlank || (fillBlank = blankData()))[q.s.key] || {})[f.key];
+  if (typeof v === 'string' && (v === def || rhythmOld(f.key, v))) return '';   // starting text nobody changed
+  t = t.replace(/\s+/g, ' ');
+  return t.length > 180 ? t.slice(0, 177).replace(/\s+\S*$/, '') + '...' : t;
+}
+/* The questions nobody has answered yet, as a list to bring to the next call. FactorLab-only steps stay off it. */
+function stillMissing(p) {
+  const { steps, qs } = fillQuestions(p), L = [];
+  steps.filter(st => !st.addOn && st.s.branch !== 'internal').forEach(st => {
+    const open = qs.filter(q => q.sid === st.sid && !q.ph && !/About$/.test(q.f.key) && !fillCurrent(q, p)).map(q => '- ' + q.label.replace(/[.:]+$/, ''));   // "what it's about" boxes only go with an answer
+    const toAsk = String((p.notes || {})[st.s.key] || '').split('\n').map(x => x.trim()).filter(x => /^(to ask|check with them)/i.test(x)).map(x => '- ' + x);
+    if (open.length || toAsk.length) L.push('', st.s.title, ...open, ...toAsk);
+  });
+  return L.length ? ['Still to find out' + (p.meta.account ? ' for ' + p.meta.account : ''), ...L].join('\n') : '';
+}
 function fillPrompt(p, withTranscript) {
-  const { steps, qs } = fillQuestions(p), px = p.meta.template === 'prospect';
+  const { steps, qs } = fillQuestions(p), px = p.meta.template === 'prospect', calls = fillCalls(), many = calls.length > 1;
+  const have = qs.map(q => [q, fillCurrent(q, p)]).filter(x => x[1]);
   const L = [
     px ? "You're helping someone at FactorLab fill in a short 2027 planning profile from a discovery call with a company that isn't a FactorLab customer yet. Use their words." : "You're helping a customer success manager at FactorLab fill in a customer success plan from a call they had with a customer.",
-    withTranscript ? 'Read the call transcript (and any documents) at the end of this message. Then follow HOW THIS CHAT GOES, just below.' : 'Read the call transcript (and any documents) attached to this message. Then follow HOW THIS CHAT GOES, just below.',
+    withTranscript ? 'Read the call transcript' + (many ? 's' : '') + ' (and any documents) at the end of this message. Then follow HOW THIS CHAT GOES, just below.' : 'Read the call transcript (and any documents) attached to this message. Then follow HOW THIS CHAT GOES, just below.',
+    ...(many ? ['There are ' + calls.length + ' calls with this account, oldest first. Together they build one plan: use what each call added. Where two calls disagree, the newest call wins; say what changed in "other".'] : []),
+    ...(have.length ? ['This plan already has answers from earlier calls. They are listed under WHAT THE PLAN ALREADY SAYS. Fill the gaps first.'] : []),
     '',
     'HOW THIS CHAT GOES',
     'The person who pasted this is a FactorLab teammate who was on the call. They may not be technical, so keep every message short and plain, and start each one with where they are (Step 1 of 3, Step 2 of 3, Step 3 of 3).',
     'Step 1 of 3, a few quick questions. Read everything first. Then send one short message: "Step 1 of 3: I read the call. I have N quick questions, one at a time, then I\'ll give you the code to paste back into the plan. You can reply skip, or just give me the code, at any time." Then ask Question 1.',
-    '- Question 1 is always who was on the call: list everyone from the customer\'s side (name and role) and everyone from FactorLab, the way you understood them, and ask them to confirm or fix it. Transcripts often label people "Speaker 1": say who you think each one is.',
+    '- Question 1 is always who was on the call' + (many ? 's' : '') + ': list everyone from the customer\'s side (name and role) and everyone from FactorLab, the way you understood them, and ask them to confirm or fix it. Transcripts often label people "Speaker 1": say who you think each one is.',
     '- Then ask only what would change the plan and that the transcript doesn\'t settle: their top three and which comes first, if they never said; a number whose meaning isn\'t clear (what it counts, each project or all of them); who said the line you\'d quote; a date that may not be a meeting; a name the transcript may have misheard. No more than 5 questions in all, fewer is better.',
     '- One question per message, labeled like "Question 2 of 4". Give your best guess so they can reply "yes", or fix it.',
     'Step 2 of 3, use their answers. They were on the call, so their answers are facts. For an answer they gave you, set "quote" to "Confirmed in this chat" and "sure" to true.',
@@ -6266,9 +6405,14 @@ function fillPrompt(p, withTranscript) {
     if (st.s.intro) L.push('  About this step: ' + st.s.intro);
     qs.filter(q => q.sid === st.sid).forEach(q => L.push('  ' + q.id + ': ' + q.label + (/[.?!:]$/.test(q.label) ? ' ' : '. ') + fillDescribe(q, p)));
   });
+  if (have.length) {
+    L.push('', 'WHAT THE PLAN ALREADY SAYS (leave these out of your answers unless a call adds to them or changes them; then send the full new answer and say what changed in "other")');
+    have.forEach(([q, t]) => L.push('  ' + q.id + ': ' + t));
+  }
   if (withTranscript) {
-    const docs = fill.docs.map(d => '=== ' + d.name + ' ===\n' + d.text.trim()), pasted = (fill.paste || '').trim();
-    L.push('', 'THE TRANSCRIPT AND DOCUMENTS', ...(pasted ? ['=== Pasted ===\n' + pasted] : []), ...docs);
+    const docs = ((fill && fill.docs) || []).filter(d => d.kind === 'doc' && (d.text || '').trim()).map(d => '=== Their document: ' + d.name + ' ===\n' + d.text.trim());
+    const callTxt = calls.map((c, i) => '=== ' + (many ? 'Call ' + (i + 1) + ' of ' + calls.length : 'The call') + (c.date ? ', ' + fmtDate(c.date) : '') + (c.name && c.name !== 'Pasted' && !c.pasted ? ' (' + c.name + ')' : '') + ' ===\n' + c.text.trim());
+    L.push('', many ? 'THE CALLS, OLDEST FIRST, AND DOCUMENTS' : 'THE TRANSCRIPT AND DOCUMENTS', ...callTxt, ...docs);
   }
   return L.join('\n');
 }
@@ -6317,7 +6461,7 @@ async function fillAddFiles(files, into) {
   for (const file of Array.from(files || [])) {
     try {
       const text = await readAnyFile(file);
-      if (into === 'reply') st.reply = text; else st.docs.push({ name: file.name, text });
+      if (into === 'reply') st.reply = text; else st.docs.push({ name: file.name, text, kind: 'call', date: '' });
       st.err = '';
     } catch (err) { st.err = 'Couldn’t read ' + file.name + ' (' + err.message + '). Paste the text in instead.'; }
   }
@@ -6393,8 +6537,10 @@ function fillItems(p, obj) {
   ['account', 'contact', 'csm', 'mode', 'day1', 'context'].forEach(k => { if (obj[k] != null && !ans.some(a => same(a.id, k))) ans.push({ id: k, answer: obj[k] }); });
   const tn = fillNorm([].concat((fill && fill.planId === p.id ? [fill.paste].concat((fill.docs || []).map(d => d.text)) : [])).join(' '));   // the transcript, when it's on this page
   const stepOf = sid => steps.find(st => same(st.sid, sid));
+  let seen = 0;   // answers the reply had; the ones that add nothing new are already in the plan (Katie, Nov 25: a short list looked like it missed things)
   ans.forEach(a => {
     if (!a) return;
+    seen++;
     let id = String(a.id || '').trim();
     if (/^q?\s*\d+$/i.test(id)) id = 'Q' + id.replace(/\D/g, '');
     const base = { quote: asText(a.quote), sure: a.sure !== false && a.sure !== 'false', on: true };
@@ -6414,7 +6560,7 @@ function fillItems(p, obj) {
       if (id === 'context') { const t = asText(v); if (!t || (m.context || '').includes(t)) return; items.push(Object.assign(base, { key: 'm|context', step, label, val: t, show: t, now: m.context ? 'Adds to what you have' : '', add: true })); }
       return;
     }
-    const q = qs.find(x => x.id === id); if (!q) return;
+    const q = qs.find(x => x.id === id); if (!q) { seen--; return; }
     const s = q.s, f = q.f, d = p.data[s.key] || {}, step = s.title, label = q.label;
     const it = Object.assign(base, { key: 'd|' + s.key + '|' + f.key, sec: s.key, step, label, addOn: steps.find(st => st.sid === q.sid).addOn });
     if (s.key === 'pxTop' && f.key === 'moment' && tn && !quoteFound(asText(v), tn)) it.qmiss = it.momentMiss = true;   // the cover quote must be their exact words
@@ -6468,6 +6614,7 @@ function fillItems(p, obj) {
       }
     }
   });
+  items.dup = Math.max(0, seen - items.length);
   (Array.isArray(obj.followups) ? obj.followups : []).forEach(fu => {
     const st = stepOf(fu && fu.step), q = asText(fu && (fu.question || fu.q || fu)); if (!q) return;
     const key = st ? st.s.key : 'misc';
@@ -6519,16 +6666,17 @@ function fillApply(p, items) {
 }
 
 function fillHtml(p) {
-  const st = fillState(p), docs = st.docs, hasText = docs.length || (st.paste || '').trim();
+  const st = fillState(p), docs = st.docs, hasText = docs.some(d => (d.text || '').trim()) || (st.paste || '').trim(), missing = stillMissing(p), answered = fillQuestions(p).qs.some(q => fillCurrent(q, p));
   const head = `<div class="sec-branch">From a call</div><div class="sec-head"><h2>Fill this plan from a call</h2></div>
-    <p class="sec-intro">For a call you had without the plan open. Your own AI (ChatGPT, Claude, Gemini or Copilot) reads the transcript, checks a few things with you, then answers this plan's questions. You check every answer before it goes in. Nothing is sent from this page, and the transcript isn't saved.</p>`;
+    <p class="sec-intro">For a call you had without the plan open, or several. Your own AI (ChatGPT, Claude, Gemini or Copilot) reads the transcript, checks a few things with you, then answers this plan's questions. You check every answer before it goes in. Nothing is sent from this page, and the transcript isn't saved.</p>
+    ${answered && missing ? `<p class="fill-gap">This plan already has answers, so your AI is told what's there and fills the gaps. Another call coming? <button class="qs-more" data-action="fill-missing">Copy what's still missing</button> to bring with you.</p>` : ''}`;
   if (st.items) {
     const order = ['Account basics'].concat(fillQuestions(p).steps.map(x => x.s.title), ['Notes to sort']), groups = [];
     st.items.forEach((it, i) => { let g = groups.find(x => x.step === it.step); if (!g) groups.push(g = { step: it.step, list: [] }); g.list.push([it, i]); });
     groups.sort((x, y) => order.indexOf(x.step) - order.indexOf(y.step));
     const on = st.items.filter(x => x.on).length;
     return head + `<div class="fill-review">
-      <div class="fill-bar"><b>${st.items.length} answer${st.items.length === 1 ? '' : 's'} found.</b> Untick anything that's wrong. Answers marked “Check with them” also go in that step's notes, so you can confirm them.${(st.paste || '').trim() || st.docs.length ? ' Every quote was checked against the transcript.' : ' Quotes weren\'t checked: the transcript isn\'t on this page.'}
+      <div class="fill-bar"><b>${st.items.length} new answer${st.items.length === 1 ? '' : 's'} found${st.items.dup ? `, plus ${st.items.dup} already in the plan` : ''}.</b> Untick anything that's wrong. Answers marked “Check with them” also go in that step's notes, so you can confirm them.${(st.paste || '').trim() || st.docs.length ? ' Every quote was checked against the transcript.' : ' Quotes weren\'t checked: the transcript isn\'t on this page.'}
         <span class="fill-bar-act"><button class="qs-more" data-action="fill-tick" data-on="1">Tick all</button><button class="qs-more" data-action="fill-tick" data-on="">Untick all</button></span></div>
       ${st.items.length ? groups.map(g => `<div class="fill-group"><div class="fill-step">${esc(g.step)}</div>${g.list.map(([it, i]) => `<label class="fill-item ${it.on ? 'on' : ''}"><input type="checkbox" data-fill-item="${i}" ${it.on ? 'checked' : ''}>
         <span class="fill-body"><span class="fill-q">${esc(it.label)}${it.sure ? '' : '<span class="fill-flag">Check with them</span>'}${it.qmiss ? `<span class="fill-flag warn">${it.momentMiss ? 'Not their exact words: not found in the transcript' : 'Quote not found in the transcript'}</span>` : ''}${it.addOn ? '<span class="fill-flag add">Adds this step</span>' : ''}</span>
@@ -6540,14 +6688,21 @@ function fillHtml(p) {
   return head + `
     <div class="fill-step-card"><div class="fill-num">1</div><div class="fill-main">
       <div class="field-label">Add the transcript</div>
-      <label class="fill-drop" data-drop="docs"><input type="file" data-fill-file="docs" multiple accept=".txt,.vtt,.srt,.md,.rtf,.docx,.csv,.json,text/*" hidden>Drop the transcript file here, or <u>choose a file</u>. Zoom, Teams, Granola and Word files all work. Add their own documents too, like a strategic plan, so the plan uses their words.</label>
-      ${docs.length ? `<div class="fill-docs">${docs.map((d, i) => `<span class="fill-doc">${esc(d.name)} <small>${Math.max(1, Math.round(d.text.length / 1000))}k characters</small><button class="x" data-action="fill-remove-doc" data-idx="${i}" title="Remove">&times;</button></span>`).join('')}</div>` : ''}
-      <textarea data-fill="paste" placeholder="Or paste the transcript here" style="min-height:${(st.paste || '').trim() ? 160 : 72}px">${esc(st.paste)}</textarea>
+      <div class="help">Had more than one call with them? Add each one and give it its date. The newest call wins where they differ.</div>
+      <label class="fill-drop" data-drop="docs"><input type="file" data-fill-file="docs" multiple accept=".txt,.vtt,.srt,.md,.rtf,.docx,.csv,.json,text/*" hidden>Drop transcript files here, or <u>choose files</u>. Zoom, Teams, Granola and Word files all work. Add their own documents too, like a strategic plan, so the plan uses their words.</label>
+      ${docs.filter(d => !d.pasted).length ? `<div class="fill-calls">${docs.map((d, i) => d.pasted ? '' : `<div class="fill-call"><span class="fill-doc">${esc(d.name)} <small>${Math.max(1, Math.round(d.text.length / 1000))}k characters</small><button class="x" data-action="fill-remove-doc" data-idx="${i}" title="Remove">&times;</button></span>
+        <select data-fill-doc="${i}" data-k="kind" aria-label="What this file is"><option value="call" ${d.kind !== 'doc' ? 'selected' : ''}>A call</option><option value="doc" ${d.kind === 'doc' ? 'selected' : ''}>Their document</option></select>
+        ${d.kind !== 'doc' ? `<label class="fill-date">Call date <input type="date" data-fill-doc="${i}" data-k="date" value="${esc(d.date || '')}"></label>` : ''}</div>`).join('')}</div>` : ''}
+      <textarea data-fill="paste" placeholder="Or paste a transcript here" style="min-height:${(st.paste || '').trim() ? 160 : 72}px">${esc(st.paste)}</textarea>
+      <label class="fill-date">Call date <span>optional</span> <input type="date" data-fill="pasteDate" value="${esc(st.pasteDate || '')}"></label>
+      ${docs.map((d, i) => d.pasted ? `<div class="fill-call pasted"><div class="fill-call-head"><b>Another call</b><label class="fill-date">Call date <input type="date" data-fill-doc="${i}" data-k="date" value="${esc(d.date || '')}"></label><button class="x" data-action="fill-remove-doc" data-idx="${i}" title="Remove">&times;</button></div>
+        <textarea data-fill-doc="${i}" data-k="text" placeholder="Paste this call's transcript here" style="min-height:${(d.text || '').trim() ? 160 : 72}px">${esc(d.text)}</textarea></div>` : '').join('')}
+      <button class="qs-more" data-action="fill-add-call" style="margin-top:8px">+ Paste another call</button>
     </div></div>
     <div class="fill-step-card"><div class="fill-num">2</div><div class="fill-main">
       <div class="field-label">Copy it into your AI</div>
       <div class="help">Paste it into ChatGPT, Claude, Gemini or Copilot and send. It asks you up to five quick questions, one at a time (who was on the call first), then gives you a box of code. Answer in a few words, or reply “just give me the code”. Use your company account if you have one, since the call has customer details in it.</div>
-      <div class="fill-actions"><button class="btn primary" data-action="fill-copy" ${hasText ? '' : 'disabled'}>Copy for your AI</button><button class="btn" data-action="fill-copy-q">Copy the questions only</button></div>
+      <div class="fill-actions"><button class="btn primary" data-action="fill-copy" ${hasText ? '' : 'disabled'}>Copy for your AI</button><a class="btn" href="https://chatgpt.com/" target="_blank" rel="noopener">Open ChatGPT</a><a class="btn" href="https://claude.ai/new" target="_blank" rel="noopener">Open Claude</a><button class="btn ghost" data-action="fill-copy-q">Copy the questions only</button></div>
       ${st.copied ? `<div class="fill-ok">${esc(st.copied)}</div>` : ''}
       ${st.manual ? `<div class="help" style="margin-top:8px">This browser blocked copying. Select everything in the box (Ctrl+A or Cmd+A), copy it, then paste it into your AI.</div><textarea class="fill-manual" readonly>${esc(st.manual)}</textarea>` : ''}
       <div class="help" style="margin-top:8px">If your AI says the message is too long, attach the transcript file there instead, then paste “the questions only”.</div>
@@ -6565,10 +6720,12 @@ function fillHtml(p) {
 function fillClick(act, a, p) {
   const st = fillState(p);
   if (act === 'fill-remove-doc') { st.docs.splice(+a.dataset.idx, 1); renderWork(); return; }
+  if (act === 'fill-add-call') { st.docs.push({ name: 'Pasted call', text: '', kind: 'call', date: '', pasted: true }); renderWork(); const t = document.querySelectorAll('#work textarea[data-k=text]'); if (t.length) t[t.length - 1].focus(); return; }
+  if (act === 'fill-missing') { const t = stillMissing(p); copyText(t).then(ok => showToast(ok ? "Copied what's still missing. Paste it into your notes for the next call." : 'This browser blocked copying. Try again from the hosted page.')); return; }
   if (act === 'fill-copy' || act === 'fill-copy-q') {
     const text = fillPrompt(p, act === 'fill-copy');
     copyText(text).then(ok => {
-      st.copied = ok ? (act === 'fill-copy' ? 'Copied the questions and the transcript. Paste them into your AI and send.' : 'Copied the questions. Paste them into your AI with the transcript attached.') : '';
+      st.copied = ok ? (act === 'fill-copy' ? 'Copied. Now open a new chat in your AI, paste it (Ctrl+V or Cmd+V) and send.' : 'Copied the questions. Open a new chat in your AI, attach the transcript, paste and send.') : '';   // plain words, no "clipboard" (Scott F, Nov 25)
       st.manual = ok ? '' : text;
       renderWork();
       const m = document.querySelector('#work .fill-manual'); if (m) { m.focus(); m.select(); }
